@@ -1,32 +1,103 @@
 "use client";
+
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/client";
 import { Msg } from "@/components/ui";
+import "./login.css";
 
 export default function Login() {
   const router = useRouter();
-  const [f, setF] = useState({ username: "", password: "" });
+
+  const [f, setF] = useState({
+    username: "",
+    password: "",
+  });
+
   const [err, setErr] = useState("");
   const [busy, setBusy] = useState(false);
+
   async function enviar(e: React.FormEvent) {
-    e.preventDefault(); setBusy(true); setErr("");
-    try { await api("/auth/login", { json: f }); router.push("/dashboard"); }
-    catch (x) { setErr((x as Error).message); setBusy(false); }
+    e.preventDefault();
+    setBusy(true);
+    setErr("");
+
+    try {
+      await api("/auth/login", { json: f });
+      router.push("/dashboard");
+    } catch (x) {
+      setErr((x as Error).message);
+      setBusy(false);
+    }
   }
+
   return (
-    <main className="flex min-h-screen items-center justify-center p-4">
-      <form onSubmit={enviar} className="card w-full max-w-sm space-y-4">
+    <main className="login-page">
+      <form onSubmit={enviar} className="login-card">
+
         <div>
-          <h1 className="text-xl font-semibold text-brand-700">BiblioScorza</h1>
-          <p className="text-sm text-slate-500">Ingresa con tu usuario de biblioteca</p>
+          <h1 className="login-title">
+            BiblioScorza
+          </h1>
+
+          <p className="login-subtitle">
+            Ingresa con tu usuario de biblioteca
+          </p>
         </div>
-        <label className="block"><span className="label">Usuario</span>
-          <input className="input" autoFocus autoComplete="username" value={f.username} onChange={(e) => setF({ ...f, username: e.target.value })} required /></label>
-        <label className="block"><span className="label">Contraseña</span>
-          <input className="input" type="password" autoComplete="current-password" value={f.password} onChange={(e) => setF({ ...f, password: e.target.value })} required /></label>
-        <Msg type="error">{err}</Msg>
-        <button className="btn w-full" disabled={busy}>{busy ? "Ingresando…" : "Ingresar"}</button>
+
+        <label>
+          <span className="login-label">
+            Usuario
+          </span>
+
+          <input
+            className="login-input"
+            autoFocus
+            autoComplete="username"
+            value={f.username}
+            onChange={(e) =>
+              setF({
+                ...f,
+                username: e.target.value,
+              })
+            }
+            required
+          />
+        </label>
+
+        <label>
+          <span className="login-label">
+            Contraseña
+          </span>
+
+          <input
+            className="login-input"
+            type="password"
+            autoComplete="current-password"
+            value={f.password}
+            onChange={(e) =>
+              setF({
+                ...f,
+                password: e.target.value,
+              })
+            }
+            required
+          />
+        </label>
+
+        {err && (
+          <div className="login-error">
+            <Msg type="error">{err}</Msg>
+          </div>
+        )}
+
+        <button
+          className="login-button"
+          disabled={busy}
+        >
+          {busy ? "Ingresando…" : "Ingresar"}
+        </button>
+
       </form>
     </main>
   );
