@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:orientation="vertical" android:padding="20dp">
+        <TextView style="@style/BsTitle" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Devolución" />
+        <Button android:id="@+id/btnScan" style="@style/BsButton" android:text="Escanear QR del ejemplar" />
+        <TextView android:id="@+id/tvDatos" style="@style/BsText" />
+        <Spinner android:id="@+id/spResultado" style="@style/BsInput" android:visibility="gone" />
+        <EditText android:id="@+id/etObs" style="@style/BsInput" android:hint="Observaciones" android:inputType="textMultiLine|textCapSentences" android:visibility="gone" />
+        <TextView android:id="@+id/tvMsg" style="@style/BsText" />
+        <Button android:id="@+id/btnConfirmar" style="@style/BsButton" android:text="Confirmar devolución" android:visibility="gone" />
+    </LinearLayout>
+</ScrollView>

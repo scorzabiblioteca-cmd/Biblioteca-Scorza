@@ -1,0 +1,8 @@
+<resources>
+    <style name="Theme.BiblioScorza" parent="Theme.Material3.Light.NoActionBar">
+        <item name="colorPrimary">#24664A</item>
+        <item name="colorOnPrimary">#FFFFFF</item>
+        <item name="android:statusBarColor">#1C503A</item>
+        <item name="android:windowBackground">#F6F5F1</item>
+    </style>
+</resources>

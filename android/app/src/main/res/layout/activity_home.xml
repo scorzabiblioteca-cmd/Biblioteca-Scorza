@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:orientation="vertical" android:padding="20dp">
+        <TextView style="@style/BsTitle" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Biblioteca" />
+        <TextView android:id="@+id/tvUsuario" style="@style/BsText" />
+        <Button android:id="@+id/btnRegistrar" style="@style/BsButtonOutline" android:text="Registrar libro" />
+        <Button android:id="@+id/btnEscanearIsbn" style="@style/BsButton" android:text="Escanear ISBN (registro rápido)" />
+        <Button android:id="@+id/btnEscanearEjemplar" style="@style/BsButton" android:text="Escanear ejemplar" />
+        <Button android:id="@+id/btnPrestamo" style="@style/BsButton" android:text="Préstamo" />
+        <Button android:id="@+id/btnDevolucion" style="@style/BsButton" android:text="Devolución" />
+        <Button android:id="@+id/btnBuscar" style="@style/BsButtonOutline" android:text="Buscar" />
+        <Button android:id="@+id/btnSalir" style="@style/BsButtonOutline" android:text="Cerrar sesión" />
+    </LinearLayout>
+</ScrollView>

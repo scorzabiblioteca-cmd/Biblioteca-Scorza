@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:orientation="vertical" android:padding="20dp">
+        <TextView style="@style/BsTitle" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Registrar libro" />
+        <EditText android:id="@+id/etIsbn" style="@style/BsInput" android:hint="ISBN" android:inputType="number" />
+        <Button android:id="@+id/btnScanIsbn" style="@style/BsButtonOutline" android:text="Escanear ISBN" />
+        <EditText android:id="@+id/etTitulo" style="@style/BsInput" android:hint="Título *" android:inputType="textCapSentences" />
+        <EditText android:id="@+id/etSubtitulo" style="@style/BsInput" android:hint="Subtítulo" android:inputType="textCapSentences" />
+        <EditText android:id="@+id/etAutor" style="@style/BsInput" android:hint="Autor(es), separados por coma" android:inputType="textCapWords" />
+        <EditText android:id="@+id/etEditorial" style="@style/BsInput" android:hint="Editorial" android:inputType="textCapWords" />
+        <EditText android:id="@+id/etCategoria" style="@style/BsInput" android:hint="Categoría" android:inputType="textCapSentences" />
+        <EditText android:id="@+id/etAnio" style="@style/BsInput" android:hint="Año de publicación" android:inputType="number" />
+        <EditText android:id="@+id/etEdicion" style="@style/BsInput" android:hint="Edición" android:inputType="text" />
+        <Spinner android:id="@+id/spNivel" style="@style/BsInput" />
+        <EditText android:id="@+id/etGrado" style="@style/BsInput" android:hint="Grado recomendado (1 a 6)" android:inputType="number" />
+        <Spinner android:id="@+id/spTipo" style="@style/BsInput" />
+        <Spinner android:id="@+id/spPrefijo" style="@style/BsInput" />
+        <EditText android:id="@+id/etCantidad" style="@style/BsInput" android:hint="Cantidad" android:inputType="number" android:text="1" />
+        <Spinner android:id="@+id/spUbicacion" style="@style/BsInput" />
+        <EditText android:id="@+id/etDescripcion" style="@style/BsInput" android:hint="Descripción" android:inputType="textMultiLine|textCapSentences" android:minLines="2" />
+        <EditText android:id="@+id/etObs" style="@style/BsInput" android:hint="Observaciones" android:inputType="textMultiLine|textCapSentences" android:minLines="2" />
+        <Button android:id="@+id/btnFoto" style="@style/BsButtonOutline" android:text="Tomar foto" />
+        <ImageView android:id="@+id/ivFoto" android:layout_width="120dp" android:layout_height="160dp"
+            android:layout_marginTop="8dp" android:scaleType="centerCrop" android:visibility="gone" android:contentDescription="Portada" />
+        <TextView android:id="@+id/tvFotoEstado" style="@style/BsText" />
+        <TextView android:id="@+id/tvError" style="@style/BsText" android:textColor="#B91C1C" />
+        <Button android:id="@+id/btnGuardar" style="@style/BsButton" android:text="Guardar libro" />
+    </LinearLayout>
+</ScrollView>

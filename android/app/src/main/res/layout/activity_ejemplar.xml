@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:orientation="vertical" android:padding="20dp">
+        <ImageView android:id="@+id/ivPortada" android:layout_width="120dp" android:layout_height="160dp"
+            android:scaleType="centerCrop" android:visibility="gone" android:contentDescription="Portada" />
+        <TextView android:id="@+id/tvTitulo" style="@style/BsTitle" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" />
+        <TextView android:id="@+id/tvDatos" style="@style/BsText" />
+        <ImageView android:id="@+id/ivQr" android:layout_width="200dp" android:layout_height="200dp"
+            android:layout_gravity="center_horizontal" android:layout_marginTop="12dp" android:contentDescription="Código QR" />
+        <TextView android:id="@+id/tvCodigo" style="@style/BsText" android:gravity="center" android:textStyle="bold" android:textSize="18sp" />
+        <TextView android:id="@+id/tvError" style="@style/BsText" android:textColor="#B91C1C" />
+        <LinearLayout android:id="@+id/acciones" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" />
+    </LinearLayout>
+</ScrollView>
