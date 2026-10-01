@@ -18,3 +18,12 @@ export function normalizarIsbn(raw: string): string | null {
   }
   return null;
 }
+
+export function isbn10From13(isbn: string): string | undefined {
+  if (!isbn.startsWith("978")) return undefined;
+  const base = isbn.slice(3, 12);
+  let sum = 0;
+  for (let index = 0; index < base.length; index++) sum += Number(base[index]) * (10 - index);
+  const checkDigit = (11 - (sum % 11)) % 11;
+  return `${base}${checkDigit === 10 ? "X" : checkDigit}`;
+}

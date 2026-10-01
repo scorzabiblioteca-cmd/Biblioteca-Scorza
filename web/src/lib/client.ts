@@ -2,11 +2,11 @@
 
 export type Paged<T> = { items: T[]; page: number; pageSize: number; total: number };
 
-export async function api<T = any>(path: string, opts: { method?: string; json?: unknown } = {}): Promise<T> {
+export async function api<T = any>(path: string, opts: { method?: string; json?: unknown; formData?: FormData } = {}): Promise<T> {
   const res = await fetch(`/api${path}`, {
-    method: opts.method ?? (opts.json ? "POST" : "GET"),
+    method: opts.method ?? (opts.json || opts.formData ? "POST" : "GET"),
     headers: opts.json ? { "Content-Type": "application/json" } : undefined,
-    body: opts.json ? JSON.stringify(opts.json) : undefined,
+    body: opts.formData ?? (opts.json ? JSON.stringify(opts.json) : undefined),
     credentials: "same-origin",
   });
   let data: any = null;

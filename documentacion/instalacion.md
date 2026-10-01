@@ -9,13 +9,14 @@
 ## 3. Web + API
 ```bash
 cd web
-cp .env.example .env.local      # completa DATABASE_URL, JWT_SECRET, CLOUDINARY_*, ADMIN_*
+cp .env.example .env.local      # completa DATABASE_URL, JWT_SECRET, GOOGLE_BOOKS_API_KEY, CLOUDINARY_*, ADMIN_*
 npm install
 npm run db:migrate              # aplica database/schema.sql (solo si la BD está vacía) + seeds
 npm run db:seed-admin           # crea el usuario ADMIN de ADMIN_USERNAME / ADMIN_PASSWORD
 npm run dev                     # http://localhost:3000
 ```
 Requiere Node 20.6+. Genera `JWT_SECRET` con `openssl rand -base64 48`.
+Para autocompletar libros por ISBN, habilita **Books API** en Google Cloud, crea una clave API y configúrala como `GOOGLE_BOOKS_API_KEY` en `web/.env.local`. Restringe la clave a Books API y reinicia el servidor después de cambiarla.
 Nunca subas `.env.local` a GitHub (ya está en `.gitignore`).
 
 ## 4. Android

@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
+    "csv-parse": "^7.0.3",
     "jose": "^5.9.6",
     "next": "^15.1.0",
     "pg": "^8.13.1",
