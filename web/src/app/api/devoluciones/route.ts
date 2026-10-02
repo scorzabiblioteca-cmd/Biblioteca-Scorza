@@ -1,7 +1,40 @@
-import { withAuth, created, body, HttpError } from "@/lib/http";
-import { q1, tx } from "@/lib/db";
+import { withAuth, ok, created, body, HttpError, page } from "@/lib/http";
+import { q, q1, tx, pool } from "@/lib/db";
 import { devolucionSchema } from "@/lib/validators";
 import { audit } from "@/lib/audit";
+
+const HISTORIAL_FROM = `
+  FROM prestamo_detalles pd
+  JOIN prestamos p ON p.id = pd.prestamo_id
+  LEFT JOIN ejemplares e ON e.id = pd.ejemplar_id
+  LEFT JOIN existencias x ON x.id = pd.existencia_id
+  JOIN libros l ON l.id = COALESCE(e.libro_id, x.libro_id)
+  LEFT JOIN alumnos al ON al.id = p.alumno_id
+  LEFT JOIN profesores pr ON pr.id = p.profesor_id`;
+
+export const GET = withAuth(["BIBLIOTECARIO"], async (req) => {
+  const { page: pageN, pageSize, offset } = page(req);
+  const termino = req.nextUrl.searchParams.get("q")?.trim();
+  const params: unknown[] = [];
+  const filtros = ["pd.estado IN ('DEVUELTO', 'PERDIDO')"];
+  if (termino) {
+    params.push(`%${termino}%`);
+    filtros.push(`concat_ws(' ', l.titulo, e.codigo_interno, al.nombres, al.apellidos, pr.nombres, pr.apellidos,
+      al.dni, pr.dni, pd.observaciones_devolucion) ILIKE $1`);
+  }
+  const where = `WHERE ${filtros.join(" AND ")}`;
+  const total = (await q1<{ n: number }>(pool, `SELECT count(*)::int AS n ${HISTORIAL_FROM} ${where}`, params))!.n;
+  const items = await q(
+    pool,
+    `SELECT pd.id, pd.fecha_devolucion AS "fechaDevolucion", pd.resultado_devolucion AS resultado,
+       pd.observaciones_devolucion AS observaciones, l.titulo, e.codigo_interno AS "codigoInterno",
+       COALESCE(al.nombres || ' ' || al.apellidos, pr.nombres || ' ' || pr.apellidos) AS prestatario
+     ${HISTORIAL_FROM} ${where}
+     ORDER BY pd.fecha_devolucion DESC, pd.id DESC LIMIT ${pageSize} OFFSET ${offset}`,
+    params
+  );
+  return ok({ items, page: pageN, pageSize, total });
+});
 
 export const POST = withAuth(["BIBLIOTECARIO"], async (req, { session }) => {
   const d = await body(req, devolucionSchema);

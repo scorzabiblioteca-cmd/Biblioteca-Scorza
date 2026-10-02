@@ -5,7 +5,7 @@ import { useState } from "react";
 
 const LINKS = [
   ["/dashboard", "Panel"], ["/libros", "Libros"], ["/ejemplares", "Ejemplares"], ["/prestamos", "Préstamos"],
-  ["/devoluciones", "Devoluciones"], ["/alumnos", "Alumnos"], ["/reportes", "Reportes"],
+  ["/devoluciones", "Devoluciones"], ["/alumnos", "Alumnos"], ["/profesores", "Profesores"], ["/reportes", "Reportes"],
 ];
 
 export default function Sidebar() {
