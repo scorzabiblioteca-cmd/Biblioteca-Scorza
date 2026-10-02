@@ -16,6 +16,7 @@ export default function Login() {
 
   const [err, setErr] = useState("");
   const [busy, setBusy] = useState(false);
+  const [mostrarPassword, setMostrarPassword] = useState(false);
 
   async function enviar(e: React.FormEvent) {
     e.preventDefault();
@@ -65,25 +66,37 @@ export default function Login() {
           />
         </label>
 
-        <label>
-          <span className="login-label">
+        <div>
+          <label className="login-label" htmlFor="login-password">
             Contraseña
-          </span>
+          </label>
 
-          <input
-            className="login-input"
-            type="password"
-            autoComplete="current-password"
-            value={f.password}
-            onChange={(e) =>
-              setF({
-                ...f,
-                password: e.target.value,
-              })
-            }
-            required
-          />
-        </label>
+          <div className="login-password-field">
+            <input
+              id="login-password"
+              className="login-input"
+              type={mostrarPassword ? "text" : "password"}
+              autoComplete="current-password"
+              value={f.password}
+              onChange={(e) =>
+                setF({
+                  ...f,
+                  password: e.target.value,
+                })
+              }
+              required
+            />
+            <button
+              className="login-password-toggle"
+              type="button"
+              aria-label={mostrarPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+              aria-pressed={mostrarPassword}
+              onClick={() => setMostrarPassword((mostrar) => !mostrar)}
+            >
+              {mostrarPassword ? "Ocultar" : "Mostrar"}
+            </button>
+          </div>
+        </div>
 
         {err && (
           <div className="login-error">

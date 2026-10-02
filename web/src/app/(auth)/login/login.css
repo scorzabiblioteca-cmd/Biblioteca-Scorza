@@ -93,6 +93,34 @@
   box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
 }
 
+.login-password-field {
+  position: relative;
+}
+
+.login-password-field .login-input {
+  padding-right: 5.5rem;
+}
+
+.login-password-toggle {
+  position: absolute;
+  top: 50%;
+  right: 0.8rem;
+  transform: translateY(-50%);
+  padding: 0.25rem;
+  color: #1d4ed8;
+  background: transparent;
+  border: 0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.login-password-toggle:focus-visible {
+  border-radius: 4px;
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+}
+
 /* Botón */
 .login-button {
   width: 100%;
