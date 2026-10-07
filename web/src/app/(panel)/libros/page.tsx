@@ -71,25 +71,25 @@ export default function Libros() {
         </button>
       </div>
       {vista === "tabla" ? (
-        <div className="card overflow-x-auto p-0">
-          <table className="w-full min-w-[820px]">
+        <div className="card responsive-table-shell overflow-x-auto p-0">
+          <table className="responsive-table w-full min-w-[820px]">
             <thead className="border-b border-slate-200 bg-slate-50"><tr>
               {["", "Título", "Autor", "ISBN", "Categoría", "Control", "Total", "Disp.", "Prest.", "Ubicación", "Estado"].map((h) => <th key={h} className="th">{h}</th>)}
             </tr></thead>
             <tbody className="divide-y divide-slate-100">
               {data?.items.map((l) => (
                 <tr key={l.id} className="hover:bg-slate-50">
-                  <td className="td w-12">{l.imagenUrl ? <img src={l.imagenUrl} alt="" className="h-12 w-9 rounded object-cover" /> : <div className="h-12 w-9 rounded bg-slate-100" />}</td>
-                  <td className="td font-medium"><Link href={`/libros/${l.id}`} className="text-brand-700 hover:underline">{l.titulo}</Link></td>
-                  <td className="td">{l.autores ?? "—"}</td>
-                  <td className="td tabular-nums">{l.isbn ?? "—"}</td>
-                  <td className="td">{l.categoria ?? "—"}</td>
-                  <td className="td">{l.tipoControl === "CANTIDAD" ? "Cantidad" : "Individual"}</td>
-                  <td className="td tabular-nums">{l.total}</td>
-                  <td className="td tabular-nums">{l.disponibles}</td>
-                  <td className="td tabular-nums">{l.prestados}</td>
-                  <td className="td">{l.ubicaciones ?? "—"}</td>
-                  <td className="td"><Badge v={l.estado} /></td>
+                  <td className="td w-12" data-label="">{l.imagenUrl ? <img src={l.imagenUrl} alt="" className="h-12 w-9 rounded object-cover" /> : <div className="h-12 w-9 rounded bg-slate-100" />}</td>
+                  <td className="td font-medium" data-label="Título"><Link href={`/libros/${l.id}`} className="text-brand-700 hover:underline">{l.titulo}</Link></td>
+                  <td className="td" data-label="Autor">{l.autores ?? "—"}</td>
+                  <td className="td tabular-nums" data-label="ISBN">{l.isbn ?? "—"}</td>
+                  <td className="td" data-label="Categoría">{l.categoria ?? "—"}</td>
+                  <td className="td" data-label="Control">{l.tipoControl === "CANTIDAD" ? "Cantidad" : "Individual"}</td>
+                  <td className="td tabular-nums" data-label="Total">{l.total}</td>
+                  <td className="td tabular-nums" data-label="Disponibles">{l.disponibles}</td>
+                  <td className="td tabular-nums" data-label="Prestados">{l.prestados}</td>
+                  <td className="td" data-label="Ubicación">{l.ubicaciones ?? "—"}</td>
+                  <td className="td" data-label="Estado"><Badge v={l.estado} /></td>
                 </tr>
               ))}
               {data && data.items.length === 0 && <tr><td className="td text-slate-500" colSpan={11}>No hay libros con esos criterios. Registra el primero con «Registrar libro».</td></tr>}

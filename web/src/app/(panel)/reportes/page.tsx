@@ -26,19 +26,19 @@ export default function Reportes() {
     <>
       <PageTitle>Reportes</PageTitle>
       <div className="card mb-4 flex flex-wrap items-end gap-3">
-        <label><span className="label">Reporte</span><select className="input" value={tipo} onChange={(e) => setTipo(e.target.value)}>{TIPOS.map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select></label>
+        <label className="w-full sm:w-auto sm:min-w-52"><span className="label">Reporte</span><select className="input" value={tipo} onChange={(e) => setTipo(e.target.value)}>{TIPOS.map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select></label>
         {["movimientos", "prestamos-alumno"].includes(tipo) && (<>
           <label><span className="label">Desde</span><input type="date" className="input" value={desde} onChange={(e) => setDesde(e.target.value)} /></label>
           <label><span className="label">Hasta</span><input type="date" className="input" value={hasta} onChange={(e) => setHasta(e.target.value)} /></label></>)}
-        <button className="btn" onClick={generar}>Generar</button>
-        <a className="btn-ghost" href={`/api/reportes/${tipo}${qs("&formato=csv")}`}>Descargar CSV (Excel)</a>
+        <button className="btn w-full sm:w-auto" onClick={generar}>Generar</button>
+        <a className="btn-ghost w-full sm:w-auto" href={`/api/reportes/${tipo}${qs("&formato=csv")}`}>Descargar CSV (Excel)</a>
       </div>
       <Msg type="error">{err}</Msg>
       {rows && (
-        <div className="card overflow-x-auto p-0">
-          <table className="w-full"><thead className="border-b bg-slate-50"><tr>{cols.map((c) => <th key={c} className="th">{c}</th>)}</tr></thead>
+        <div className="card responsive-table-shell overflow-x-auto p-0">
+            <table className="responsive-table w-full"><thead className="border-b bg-slate-50"><tr>{cols.map((c) => <th key={c} className="th">{c}</th>)}</tr></thead>
             <tbody className="divide-y divide-slate-100">
-              {rows.map((r, i) => <tr key={i}>{cols.map((c) => <td key={c} className="td">{r[c] == null ? "—" : String(r[c])}</td>)}</tr>)}
+                {rows.map((r, i) => <tr key={i}>{cols.map((c) => <td key={c} className="td" data-label={c}>{r[c] == null ? "—" : String(r[c])}</td>)}</tr>)}
               {rows.length === 0 && <tr><td className="td text-slate-500">Sin datos para este reporte.</td></tr>}
             </tbody></table>
         </div>

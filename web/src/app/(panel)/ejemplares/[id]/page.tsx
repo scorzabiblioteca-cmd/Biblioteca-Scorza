@@ -61,13 +61,13 @@ export default function EjemplarDetalle({ params }: { params: Promise<{ id: stri
           </div>
         </div>
       </div>
-      <div className="card mt-4 overflow-x-auto p-0 print:hidden">
-        <table className="w-full"><thead className="border-b bg-slate-50"><tr>{["Fecha", "Evento", "Detalle", "Registró"].map((x) => <th key={x} className="th">{x}</th>)}</tr></thead>
+      <div className="card responsive-table-shell mt-4 overflow-x-auto p-0 print:hidden">
+        <table className="responsive-table w-full"><thead className="border-b bg-slate-50"><tr>{["Fecha", "Evento", "Detalle", "Registró"].map((x) => <th key={x} className="th">{x}</th>)}</tr></thead>
           <tbody className="divide-y divide-slate-100">
             {h.map((x) => (
-              <tr key={x.id}><td className="td whitespace-nowrap">{fechaHora(x.createdAt)}</td>
-                <td className="td">{x.tipoEvento.replace(/_/g, " ").toLowerCase()}{x.estadoNuevo ? ` → ${x.estadoNuevo}` : ""}</td>
-                <td className="td">{x.prestatario ? `${x.prestatario}. ` : ""}{x.detalle ?? ""}</td><td className="td">{x.usuario}</td></tr>))}
+              <tr key={x.id}><td className="td whitespace-nowrap" data-label="Fecha">{fechaHora(x.createdAt)}</td>
+                <td className="td" data-label="Evento">{x.tipoEvento.replace(/_/g, " ").toLowerCase()}{x.estadoNuevo ? ` → ${x.estadoNuevo}` : ""}</td>
+                <td className="td" data-label="Detalle">{x.prestatario ? `${x.prestatario}. ` : ""}{x.detalle ?? ""}</td><td className="td" data-label="Registró">{x.usuario}</td></tr>))}
           </tbody></table>
       </div>
     </>

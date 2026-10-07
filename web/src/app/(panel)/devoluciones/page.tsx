@@ -63,17 +63,17 @@ export default function Devoluciones() {
       </form>
       <Msg type={msg?.t ?? "ok"}>{msg?.m}</Msg>
       {resultados.length > 0 && !p && (
-        <div className="card mt-4 max-w-3xl overflow-x-auto p-0">
-          <table className="w-full min-w-[600px]"><thead className="border-b bg-slate-50"><tr>
+        <div className="card responsive-table-shell mt-4 max-w-3xl overflow-x-auto p-0">
+          <table className="responsive-table w-full min-w-[600px]"><thead className="border-b bg-slate-50"><tr>
             {["Libro", "Código", "Prestatario", "DNI / código", "Vence", ""].map((h) => <th key={h} className="th">{h}</th>)}
           </tr></thead><tbody className="divide-y divide-slate-100">
             {resultados.map((item) => <tr key={item.detalleId}>
-              <td className="td font-medium">{item.titulo}</td>
-              <td className="td font-mono text-sm">{item.codigoInterno ?? "Por cantidad"}</td>
-              <td className="td">{item.prestatario}</td>
-              <td className="td">{item.dni ?? "—"}{item.codigoAlumno ? ` / ${item.codigoAlumno}` : ""}</td>
-              <td className={`td whitespace-nowrap ${item.vencido ? "font-medium text-red-700" : ""}`}>{fecha(item.fechaPrevistaDevolucion)}{item.vencido ? " (vencido)" : ""}</td>
-              <td className="td"><button type="button" className="btn" onClick={() => setP(item)}>Seleccionar</button></td>
+              <td className="td font-medium" data-label="Libro">{item.titulo}</td>
+              <td className="td font-mono text-sm" data-label="Código">{item.codigoInterno ?? "Por cantidad"}</td>
+              <td className="td" data-label="Prestatario">{item.prestatario}</td>
+              <td className="td" data-label="DNI / código">{item.dni ?? "—"}{item.codigoAlumno ? ` / ${item.codigoAlumno}` : ""}</td>
+              <td className={`td whitespace-nowrap ${item.vencido ? "font-medium text-red-700" : ""}`} data-label="Vence">{fecha(item.fechaPrevistaDevolucion)}{item.vencido ? " (vencido)" : ""}</td>
+              <td className="td" data-label="Acción"><button type="button" className="btn" onClick={() => setP(item)}>Seleccionar</button></td>
             </tr>)}
           </tbody></table>
         </div>
@@ -101,20 +101,20 @@ export default function Devoluciones() {
             placeholder="Buscar libro, prestatario o código" value={busquedaHistorial}
             onChange={(e) => { setBusquedaHistorial(e.target.value); setPaginaHistorial(1); }} />
         </div>
-        <div className="card overflow-x-auto p-0">
-          <table className="w-full min-w-[720px]">
+        <div className="card responsive-table-shell overflow-x-auto p-0">
+          <table className="responsive-table w-full min-w-[720px]">
             <thead className="border-b bg-slate-50"><tr>
               {["Fecha", "Libro", "Código", "Prestatario", "Resultado", "Observaciones"].map((h) => <th key={h} className="th">{h}</th>)}
             </tr></thead>
             <tbody className="divide-y divide-slate-100">
               {historial?.items.map((item) => (
                 <tr key={item.id}>
-                  <td className="td whitespace-nowrap">{fechaHora(item.fechaDevolucion)}</td>
-                  <td className="td font-medium">{item.titulo}</td>
-                  <td className="td font-mono text-sm">{item.codigoInterno ?? "Por cantidad"}</td>
-                  <td className="td">{item.prestatario}</td>
-                  <td className="td">{item.resultado === "BUENO" ? "Buena condición" : item.resultado === "DANADO" ? "Dañado" : item.resultado === "PERDIDO" ? "Perdido" : "Deteriorado"}</td>
-                  <td className="td">{item.observaciones ?? "—"}</td>
+                  <td className="td whitespace-nowrap" data-label="Fecha">{fechaHora(item.fechaDevolucion)}</td>
+                  <td className="td font-medium" data-label="Libro">{item.titulo}</td>
+                  <td className="td font-mono text-sm" data-label="Código">{item.codigoInterno ?? "Por cantidad"}</td>
+                  <td className="td" data-label="Prestatario">{item.prestatario}</td>
+                  <td className="td" data-label="Resultado">{item.resultado === "BUENO" ? "Buena condición" : item.resultado === "DANADO" ? "Dañado" : item.resultado === "PERDIDO" ? "Perdido" : "Deteriorado"}</td>
+                  <td className="td" data-label="Observaciones">{item.observaciones ?? "—"}</td>
                 </tr>
               ))}
               {historial && historial.items.length === 0 && <tr><td className="td text-slate-500" colSpan={6}>No hay devoluciones registradas.</td></tr>}

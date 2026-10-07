@@ -80,17 +80,17 @@ export default function Prestamos() {
           </div>
         </form>
       </dialog>
-      <select className="input mb-3 max-w-xs" value={filtro} onChange={(e) => setFiltro(e.target.value)} aria-label="Filtro">
+      <select className="input mb-3 w-full sm:max-w-xs" value={filtro} onChange={(e) => setFiltro(e.target.value)} aria-label="Filtro">
         <option value="">Todos</option><option value="ACTIVO">Activos</option><option value="vencidos">Vencidos</option><option value="CERRADO">Cerrados</option>
       </select>
-      <div className="card overflow-x-auto p-0">
-        <table className="w-full min-w-[720px]"><thead className="border-b bg-slate-50"><tr>{["#", "Prestatario", "Libros", "Préstamo", "Devolver antes de", "Estado", "Registró"].map((h) => <th key={h} className="th">{h}</th>)}</tr></thead>
+      <div className="card responsive-table-shell overflow-x-auto p-0">
+        <table className="responsive-table w-full min-w-[720px]"><thead className="border-b bg-slate-50"><tr>{["#", "Prestatario", "Libros", "Préstamo", "Devolver antes de", "Estado", "Registró"].map((h) => <th key={h} className="th">{h}</th>)}</tr></thead>
           <tbody className="divide-y divide-slate-100">
             {data?.items.map((p) => (
-              <tr key={p.id}><td className="td">{p.id}</td><td className="td font-medium">{p.prestatario}</td><td className="td">{p.items}</td>
-                <td className="td">{fecha(p.fechaPrestamo)}</td>
-                <td className={`td ${p.vencido ? "font-medium text-red-700" : ""}`}>{fecha(p.fechaPrevistaDevolucion)}{p.vencido ? " (vencido)" : ""}</td>
-                <td className="td"><Badge v={p.estado === "CERRADO" ? "BAJA" : "PRESTADO"} /><span className="sr-only">{p.estado}</span></td><td className="td">{p.registradoPor}</td></tr>))}
+              <tr key={p.id}><td className="td" data-label="#">{p.id}</td><td className="td font-medium" data-label="Prestatario">{p.prestatario}</td><td className="td" data-label="Libros">{p.items}</td>
+                <td className="td" data-label="Préstamo">{fecha(p.fechaPrestamo)}</td>
+                <td className={`td ${p.vencido ? "font-medium text-red-700" : ""}`} data-label="Devolver antes de">{fecha(p.fechaPrevistaDevolucion)}{p.vencido ? " (vencido)" : ""}</td>
+                <td className="td" data-label="Estado"><Badge v={p.estado === "CERRADO" ? "BAJA" : "PRESTADO"} /><span className="sr-only">{p.estado}</span></td><td className="td" data-label="Registró">{p.registradoPor}</td></tr>))}
             {data && data.items.length === 0 && <tr><td className="td text-slate-500" colSpan={7}>No hay préstamos todavía.</td></tr>}
           </tbody></table>
       </div>

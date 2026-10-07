@@ -59,19 +59,19 @@ export default function LibroDetalle({ params }: { params: Promise<{ id: string 
           <select className="input" value={ubi} onChange={(e) => setUbi(e.target.value)}><option value="">Sin ubicación</option>{ubis.map((u) => <option key={u.id} value={u.id}>{u.codigo}</option>)}</select></label>
         <button className="btn">Agregar {indiv ? "ejemplar" : "stock"}</button>
       </form>
-      <div className="card mt-4 overflow-x-auto p-0">
+      <div className="card responsive-table-shell mt-4 overflow-x-auto p-0">
         {indiv ? (
-          <table className="w-full"><thead className="border-b bg-slate-50"><tr>{["Código", "Estado", "Condición", "Ubicación"].map((h) => <th key={h} className="th">{h}</th>)}</tr></thead>
+          <table className="responsive-table w-full"><thead className="border-b bg-slate-50"><tr>{["Código", "Estado", "Condición", "Ubicación"].map((h) => <th key={h} className="th">{h}</th>)}</tr></thead>
             <tbody className="divide-y divide-slate-100">
               {l.ejemplares.map((e: any) => (
-                <tr key={e.id}><td className="td font-medium"><Link className="text-brand-700 hover:underline" href={`/ejemplares/${e.id}`}>{e.codigoInterno}</Link></td>
-                  <td className="td"><Badge v={e.estado} /></td><td className="td">{e.condicion}</td><td className="td">{e.ubicacion ?? "—"}</td></tr>))}
+                <tr key={e.id}><td className="td font-medium" data-label="Código"><Link className="text-brand-700 hover:underline" href={`/ejemplares/${e.id}`}>{e.codigoInterno}</Link></td>
+                  <td className="td" data-label="Estado"><Badge v={e.estado} /></td><td className="td" data-label="Condición">{e.condicion}</td><td className="td" data-label="Ubicación">{e.ubicacion ?? "—"}</td></tr>))}
               {l.ejemplares.length === 0 && <tr><td className="td text-slate-500" colSpan={4}>Aún no hay ejemplares.</td></tr>}
             </tbody></table>
         ) : (
-          <table className="w-full"><thead className="border-b bg-slate-50"><tr>{["Ubicación", "Total", "Dañados", "Perdidos", "De baja"].map((h) => <th key={h} className="th">{h}</th>)}</tr></thead>
+          <table className="responsive-table w-full"><thead className="border-b bg-slate-50"><tr>{["Ubicación", "Total", "Dañados", "Perdidos", "De baja"].map((h) => <th key={h} className="th">{h}</th>)}</tr></thead>
             <tbody className="divide-y divide-slate-100">
-              {l.existencias.map((x: any) => <tr key={x.id}><td className="td">{x.ubicacion ?? "Sin ubicación"}</td><td className="td">{x.cantidadTotal}</td><td className="td">{x.cantidadDanada}</td><td className="td">{x.cantidadPerdida}</td><td className="td">{x.cantidadBaja}</td></tr>)}
+              {l.existencias.map((x: any) => <tr key={x.id}><td className="td" data-label="Ubicación">{x.ubicacion ?? "Sin ubicación"}</td><td className="td" data-label="Total">{x.cantidadTotal}</td><td className="td" data-label="Dañados">{x.cantidadDanada}</td><td className="td" data-label="Perdidos">{x.cantidadPerdida}</td><td className="td" data-label="De baja">{x.cantidadBaja}</td></tr>)}
             </tbody></table>
         )}
       </div>

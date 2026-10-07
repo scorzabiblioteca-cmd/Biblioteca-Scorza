@@ -30,9 +30,13 @@ export function Msg({ type, children }: { type: "ok" | "error"; children: React.
 
 export function PageTitle({ children, action }: { children: React.ReactNode; action?: React.ReactNode }) {
   return (
-    <div className="mb-5 flex flex-wrap items-center justify-between gap-3 print:hidden">
+    <div className="mb-4 flex flex-col gap-3 print:hidden sm:mb-5 sm:flex-row sm:items-center sm:justify-between">
       <h1 className="text-xl font-semibold text-slate-900">{children}</h1>
-      {action}
+      {action && (
+        <div className="flex w-full items-center gap-2 sm:w-auto [&>a]:flex-1 [&>button]:flex-1 sm:[&>a]:flex-none sm:[&>button]:flex-none">
+          {action}
+        </div>
+      )}
     </div>
   );
 }
