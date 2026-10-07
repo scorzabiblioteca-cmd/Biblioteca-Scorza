@@ -1,5 +1,6 @@
 node_modules/
 .next/
+web/.next-dev/
 .env
 .env.local
 *.log
