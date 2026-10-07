@@ -1,5 +1,6 @@
 "use client";
-import { useCallback, useEffect, useState } from "react";
+
+import { useCallback, useEffect, useRef, useState } from "react";
 import { api, fecha, Paged } from "@/lib/client";
 import { Badge, Msg, PageTitle } from "@/components/ui";
 import { AlumnoAutocomplete, type Alumno } from "@/components/AlumnoAutocomplete";
@@ -13,6 +14,7 @@ export default function Prestamos() {
   const [codigos, setCodigos] = useState("");
   const [formVersion, setFormVersion] = useState(0);
   const [msg, setMsg] = useState<{ t: "ok" | "error"; m: string } | null>(null);
+  const dialogRef = useRef<HTMLDialogElement>(null);
 
   const cargar = useCallback(() => {
     const p = new URLSearchParams({ pageSize: "30" });
@@ -33,18 +35,51 @@ export default function Prestamos() {
       await api("/prestamos", { json: { alumnoId: alumno.id, items } });
       setCantidades([]);
       setFormVersion((v) => v + 1);
-      setMsg({ t: "ok", m: "Préstamo registrado correctamente" }); setCodigos(""); setAlumno(null); cargar();
+      setMsg({ t: "ok", m: "Préstamo registrado correctamente" });
+      setCodigos("");
+      setAlumno(null);
+      dialogRef.current?.close();
+      cargar();
     } catch (x) { setMsg({ t: "error", m: (x as Error).message }); }
   }
   return (
     <>
-      <PageTitle>Préstamos</PageTitle>
-      <form onSubmit={crear} className="card mb-4 grid gap-3 sm:grid-cols-3">
-        <AlumnoAutocomplete value={alumno} onChange={setAlumno} />
-        <EjemplarAutocomplete key={formVersion} codigos={codigos} onChange={setCodigos} cantidades={cantidades} onCantidadesChange={setCantidades} />
-        <div className="sm:col-span-3 space-y-2"><Msg type={msg?.t ?? "ok"}>{msg?.m}</Msg><button className="btn">Registrar préstamo</button>
-          <p className="text-xs text-slate-500">Busca por título, código, ISBN o categoría y agrega los libros al préstamo.</p></div>
-      </form>
+      <PageTitle action={
+        <button type="button" className="btn" onClick={() => { setMsg(null); dialogRef.current?.showModal(); }}>
+          Registrar préstamo
+        </button>
+      }>Préstamos</PageTitle>
+      {msg?.t === "ok" && <Msg type="ok">{msg.m}</Msg>}
+      <dialog
+        ref={dialogRef}
+        aria-labelledby="prestamo-dialog-title"
+        className="m-auto max-h-[90dvh] w-[min(48rem,calc(100%-2rem))] overflow-y-auto rounded-xl border border-slate-200 bg-white p-0 text-slate-800 shadow-2xl backdrop:bg-slate-950/50"
+      >
+        <div className="flex items-start justify-between gap-4 border-b border-slate-200 px-5 py-4 sm:px-6">
+          <div>
+            <h2 id="prestamo-dialog-title" className="text-lg font-semibold text-slate-900">Registrar préstamo</h2>
+            <p className="mt-1 text-sm text-slate-500">Selecciona el alumno y los libros que se prestarán.</p>
+          </div>
+          <button
+            type="button"
+            className="rounded-md px-2 py-1 text-xl leading-none text-slate-500 hover:bg-slate-100 hover:text-slate-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
+            aria-label="Cerrar ventana"
+            onClick={() => dialogRef.current?.close()}
+          >
+            ×
+          </button>
+        </div>
+        <form onSubmit={crear} className="grid gap-4 p-5 sm:p-6">
+          <AlumnoAutocomplete value={alumno} onChange={setAlumno} />
+          <EjemplarAutocomplete key={formVersion} codigos={codigos} onChange={setCodigos} cantidades={cantidades} onCantidadesChange={setCantidades} />
+          {msg?.t === "error" && <Msg type="error">{msg.m}</Msg>}
+          <p className="text-xs text-slate-500">Busca por título, código, ISBN o categoría y agrega los libros al préstamo.</p>
+          <div className="flex flex-col-reverse gap-2 border-t border-slate-100 pt-4 sm:flex-row sm:justify-end">
+            <button type="button" className="btn-ghost" onClick={() => dialogRef.current?.close()}>Cancelar</button>
+            <button type="submit" className="btn">Confirmar préstamo</button>
+          </div>
+        </form>
+      </dialog>
       <select className="input mb-3 max-w-xs" value={filtro} onChange={(e) => setFiltro(e.target.value)} aria-label="Filtro">
         <option value="">Todos</option><option value="ACTIVO">Activos</option><option value="vencidos">Vencidos</option><option value="CERRADO">Cerrados</option>
       </select>

@@ -33,7 +33,7 @@ export default function LibroDetalle({ params }: { params: Promise<{ id: string 
   const indiv = l.tipoControl === "INDIVIDUAL";
   return (
     <>
-      <PageTitle action={<div className="flex gap-2"><button className="btn-ghost" onClick={archivar}>{l.estado === "ACTIVO" ? "Archivar" : "Restaurar"}</button><Link href="/libros" className="btn-ghost">Volver</Link></div>}>{l.titulo}</PageTitle>
+      <PageTitle action={<div className="flex gap-2"><Link href={`/libros/${id}/editar`} className="btn">Editar información</Link><button className="btn-ghost" onClick={archivar}>{l.estado === "ACTIVO" ? "Archivar" : "Restaurar"}</button><Link href="/libros" className="btn-ghost">Volver</Link></div>}>{l.titulo}</PageTitle>
       {msg && <div className="mb-3"><Msg type={msg.t}>{msg.m}</Msg></div>}
       <div className="grid gap-4 lg:grid-cols-3">
         <div className="card lg:col-span-2">
