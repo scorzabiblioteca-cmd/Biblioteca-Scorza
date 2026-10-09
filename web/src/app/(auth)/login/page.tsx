@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -114,7 +114,20 @@ export default function Login() {
                   aria-pressed={mostrarPassword}
                   onClick={() => setMostrarPassword((mostrar) => !mostrar)}
                 >
-                  {mostrarPassword ? "Ocultar" : "Mostrar"}
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    {mostrarPassword ? (
+                      <>
+                        <path d="M2.5 12s3.4-6 9.5-6 9.5 6 9.5 6-3.4 6-9.5 6-9.5-6-9.5-6Z" />
+                        <circle cx="12" cy="12" r="3" />
+                      </>
+                    ) : (
+                      <>
+                        <path d="M3 3l18 18" />
+                        <path d="M10.6 10.6a2 2 0 0 0 2.8 2.8" />
+                        <path d="M9.9 5.2A10.8 10.8 0 0 1 12 5c6.1 0 9.5 7 9.5 7a16.6 16.6 0 0 1-4.1 5.1M6.2 6.2A16.7 16.7 0 0 0 2.5 12s3.4 6 9.5 6c1.1 0 2.1-.1 3-.4" />
+                      </>
+                    )}
+                  </svg>
                 </button>
               </div>
             </div>
