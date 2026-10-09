@@ -10,7 +10,7 @@ android {
         versionCode 1
         versionName "0.1.0"
         // Emulador Android -> PC anfitrión. Cambia por tu URL real (https) al publicar.
-        buildConfigField "String", "API_BASE_URL", "\"http://10.0.2.2:3000/api/\""
+        buildConfigField "String", "API_BASE_URL", "\"https://biblioteca-scorza.vercel.app/api/\""
     }
     buildFeatures { buildConfig true }
     compileOptions {
@@ -21,7 +21,7 @@ android {
         release {
             minifyEnabled false
             // Producción: usa tu dominio HTTPS, por ejemplo https://biblioscorza.vercel.app/api/
-            buildConfigField "String", "API_BASE_URL", "\"https://TU-DOMINIO.vercel.app/api/\""
+            buildConfigField "String", "API_BASE_URL", "\"https://biblioteca-scorza.vercel.app/api/\""
         }
     }
 }
