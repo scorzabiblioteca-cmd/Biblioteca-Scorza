@@ -66,6 +66,13 @@ export const prestamoSchema = z.object({
   alumnoCodigo: z.string().trim().max(30).optional(),
   profesorId: optInt(1, 2_000_000_000),
   diasPrestamo: optInt(1, 365),
+  fechaPrevistaDevolucion: z.string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, "La fecha de devolución no es válida")
+    .refine((value) => {
+      const date = new Date(`${value}T00:00:00.000Z`);
+      return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value;
+    }, "La fecha de devolución no es válida")
+    .optional(),
   observaciones: str(1000),
   items: z
     .array(

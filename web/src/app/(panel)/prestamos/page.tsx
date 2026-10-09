@@ -6,12 +6,22 @@ import { Badge, Msg, PageTitle } from "@/components/ui";
 import { AlumnoAutocomplete, type Alumno } from "@/components/AlumnoAutocomplete";
 import { EjemplarAutocomplete, type LibroCantidad } from "@/components/EjemplarAutocomplete";
 
+function fechaDespuesDe(dias: number) {
+  const date = new Date();
+  date.setDate(date.getDate() + dias);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
 export default function Prestamos() {
   const [data, setData] = useState<Paged<any> | null>(null);
   const [filtro, setFiltro] = useState("");
   const [alumno, setAlumno] = useState<Alumno | null>(null);
   const [cantidades, setCantidades] = useState<LibroCantidad[]>([]);
   const [codigos, setCodigos] = useState("");
+  const [fechaDevolucion, setFechaDevolucion] = useState(() => fechaDespuesDe(7));
   const [formVersion, setFormVersion] = useState(0);
   const [msg, setMsg] = useState<{ t: "ok" | "error"; m: string } | null>(null);
   const dialogRef = useRef<HTMLDialogElement>(null);
@@ -32,12 +42,13 @@ export default function Prestamos() {
     const items = [...codigos.split(/[\s,;]+/).filter(Boolean).map((c) => ({ codigoEjemplar: c })),
       ...cantidades.map(({ libroId, cantidad }) => ({ libroId, cantidad }))];
     try {
-      await api("/prestamos", { json: { alumnoId: alumno.id, items } });
+      await api("/prestamos", { json: { alumnoId: alumno.id, items, fechaPrevistaDevolucion: fechaDevolucion } });
       setCantidades([]);
       setFormVersion((v) => v + 1);
       setMsg({ t: "ok", m: "Préstamo registrado correctamente" });
       setCodigos("");
       setAlumno(null);
+      setFechaDevolucion(fechaDespuesDe(7));
       dialogRef.current?.close();
       cargar();
     } catch (x) { setMsg({ t: "error", m: (x as Error).message }); }
@@ -72,6 +83,18 @@ export default function Prestamos() {
         <form onSubmit={crear} className="grid gap-4 p-5 sm:p-6">
           <AlumnoAutocomplete value={alumno} onChange={setAlumno} />
           <EjemplarAutocomplete key={formVersion} codigos={codigos} onChange={setCodigos} cantidades={cantidades} onCantidadesChange={setCantidades} />
+          <label className="grid gap-1.5 text-sm font-medium text-slate-700">
+            Fecha de devolución
+            <input
+              className="input"
+              type="date"
+              value={fechaDevolucion}
+              min={fechaDespuesDe(0)}
+              max={fechaDespuesDe(365)}
+              onChange={(e) => setFechaDevolucion(e.target.value)}
+              required
+            />
+          </label>
           {msg?.t === "error" && <Msg type="error">{msg.m}</Msg>}
           <p className="text-xs text-slate-500">Busca por título, código, ISBN o categoría y agrega los libros al préstamo.</p>
           <div className="flex flex-col-reverse gap-2 border-t border-slate-100 pt-4 sm:flex-row sm:justify-end">

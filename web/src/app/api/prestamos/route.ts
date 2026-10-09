@@ -65,13 +65,29 @@ export const POST = withAuth(R, async (req, { session }) => {
       const nuevos = d.items.reduce((s, i) => s + (i.cantidad ?? 1), 0);
       if (activos + nuevos > max) throw new HttpError(409, `El alumno ya tiene ${activos} unidad(es) prestada(s); el máximo es ${max}`, "LIMITE_PRESTAMOS");
     }
-    const dias = d.diasPrestamo ?? Number((await q1<{ valor: number }>(c, "SELECT valor FROM configuracion WHERE clave='dias_prestamo_defecto'"))?.valor ?? 7);
-    const p = (await q1<{ id: number }>(
-      c,
-      `INSERT INTO prestamos (usuario_id, tipo_prestatario, alumno_id, profesor_id, fecha_prevista_devolucion, observaciones)
-       VALUES ($1,$2,$3,$4, ${LIMA_HOY} + $5::int, $6) RETURNING id`,
-      [session.id, alumnoId ? "ALUMNO" : "PROFESOR", alumnoId, profesorId, dias, d.observaciones]
-    ))!;
+    let p: { id: number };
+    if (d.fechaPrevistaDevolucion) {
+      const { valida } = (await q1<{ valida: boolean }>(
+        c,
+        `SELECT $1::date BETWEEN ${LIMA_HOY} AND ${LIMA_HOY} + 365 AS valida`,
+        [d.fechaPrevistaDevolucion]
+      ))!;
+      if (!valida) throw new HttpError(400, "La fecha de devolución debe estar entre hoy y los próximos 365 días");
+      p = (await q1<{ id: number }>(
+        c,
+        `INSERT INTO prestamos (usuario_id, tipo_prestatario, alumno_id, profesor_id, fecha_prevista_devolucion, observaciones)
+         VALUES ($1,$2,$3,$4,$5::date,$6) RETURNING id`,
+        [session.id, alumnoId ? "ALUMNO" : "PROFESOR", alumnoId, profesorId, d.fechaPrevistaDevolucion, d.observaciones]
+      ))!;
+    } else {
+      const dias = d.diasPrestamo ?? Number((await q1<{ valor: number }>(c, "SELECT valor FROM configuracion WHERE clave='dias_prestamo_defecto'"))?.valor ?? 7);
+      p = (await q1<{ id: number }>(
+        c,
+        `INSERT INTO prestamos (usuario_id, tipo_prestatario, alumno_id, profesor_id, fecha_prevista_devolucion, observaciones)
+         VALUES ($1,$2,$3,$4, ${LIMA_HOY} + $5::int, $6) RETURNING id`,
+        [session.id, alumnoId ? "ALUMNO" : "PROFESOR", alumnoId, profesorId, dias, d.observaciones]
+      ))!;
+    }
 
     // 2) Ítems
     const detalles: { titulo: string; codigo?: string; cantidad: number }[] = [];
