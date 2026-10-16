@@ -71,6 +71,17 @@
   background: #1d4ed8;
 }
 
+.dash-export svg {
+  width: 1rem;
+  height: 1rem;
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+}
+
 .dash-kpis {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -416,9 +427,13 @@
     width: 100%;
   }
 
-  .dash-range,
-  .dash-export {
+  .dash-range {
     flex: 1;
+    justify-content: center;
+  }
+
+  .dash-export {
+    flex: 0 0 auto;
     justify-content: center;
   }
 
