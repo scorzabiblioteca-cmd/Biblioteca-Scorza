@@ -126,64 +126,106 @@
   width: min(100%, 460px);
   margin: 1.5rem auto;
   flex-shrink: 0;
+  pointer-events: none;
 }
-
 .login-characters svg { display: block; width: 100%; overflow: visible; }
-.login-character {
-  transform-box: fill-box;
-  transform-origin: bottom center;
-  animation: loginCharacterSway 5s ease-in-out infinite;
+.login-character-entry, .login-character {
+  transform-box: view-box;
+  transform-origin: 240px 365px;
 }
-.login-character-dark { animation-delay: -1.5s; }
-.login-character-orange { animation-delay: -2.7s; }
-.login-character-yellow { animation-delay: -.8s; }
-.login-character-face { transition: transform .35s ease; }
-.login-character-pupil { transition: transform .12s ease-out; }
+.login-character-entry { animation: loginCharacterArrive .85s cubic-bezier(.22, 1, .36, 1) both; }
+.login-entry-dark { animation-delay: .12s; }
+.login-entry-orange { animation-delay: .2s; }
+.login-entry-yellow { animation-delay: .28s; }
+.login-character {
+  transform: skewX(var(--lean, 0deg));
+  transition: transform .65s cubic-bezier(.22, 1.3, .36, 1);
+}
+.login-character-orange { transform: skewX(var(--lean, 0deg)) scaleY(1); }
+.login-character-body { transition: d .55s cubic-bezier(.22, 1, .36, 1); }
+.login-character-face {
+  transform: translate(var(--look-x, 0px), var(--look-y, 0px));
+  transition: transform .45s cubic-bezier(.22, 1, .36, 1);
+}
+.login-character-pupil { transition: transform .16s ease-out, opacity .2s; }
+.login-character-blink { animation: loginCharacterBlink 5.8s infinite; }
+.login-character-dark .login-character-blink { animation-delay: 1.2s; }
+.login-character-orange .login-character-blink { animation-delay: 2.3s; }
+.login-character-yellow .login-character-blink { animation-delay: 3.1s; }
+.login-character-orange .login-character-white,
+.login-character-yellow .login-character-white { fill: transparent; }
 .login-character-smile, .login-character-gasp { fill: #241327; }
+.login-character-dark .login-character-smile,
+.login-character-dark .login-character-gasp,
+.login-character-dark .login-character-frown { display: none; }
 .login-character-gasp, .login-character-frown,
 .login-character-brow, .login-character-lid { opacity: 0; }
 .login-character-frown, .login-character-brow, .login-character-lid {
   stroke: #241327;
-  stroke-width: 3.5;
+  stroke-width: 3;
   stroke-linecap: round;
 }
+.login-character-dark .login-character-brow { stroke: #fffdf6; }
 .login-character-smile, .login-character-gasp, .login-character-frown,
 .login-character-brow, .login-character-lid, .login-character-white {
-  transition: opacity .2s ease, transform .25s ease;
+  transition: opacity .2s ease, transform .3s ease;
 }
 .login-character-brow.is-right { transform: scaleX(-1); }
+/* The tall characters lean over to watch the username being entered. */
+.login-characters[data-mood="surprised"] .login-character-purple { transform: skewX(-11deg) scaleY(1.025); }
+.login-characters[data-mood="surprised"] .login-character-dark { transform: skewX(-9deg); }
+.login-characters[data-mood="surprised"] .login-character-yellow { transform: skewX(-8deg); }
+.login-characters[data-mood="surprised"] .login-character-face { transform: translate(15px, -3px); }
 .login-characters[data-mood="surprised"] .login-character-gasp,
 .login-characters[data-mood="angry"] .login-character-frown,
-.login-characters[data-mood="angry"] .login-character-brow,
-.login-characters[data-mood="shy"] .login-character-lid { opacity: 1; }
+.login-characters[data-mood="angry"] .login-character-brow { opacity: 1; }
 .login-characters[data-mood="surprised"] .login-character-smile,
-.login-characters[data-mood="angry"] .login-character-smile,
-.login-characters[data-mood="shy"] .login-character-white,
-.login-characters[data-mood="shy"] .login-character-pupil { opacity: 0; }
-.login-characters[data-mood="surprised"] .login-character-white { transform: scale(1.15); }
-.login-characters[data-mood="shy"] .login-character-face { transform: translate(-20px, 3px); }
-.login-characters[data-mood="angry"] .login-character { animation: loginCharacterShake .35s ease-in-out; }
-
-@keyframes loginCharacterSway {
-  0%, 100% { transform: rotate(-.8deg); }
-  50% { transform: rotate(.8deg) translateY(-3px); }
+.login-characters[data-mood="angry"] .login-character-smile { opacity: 0; }
+.login-characters[data-mood="surprised"] .login-character-white { transform: scale(1.2); }
+.login-characters[data-mood="surprised"] .login-character-yellow .login-character-smile { opacity: 1; }
+.login-characters[data-mood="surprised"] .login-character-yellow .login-character-gasp { opacity: 0; }
+/* A bent purple body and a ducking black character match the password reaction. */
+.login-characters[data-mood="password"] .login-character-purple { transform: skewX(8deg); }
+.login-characters[data-mood="password"] .login-character-purple .login-character-face { transform: translate(-9px, 4px) rotate(7deg); transform-origin: 220px 60px; }
+.login-characters[data-mood="password"] .login-character-dark { transform: scaleY(.82); }
+.login-characters[data-mood="password"] .login-character-orange .login-character-face { transform: translate(12px, 12px); }
+.login-characters[data-mood="password"] .login-character-yellow .login-character-face { transform: translate(8px, 6px); }
+/* When the password is revealed, everyone looks away; the black one peeks. */
+.login-characters[data-mood="shy"] .login-character-face { transform: translate(-34px, 4px); }
+.login-characters[data-mood="shy"] .login-character-blink { opacity: 0; animation: none; }
+.login-characters[data-mood="shy"] .login-character-lid { opacity: 1; }
+.login-characters[data-mood="shy"] .login-character-purple { transform: skewX(0deg); }
+.login-characters[data-mood="shy"] .login-character-dark { animation: loginCharacterPeek 3.8s ease-in-out infinite; }
+.login-characters[data-mood="shy"] .login-character-dark .login-character-face { transform: translate(9px, 14px); }
+.login-characters[data-mood="shy"] .login-character-dark .login-character-blink { opacity: 1; }
+.login-characters[data-mood="shy"] .login-character-dark .login-character-lid { opacity: 0; }
+.login-characters[data-mood="angry"] .login-character { animation: loginCharacterShake .4s ease-in-out; }
+@keyframes loginCharacterArrive {
+  from { opacity: 0; transform: translateY(-160px) rotate(-18deg) scale(.6); }
+  65% { opacity: 1; transform: translateY(8px) rotate(3deg) scaleY(.94); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes loginCharacterBlink {
+  0%, 43%, 47%, 100% { transform: scaleY(1); }
+  45% { transform: scaleY(.08); }
+}
+@keyframes loginCharacterPeek {
+  0%, 18%, 100% { transform: scaleY(.82); }
+  40%, 72% { transform: translate(6px, 0) skewX(-4deg); }
 }
 @keyframes loginCharacterShake {
-  25%, 75% { transform: rotate(-2deg); }
-  50% { transform: rotate(2deg); }
+  25%, 75% { transform: skewX(-5deg); }
+  50% { transform: skewX(5deg); }
 }
-
 @media (max-width: 760px) {
   .login-characters { width: min(75%, 260px); margin: 1rem auto 0; }
 }
-
 @media (prefers-reduced-motion: reduce) {
   .login-characters *, .login-characters[data-mood] .login-character {
     animation: none;
     transition: none;
   }
 }
-
 .login-panel {
   display: flex;
   flex-direction: column;

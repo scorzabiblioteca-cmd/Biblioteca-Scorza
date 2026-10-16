@@ -19,8 +19,9 @@ export default function Login() {
   const [busy, setBusy] = useState(false);
   const [mostrarPassword, setMostrarPassword] = useState(false);
   const [usuarioActivo, setUsuarioActivo] = useState(false);
+  const [passwordActivo, setPasswordActivo] = useState(false);
   const [campoInvalido, setCampoInvalido] = useState(false);
-  const mood = mostrarPassword ? "shy" : err || campoInvalido ? "angry" : usuarioActivo ? "surprised" : "happy";
+  const mood = mostrarPassword ? "shy" : err || campoInvalido ? "angry" : passwordActivo ? "password" : usuarioActivo ? "surprised" : "happy";
 
   async function enviar(e: React.FormEvent) {
     e.preventDefault();
@@ -78,7 +79,6 @@ export default function Login() {
               <input
                 id="login-username"
                 className="login-input"
-                autoFocus
                 autoComplete="username"
                 placeholder="Escribe tu usuario"
                 value={f.username}
@@ -106,6 +106,8 @@ export default function Login() {
                   autoComplete="current-password"
                   placeholder="Escribe tu contraseña"
                   value={f.password}
+                  onFocus={() => setPasswordActivo(true)}
+                  onBlur={() => setPasswordActivo(false)}
                   onChange={(e) =>
                     setF({
                       ...f,
