@@ -15,6 +15,7 @@ import com.biblioscorza.app.data.ApiClient;
 import com.biblioscorza.app.data.Models.Alumno;
 import com.biblioscorza.app.data.Models.Ejemplar;
 import com.biblioscorza.app.data.Models.Libro;
+import com.biblioscorza.app.data.Models.Paged;
 import com.biblioscorza.app.data.Models.PrestamoReq;
 import com.biblioscorza.app.util.Api;
 
@@ -76,6 +77,32 @@ public class PrestamoActivity extends AppCompatActivity {
         else Api.call(ApiClient.api().alumnoPorCodigo(v), cb);
     }
 
+    private void buscarLibroPorIsbn(String isbn, Api.Result<Libro> cb) {
+        final String limpio = isbn == null ? "" : isbn.replaceAll("[\\s-]", "");
+        if (limpio.isEmpty()) {
+            cb.error("ISBN inválido", 400, "ISBN_INVALIDO");
+            return;
+        }
+        Api.call(ApiClient.api().buscarLibros(limpio, 10), new Api.Result<Paged<Libro>>() {
+            @Override public void ok(Paged<Libro> pagina, String m) {
+                if (pagina == null || pagina.items == null || pagina.items.isEmpty()) {
+                    cb.error("No hay libros registrados con ese ISBN", 404, "LIBRO_NO_ENCONTRADO");
+                    return;
+                }
+                String normalizado = limpio.toLowerCase();
+                for (Libro l : pagina.items) {
+                    String isbnLibro = l.isbn == null ? "" : l.isbn.replaceAll("[\\s-]", "").toLowerCase();
+                    if (normalizado.equals(isbnLibro)) {
+                        cb.ok(l, m);
+                        return;
+                    }
+                }
+                cb.error("No hay libros registrados con ese ISBN", 404, "LIBRO_NO_ENCONTRADO");
+            }
+            @Override public void error(String msg, int h, String c) { cb.error(msg, h, c); }
+        });
+    }
+
     private void procesarLibro(String valor) {
         tvMsg.setText("");
         if (valor == null) return;
@@ -91,7 +118,7 @@ public class PrestamoActivity extends AppCompatActivity {
                 @Override public void error(String msg, int h, String c) { tvMsg.setText(msg); }
             });
         } else {
-            Api.call(ApiClient.api().libroPorIsbn(valor.replaceAll("[\\s-]", "")), new Api.Result<Libro>() {
+            buscarLibroPorIsbn(valor, new Api.Result<Libro>() {
                 @Override public void ok(Libro l, String m) {
                     if (!"CANTIDAD".equals(l.tipoControl)) { tvMsg.setText("\"" + l.titulo + "\" es de control individual: escanea el QR del ejemplar"); return; }
                     if (l.disponibles <= 0) { tvMsg.setText("No hay copias disponibles de \"" + l.titulo + "\""); return; }

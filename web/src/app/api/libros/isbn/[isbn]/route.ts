@@ -135,17 +135,26 @@ export const GET = withAuth(["BIBLIOTECARIO"], async (_req, { params }) => {
         return value ? normalizarIsbn(value) === isbn : false;
       });
     };
-    const dataItem = items.find(matchesIsbn) ?? items.find((item) => {
-      const volumeInfo = isRecord(item.volumeInfo) ? item.volumeInfo : undefined;
-      return !Array.isArray(volumeInfo?.industryIdentifiers) && Boolean(text(volumeInfo?.title));
-    });
+    const dataItem = items.find(matchesIsbn);
+
     if (!dataItem || !isRecord(dataItem.volumeInfo)) {
-      return ok({ existente: existenteRespuesta, estadoConsulta: "sin-resultados", libro: null });
+      return ok({
+        existente: existenteRespuesta,
+        estadoConsulta: "sin-resultados",
+        libro: null
+      });
     }
 
     const data = dataItem.volumeInfo as GoogleBooksVolumeInfo;
     const titulo = text(data.title);
-    if (!titulo) return ok({ existente, estadoConsulta: "sin-resultados", libro: null });
+
+    if (!titulo) {
+      return ok({
+        existente: existenteRespuesta,
+        estadoConsulta: "sin-resultados",
+        libro: null,
+      });
+    }   
     const autores = textList(data.authors);
     const categories = textList(data.categories);
     const imageLinks = isRecord(data.imageLinks) ? data.imageLinks : undefined;

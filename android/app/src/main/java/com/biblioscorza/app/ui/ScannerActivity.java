@@ -27,6 +27,7 @@ import com.biblioscorza.app.data.ApiClient;
 import com.biblioscorza.app.data.Models.Agregado;
 import com.biblioscorza.app.data.Models.AgregarReq;
 import com.biblioscorza.app.data.Models.Libro;
+import com.biblioscorza.app.data.Models.Paged;
 import com.biblioscorza.app.util.Api;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.mlkit.vision.barcode.BarcodeScanner;
@@ -116,6 +117,32 @@ public class ScannerActivity extends AppCompatActivity {
         }, ContextCompat.getMainExecutor(this));
     }
 
+    private void buscarLibroPorIsbn(String isbn, Api.Result<Libro> cb) {
+        final String limpio = isbn == null ? "" : isbn.replaceAll("[\\s-]", "");
+        if (limpio.isEmpty()) {
+            cb.error("ISBN inválido", 400, "ISBN_INVALIDO");
+            return;
+        }
+        Api.call(ApiClient.api().buscarLibros(limpio, 10), new Api.Result<Paged<Libro>>() {
+            @Override public void ok(Paged<Libro> pagina, String m) {
+                if (pagina == null || pagina.items == null || pagina.items.isEmpty()) {
+                    cb.error("No hay libros registrados con ese ISBN", 404, "LIBRO_NO_ENCONTRADO");
+                    return;
+                }
+                String normalizado = limpio.toLowerCase();
+                for (Libro l : pagina.items) {
+                    String isbnLibro = l.isbn == null ? "" : l.isbn.replaceAll("[\\s-]", "").toLowerCase();
+                    if (normalizado.equals(isbnLibro)) {
+                        cb.ok(l, m);
+                        return;
+                    }
+                }
+                cb.error("No hay libros registrados con ese ISBN", 404, "LIBRO_NO_ENCONTRADO");
+            }
+            @Override public void error(String msg, int h, String c) { cb.error(msg, h, c); }
+        });
+    }
+
     private void alLeer(String valor) {
         if (MODO_RAW.equals(modo)) {
             setResult(RESULT_OK, new Intent().putExtra(EXTRA_VALOR, valor));
@@ -128,7 +155,7 @@ public class ScannerActivity extends AppCompatActivity {
             main.postDelayed(() -> ocupado.set(false), 1500);
             return;
         }
-        Api.call(ApiClient.api().libroPorIsbn(isbn), new Api.Result<Libro>() {
+        buscarLibroPorIsbn(isbn, new Api.Result<Libro>() {
             @Override public void ok(Libro l, String m) { libroExistente(l); }
             @Override public void error(String msg, int http, String code) {
                 if ("LIBRO_NO_ENCONTRADO".equals(code)) {

@@ -29,6 +29,10 @@ import com.biblioscorza.app.data.Models.Ubicacion;
 import com.biblioscorza.app.util.Api;
 import com.biblioscorza.app.util.ImageUploader;
 
+import com.biblioscorza.app.data.Models.ConsultaIsbn;
+import com.biblioscorza.app.data.Models.LibroDatos;
+import com.biblioscorza.app.data.Models.LibroRegistrado;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -106,26 +110,140 @@ public class LibroFormActivity extends AppCompatActivity {
         });
     }
 
-    private void verificarIsbn() {
-        String isbn = etIsbn.getText().toString().trim();
-        if (isbn.isEmpty()) return;
-        Api.call(ApiClient.api().libroPorIsbn(isbn), new Api.Result<Libro>() {
-            @Override public void ok(Libro l, String m) {
-                new AlertDialog.Builder(LibroFormActivity.this).setTitle("Libro existente")
-                        .setMessage(l.titulo + "\nCantidad actual: " + l.total)
-                        .setPositiveButton("Agregar otro ejemplar", (d, w) ->
-                                Api.call(ApiClient.api().agregarEjemplares(l.id, new AgregarReq()), new Api.Result<Agregado>() {
-                                    @Override public void ok(Agregado a, String mm) {
-                                        Toast.makeText(LibroFormActivity.this, "Agregado. Total: " + a.libro.total, Toast.LENGTH_LONG).show();
+    
+private void verificarIsbn() {
+    String isbn = etIsbn.getText().toString().trim();
+
+    if (isbn.isEmpty()) return;
+
+    Api.call(
+        ApiClient.api().libroPorIsbn(isbn),
+        new Api.Result<ConsultaIsbn>() {
+
+            @Override
+            public void ok(ConsultaIsbn resultado, String m) {
+                if (resultado == null) {
+                    tvError.setText("No se recibió información del ISBN");
+                    return;
+                }
+
+                // Caso 1: el libro ya está registrado en la biblioteca.
+                if (resultado.existente != null) {
+                    LibroRegistrado existente = resultado.existente;
+
+                    new AlertDialog.Builder(LibroFormActivity.this)
+                        .setTitle("Libro existente")
+                        .setMessage(
+                            existente.titulo
+                            + "\nISBN: "
+                            + (existente.isbn != null ? existente.isbn : isbn)
+                        )
+                        .setPositiveButton("Agregar otro ejemplar", (d, w) -> {
+                            AgregarReq req = new AgregarReq();
+                            req.cantidad = 1;
+
+                            Api.call(
+                                ApiClient.api().agregarEjemplares(
+                                    existente.id, req
+                                ),
+                                new Api.Result<Agregado>() {
+                                    @Override
+                                    public void ok(Agregado a, String mm) {
+                                        String mensaje = "Ejemplar agregado";
+                                        if (a != null && a.libro != null) {
+                                            mensaje += ". Total: " + a.libro.total;
+                                        }
+
+                                        Toast.makeText(
+                                            LibroFormActivity.this,
+                                            mensaje,
+                                            Toast.LENGTH_LONG
+                                        ).show();
+
                                         finish();
                                     }
-                                    @Override public void error(String msg, int h, String c) { tvError.setText(msg); }
-                                }))
-                        .setNegativeButton("Cancelar", null).show();
+
+                                    @Override
+                                    public void error(
+                                        String msg, int http, String code
+                                    ) {
+                                        tvError.setText(msg);
+                                    }
+                                }
+                            );
+                        })
+                        .setNegativeButton("Cancelar", null)
+                        .show();
+
+                    return;
+                }
+
+                // Caso 2: no está registrado, pero Google Books
+                // encontró información bibliográfica.
+                LibroDatos datos = resultado.libro;
+
+                if (datos != null) {
+                    if (datos.titulo != null) {
+                        etTitulo.setText(datos.titulo);
+                    }
+                    if (datos.subtitulo != null) {
+                        etSubtitulo.setText(datos.subtitulo);
+                    }
+                    if (datos.autor != null) {
+                        etAutor.setText(datos.autor);
+                    }
+                    if (datos.editorial != null) {
+                        etEditorial.setText(datos.editorial);
+                    }
+                    if (datos.categoria != null) {
+                        etCategoria.setText(datos.categoria);
+                    }
+                    if (datos.anioPublicacion != null) {
+                        etAnio.setText(
+                            String.valueOf(datos.anioPublicacion)
+                        );
+                    }
+                    if (datos.edicion != null) {
+                        etEdicion.setText(datos.edicion);
+                    }
+                    if (datos.descripcion != null) {
+                        etDescripcion.setText(datos.descripcion);
+                    }
+                    if (datos.imagenUrl != null) {
+                        imagenUrl = datos.imagenUrl;
+                        Glide.with(LibroFormActivity.this)
+                            .load(imagenUrl)
+                            .into(ivFoto);
+                        ivFoto.setVisibility(View.VISIBLE);
+                    }
+
+                    Toast.makeText(
+                        LibroFormActivity.this,
+                        "Datos encontrados. Revisa y registra el libro.",
+                        Toast.LENGTH_LONG
+                    ).show();
+                } else {
+                    Toast.makeText(
+                        LibroFormActivity.this,
+                        "ISBN no registrado. Ingresa los datos manualmente.",
+                        Toast.LENGTH_LONG
+                    ).show();
+                }
             }
-            @Override public void error(String m, int h, String c) { /* no existe: continuar con el registro */ }
-        });
-    }
+
+            @Override
+            public void error(String m, int h, String c) {
+                // Si falla la consulta, se permite el registro manual.
+                Toast.makeText(
+                    LibroFormActivity.this,
+                    "No se pudo consultar el ISBN. Puedes ingresar los datos manualmente.",
+                    Toast.LENGTH_LONG
+                ).show();
+            }
+        }
+    );
+}
+
 
     private void abrirCamaraFoto() {
         try {

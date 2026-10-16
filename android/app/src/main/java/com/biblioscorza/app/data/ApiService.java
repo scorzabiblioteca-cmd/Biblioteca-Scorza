@@ -13,7 +13,7 @@ import retrofit2.http.*;
 public interface ApiService {
     @POST("auth/login") Call<ApiResponse<LoginData>> login(@Body LoginReq body);
 
-    @GET("libros/isbn/{isbn}") Call<ApiResponse<Libro>> libroPorIsbn(@Path("isbn") String isbn);
+    @GET("libros/isbn/{isbn}") Call<ApiResponse<ConsultaIsbn>> libroPorIsbn(@Path("isbn") String isbn);
     @GET("libros") Call<ApiResponse<Paged<Libro>>> buscarLibros(@Query("q") String q, @Query("pageSize") int size);
     @POST("libros") Call<ApiResponse<Libro>> crearLibro(@Body LibroReq body);
     @POST("libros/{id}/ejemplares") Call<ApiResponse<Agregado>> agregarEjemplares(@Path("id") long id, @Body AgregarReq body);
