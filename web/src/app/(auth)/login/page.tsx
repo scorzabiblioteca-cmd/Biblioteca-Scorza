@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/client";
 import { Msg } from "@/components/ui";
+import LoginCharacters from "./login-characters";
 import "./login.css";
 
 export default function Login() {
@@ -17,6 +18,9 @@ export default function Login() {
   const [err, setErr] = useState("");
   const [busy, setBusy] = useState(false);
   const [mostrarPassword, setMostrarPassword] = useState(false);
+  const [usuarioActivo, setUsuarioActivo] = useState(false);
+  const [campoInvalido, setCampoInvalido] = useState(false);
+  const mood = mostrarPassword ? "shy" : err || campoInvalido ? "angry" : usuarioActivo ? "surprised" : "happy";
 
   async function enviar(e: React.FormEvent) {
     e.preventDefault();
@@ -50,16 +54,17 @@ export default function Login() {
               Un espacio para organizar, descubrir y compartir historias.
             </p>
           </div>
-          <div className="login-brand-art" aria-hidden="true">
-            <span className="login-book login-book-one" />
-            <span className="login-book login-book-two" />
-            <span className="login-book login-book-three" />
-          </div>
+          <LoginCharacters mood={mood} />
           <p className="login-brand-caption">Tu biblioteca, siempre cerca.</p>
         </aside>
 
         <section className="login-panel" aria-labelledby="login-heading">
-          <form onSubmit={enviar} className="login-card">
+          <form
+            onSubmit={enviar}
+            onInvalid={() => setCampoInvalido(true)}
+            onChange={() => { setCampoInvalido(false); setErr(""); }}
+            className="login-card"
+          >
             <div className="login-heading">
               <p className="login-kicker">Acceso al sistema</p>
               <h2 id="login-heading">Bienvenido/a</h2>
@@ -77,6 +82,8 @@ export default function Login() {
                 autoComplete="username"
                 placeholder="Escribe tu usuario"
                 value={f.username}
+                onFocus={() => setUsuarioActivo(true)}
+                onBlur={() => setUsuarioActivo(false)}
                 onChange={(e) =>
                   setF({
                     ...f,
