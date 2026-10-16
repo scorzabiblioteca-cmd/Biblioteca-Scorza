@@ -50,12 +50,12 @@ export function ProfesorAutocomplete({ value, onChange }: {
     <div className="relative" onBlur={(e) => {
       if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setAbierto(false);
     }}>
-      <label htmlFor="profesor-busqueda" className="label">Profesor (nombre o DNI)</label>
+      <label htmlFor="profesor-busqueda" className="label">Profesor</label>
       <input id="profesor-busqueda" className="input" required autoComplete="off"
         role="combobox" aria-autocomplete="list" aria-expanded={mostrar}
         aria-controls="profesor-opciones" aria-describedby="profesor-ayuda"
         aria-activedescendant={mostrar && activo >= 0 ? `profesor-opcion-${items[activo]?.id}` : undefined}
-        placeholder="Buscar profesor registrado" value={value ? `${value.apellidos}, ${value.nombres}` : texto}
+        placeholder="Buscar por nombre o DNI" value={value ? `${value.apellidos}, ${value.nombres}` : texto}
         onFocus={() => setAbierto(true)}
         onChange={(e) => {
           onChange(null); setTexto(e.target.value); setAbierto(true);
@@ -73,7 +73,7 @@ export function ProfesorAutocomplete({ value, onChange }: {
           }
         }} />
       <p id="profesor-ayuda" className="mt-1 text-xs text-slate-500">
-        {value ? `DNI: ${value.dni ?? "—"}${value.area ? ` · Área: ${value.area}` : ""}` : "Selecciona un profesor de las sugerencias."}
+        {value ? `DNI: ${value.dni ?? "—"}${value.area ? ` · Área: ${value.area}` : ""}` : "Elige una opción."}
       </p>
       {mostrar && <div className="absolute z-20 mt-1 w-full rounded-md border bg-white shadow-lg">
         <p role="status" className="px-3 text-sm text-slate-500">

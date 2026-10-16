@@ -71,8 +71,8 @@ export function EjemplarAutocomplete({ codigos, onChange, cantidades, onCantidad
       <div className="relative" onBlur={(e) => {
         if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setAbierto(false);
       }}>
-        <label htmlFor="ejemplar-busqueda" className="label">Libro (nombre, código, ISBN o categoría)</label>
-        <input id="ejemplar-busqueda" className="input" autoComplete="off" placeholder="Busca y selecciona un ejemplar disponible"
+        <label htmlFor="ejemplar-busqueda" className="label">Buscar libro</label>
+        <input id="ejemplar-busqueda" className="input" autoComplete="off" placeholder="Título, código, ISBN o categoría"
           value={texto} role="combobox" aria-autocomplete="list" aria-expanded={abierto}
           aria-controls="ejemplar-opciones"
           aria-activedescendant={abierto && activo >= 0 && items[activo] ? `ejemplar-opcion-${items[activo].libroId ? "libro" : "ejemplar"}-${items[activo].id}` : undefined}
@@ -109,8 +109,8 @@ export function EjemplarAutocomplete({ codigos, onChange, cantidades, onCantidad
         </div>}
       </div>
       <p role="status" className="text-xs text-emerald-800">{aviso}</p>
-      <label className="block"><span className="label">Códigos de ejemplares a prestar</span>
-        <textarea className="input" rows={2} required={cantidades.length === 0} placeholder="Selecciona libros arriba o pega códigos separados por coma"
+      <label className="block"><span className="label">Códigos de ejemplares</span>
+        <textarea className="input" rows={2} required={cantidades.length === 0} placeholder="Pega códigos separados por coma"
           value={codigos} onChange={(e) => onChange(e.target.value)} />
       </label>
       {cantidades.map((libro) => <div key={libro.libroId} className="flex items-center gap-2 rounded border p-2 text-sm">
@@ -121,7 +121,7 @@ export function EjemplarAutocomplete({ codigos, onChange, cantidades, onCantidad
         <button type="button" className="text-red-700" aria-label={`Quitar ${libro.titulo}`}
           onClick={() => onCantidadesChange(cantidades.filter((l) => l.libroId !== libro.libroId))}>Quitar</button>
       </div>)}
-      <p className="text-xs text-slate-500">Puedes agregar varios libros. Para quitar uno, borra su código.</p>
+      <p className="text-xs text-slate-500">Para quitar un ejemplar, borra su código.</p>
     </div>
   );
 }

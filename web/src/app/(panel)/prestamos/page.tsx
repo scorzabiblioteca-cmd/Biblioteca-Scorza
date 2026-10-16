@@ -78,7 +78,7 @@ export default function Prestamos() {
         <div className="flex items-start justify-between gap-4 border-b border-slate-200 px-5 py-4 sm:px-6">
           <div>
             <h2 id="prestamo-dialog-title" className="text-lg font-semibold text-slate-900">Registrar préstamo</h2>
-            <p className="mt-1 text-sm text-slate-500">Selecciona al prestatario y los libros que se prestarán.</p>
+            <p className="mt-1 text-sm text-slate-500">Elige a quién y qué prestar.</p>
           </div>
           <button
             type="button"
@@ -114,7 +114,6 @@ export default function Prestamos() {
             />
           </label>
           {msg?.t === "error" && <Msg type="error">{msg.m}</Msg>}
-          <p className="text-xs text-slate-500">Busca por título, código, ISBN o categoría y agrega los libros al préstamo.</p>
           <div className="flex flex-col-reverse gap-2 border-t border-slate-100 pt-4 sm:flex-row sm:justify-end">
             <button type="button" className="btn-ghost" onClick={() => dialogRef.current?.close()}>Cancelar</button>
             <button type="submit" className="btn">Confirmar préstamo</button>

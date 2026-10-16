@@ -42,7 +42,7 @@ export default function Libros() {
     <>
       <PageTitle action={<Link href="/libros/nuevo" className="btn">Registrar libro</Link>}>Libros</PageTitle>
       <div className="mb-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
-        <input className="input sm:col-span-2" placeholder="Buscar por título, autor, ISBN, editorial, categoría, código o estante" value={qtxt} onChange={(e) => setQ(e.target.value)} />
+        <input className="input sm:col-span-2" placeholder="Título, autor, ISBN, editorial o código" value={qtxt} onChange={(e) => setQ(e.target.value)} />
         <select className="input" value={categoriaId} onChange={(e) => setCategoriaId(e.target.value)} aria-label="Filtrar por categoría">
           <option value="">Todas las categorías</option>
           {categorias.map((categoria) => <option key={categoria.id} value={categoria.id}>{categoria.nombre}</option>)}

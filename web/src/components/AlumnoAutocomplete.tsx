@@ -50,12 +50,12 @@ export function AlumnoAutocomplete({ value, onChange }: {
     <div className="relative" onBlur={(e) => {
       if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setAbierto(false);
     }}>
-      <label htmlFor="alumno-busqueda" className="label">Alumno (nombre, DNI o código)</label>
+      <label htmlFor="alumno-busqueda" className="label">Alumno</label>
       <input id="alumno-busqueda" className="input" required autoComplete="off"
         role="combobox" aria-autocomplete="list" aria-expanded={mostrar}
         aria-controls="alumno-opciones" aria-describedby="alumno-ayuda"
         aria-activedescendant={mostrar && activo >= 0 ? `alumno-opcion-${items[activo]?.id}` : undefined}
-        placeholder="Buscar alumno registrado" value={value ? `${value.apellidos}, ${value.nombres}` : texto}
+        placeholder="Buscar por nombre, DNI o código" value={value ? `${value.apellidos}, ${value.nombres}` : texto}
         onFocus={() => setAbierto(true)}
         onChange={(e) => {
           onChange(null); setTexto(e.target.value); setAbierto(true);
@@ -73,7 +73,7 @@ export function AlumnoAutocomplete({ value, onChange }: {
           }
         }} />
       <p id="alumno-ayuda" className="mt-1 text-xs text-slate-500">
-        {value ? `DNI: ${value.dni} · Código: ${value.codigoAlumno}` : "Selecciona un alumno de las sugerencias."}
+        {value ? `DNI: ${value.dni} · Código: ${value.codigoAlumno}` : "Elige una opción."}
       </p>
       {mostrar && <div className="absolute z-20 mt-1 w-full rounded-md border bg-white shadow-lg">
         <p role="status" className="px-3 text-sm text-slate-500">

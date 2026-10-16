@@ -58,7 +58,7 @@ export default function Devoluciones() {
       <PageTitle>Devoluciones</PageTitle>
       <form onSubmit={buscar} className="card mb-4 flex max-w-2xl flex-wrap items-end gap-3">
         <label className="flex-1"><span className="label">Buscar préstamo activo</span>
-          <input className="input" autoFocus placeholder="Nombre, DNI, código, título, ISBN o ejemplar" value={busqueda} onChange={(e) => setBusqueda(e.target.value)} /></label>
+          <input className="input" autoFocus placeholder="Nombre, DNI, título o código" value={busqueda} onChange={(e) => setBusqueda(e.target.value)} /></label>
         <button className="btn" disabled={buscando}>{buscando ? "Buscando…" : "Buscar"}</button>
       </form>
       <Msg type={msg?.t ?? "ok"}>{msg?.m}</Msg>
@@ -81,7 +81,7 @@ export default function Devoluciones() {
       {p && (
         <div className="card mt-4 max-w-xl space-y-3">
           <div><p className="font-medium">{p.titulo}</p><p className="font-mono text-sm text-slate-500">{p.codigoInterno ?? "Préstamo por cantidad"}</p></div>
-          <p className="text-sm">Prestado a <b>{p.prestatario}</b> el {fecha(p.fechaPrestamo)}. Fecha prevista: {fecha(p.fechaPrevistaDevolucion)}{p.vencido ? " — vencido" : ""}.</p>
+          <p className="text-sm"><b>{p.prestatario}</b> · Prestado: {fecha(p.fechaPrestamo)} · Vence: {fecha(p.fechaPrevistaDevolucion)}{p.vencido ? " (vencido)" : ""}</p>
           <label className="block"><span className="label">Estado en que regresa</span>
             <select className="input" value={res} onChange={(e) => setRes(e.target.value)}>
               <option value="BUENO">Buena condición</option><option value="DETERIORADO">Deteriorado</option><option value="DANADO">Dañado</option><option value="PERDIDO">Perdido</option>

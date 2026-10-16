@@ -95,7 +95,6 @@ export default function Profesores() {
         <div className="flex items-start justify-between gap-4 border-b border-slate-200 px-5 py-4 sm:px-6">
           <div>
             <h2 id="profesor-dialog-title" className="text-lg font-semibold text-slate-900">{editarId ? "Editar profesor" : "Registrar profesor"}</h2>
-            <p className="mt-1 text-sm text-slate-500">Completa la información del profesor.</p>
           </div>
           <button type="button" className="rounded-md px-2 py-1 text-xl leading-none text-slate-500 hover:bg-slate-100 hover:text-slate-800" aria-label="Cerrar ventana" onClick={() => setAbrir(false)}>×</button>
         </div>
@@ -114,7 +113,7 @@ export default function Profesores() {
           </div>
         </form>
       </dialog>
-      <input className="input mb-3 max-w-md" placeholder="Buscar por nombre o DNI" value={qtxt} onChange={(e) => setQ(e.target.value)} />
+      <input className="input mb-3 max-w-md" placeholder="Nombre o DNI" value={qtxt} onChange={(e) => setQ(e.target.value)} />
       <div className="card responsive-table-shell mt-3 overflow-x-auto p-0">
         <table className="responsive-table w-full min-w-[640px]">
           <thead className="border-b bg-slate-50"><tr>{["DNI", "Profesor", "Área", "Teléfono", "Correo", "Estado", "Acciones"].map((h) => <th key={h} className="th">{h}</th>)}</tr></thead>
