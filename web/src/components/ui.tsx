@@ -10,6 +10,8 @@ const COLORES: Record<string, string> = {
   REPARACION: "bg-violet-50 text-violet-800 ring-violet-200",
   BAJA: "bg-slate-100 text-slate-600 ring-slate-200",
   ACTIVO: "bg-emerald-50 text-emerald-800 ring-emerald-200",
+  CERRADO: "bg-slate-100 text-slate-700 ring-slate-200",
+  ANULADO: "bg-red-50 text-red-800 ring-red-200",
   ARCHIVADO: "bg-slate-100 text-slate-600 ring-slate-200",
 };
 const ETIQUETA: Record<string, string> = { DANADO: "Dañado", REPARACION: "Reparación" };

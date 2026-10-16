@@ -13,7 +13,7 @@ export default function Login() {
   const [f, setF] = useState({
     username: "",
     password: "",
-  });
+    });
 
   const [err, setErr] = useState("");
   const [busy, setBusy] = useState(false);

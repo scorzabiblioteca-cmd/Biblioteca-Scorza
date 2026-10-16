@@ -2,6 +2,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { api, Paged } from "@/lib/client";
 import { Badge, Field, Msg, PageTitle, useDebounced } from "@/components/ui";
+import { HistorialPrestatarioDialog, type PrestatarioSeleccionado } from "@/components/HistorialPrestatarioDialog";
 
 const VACIO = { dni: "", nombres: "", apellidos: "", correo: "", telefono: "", area: "", estado: "ACTIVO" };
 
@@ -23,6 +24,7 @@ export default function Profesores() {
   const [f, setF] = useState(VACIO);
   const [abrir, setAbrir] = useState(false);
   const [editarId, setEditarId] = useState<number | null>(null);
+  const [historialDe, setHistorialDe] = useState<PrestatarioSeleccionado | null>(null);
   const [msg, setMsg] = useState<{ t: "ok" | "error"; m: string } | null>(null);
   const dialogRef = useRef<HTMLDialogElement>(null);
   const dq = useDebounced(qtxt);
@@ -79,6 +81,11 @@ export default function Profesores() {
     <>
       <PageTitle action={<button type="button" className="btn" onClick={nuevoProfesor}>Registrar profesor</button>}>Profesores</PageTitle>
       {msg?.t === "ok" && <Msg type="ok">{msg.m}</Msg>}
+      <HistorialPrestatarioDialog
+        key={historialDe ? `${historialDe.tipo}-${historialDe.id}` : "cerrado"}
+        prestatario={historialDe}
+        onClose={() => setHistorialDe(null)}
+      />
       <dialog
         ref={dialogRef}
         aria-labelledby="profesor-dialog-title"
@@ -115,7 +122,11 @@ export default function Profesores() {
             {data?.items.map((profesor) => (
               <tr key={profesor.id}>
                 <td className="td" data-label="DNI">{profesor.dni ?? "—"}</td>
-                <td className="td font-medium" data-label="Profesor">{profesor.apellidos}, {profesor.nombres}</td>
+                <td className="td font-medium" data-label="Profesor">
+                  <button type="button" className="text-left hover:text-brand-700 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600" onClick={() => setHistorialDe({ id: profesor.id, tipo: "profesor", nombre: `${profesor.apellidos}, ${profesor.nombres}` })}>
+                    {profesor.apellidos}, {profesor.nombres}
+                  </button>
+                </td>
                 <td className="td" data-label="Área">{profesor.area ?? "—"}</td>
                 <td className="td" data-label="Teléfono">{profesor.telefono ?? "—"}</td>
                 <td className="td" data-label="Correo">{profesor.correo ?? "—"}</td>

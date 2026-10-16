@@ -2,6 +2,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { api, Paged } from "@/lib/client";
 import { Badge, Field, Msg, PageTitle, useDebounced } from "@/components/ui";
+import { HistorialPrestatarioDialog, type PrestatarioSeleccionado } from "@/components/HistorialPrestatarioDialog";
 
 const VACIO = { codigoAlumno: "", dni: "", nombres: "", apellidos: "", nivelEducativo: "SECUNDARIA", grado: "", seccion: "", telefono: "", correo: "", estado: "ACTIVO" };
 
@@ -11,6 +12,7 @@ export default function Alumnos() {
   const [f, setF] = useState(VACIO);
   const [abrir, setAbrir] = useState(false);
   const [editarId, setEditarId] = useState<number | null>(null);
+  const [historialDe, setHistorialDe] = useState<PrestatarioSeleccionado | null>(null);
   const [msg, setMsg] = useState<{ t: "ok" | "error"; m: string } | null>(null);
   const dialogRef = useRef<HTMLDialogElement>(null);
   const dq = useDebounced(qtxt);
@@ -67,6 +69,11 @@ export default function Alumnos() {
     <>
       <PageTitle action={<button type="button" className="btn" onClick={nuevoAlumno}>Registrar alumno</button>}>Alumnos</PageTitle>
       {msg?.t === "ok" && <Msg type="ok">{msg.m}</Msg>}
+      <HistorialPrestatarioDialog
+        key={historialDe ? `${historialDe.tipo}-${historialDe.id}` : "cerrado"}
+        prestatario={historialDe}
+        onClose={() => setHistorialDe(null)}
+      />
       <dialog
         ref={dialogRef}
         aria-labelledby="alumno-dialog-title"
@@ -103,7 +110,11 @@ export default function Alumnos() {
         <table className="responsive-table w-full min-w-[700px]"><thead className="border-b bg-slate-50"><tr>{["Código", "DNI", "Alumno", "Grado", "Sección", "Estado", "Acciones"].map((h) => <th key={h} className="th">{h}</th>)}</tr></thead>
           <tbody className="divide-y divide-slate-100">
             {data?.items.map((a) => (
-              <tr key={a.id}><td className="td font-mono" data-label="Código">{a.codigoAlumno}</td><td className="td" data-label="DNI">{a.dni ?? "—"}</td><td className="td font-medium" data-label="Alumno">{a.apellidos}, {a.nombres}</td>
+              <tr key={a.id}><td className="td font-mono" data-label="Código">{a.codigoAlumno}</td><td className="td" data-label="DNI">{a.dni ?? "—"}</td><td className="td font-medium" data-label="Alumno">
+                  <button type="button" className="text-left hover:text-brand-700 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600" onClick={() => setHistorialDe({ id: a.id, tipo: "alumno", nombre: `${a.apellidos}, ${a.nombres}` })}>
+                    {a.apellidos}, {a.nombres}
+                  </button>
+                </td>
                 <td className="td" data-label="Grado">{a.grado ?? "—"}</td><td className="td" data-label="Sección">{a.seccion ?? "—"}</td><td className="td" data-label="Estado"><Badge v={a.estado === "ACTIVO" ? "ACTIVO" : "BAJA"} /></td>
                 <td className="td" data-label="Acciones"><button type="button" className="btn-ghost py-1" onClick={() => editarAlumno(a)}>Editar</button></td></tr>))}
             {data && data.items.length === 0 && <tr><td className="td text-slate-500" colSpan={7}>No hay alumnos registrados.</td></tr>}

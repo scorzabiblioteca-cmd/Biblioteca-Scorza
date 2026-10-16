@@ -14,7 +14,19 @@ export const GET = withAuth(R, async (req) => {
   const add = (v: unknown) => (params.push(v), `$${params.length}`);
   if (sp.get("estado")) where.push(`p.estado = ${add(sp.get("estado"))}`);
   if (sp.get("vencidos") === "true") where.push(`p.estado = 'ACTIVO' AND p.fecha_prevista_devolucion < ${LIMA_HOY}`);
-  if (sp.get("alumnoId")) where.push(`p.alumno_id = ${add(Number(sp.get("alumnoId")))}`);
+  const alumnoId = sp.get("alumnoId");
+  const profesorId = sp.get("profesorId");
+  if (alumnoId && profesorId) throw new HttpError(400, "Indica solo un tipo de prestatario");
+  for (const [id, columna, entidad] of [
+    [alumnoId, "p.alumno_id", "alumno"],
+    [profesorId, "p.profesor_id", "profesor"],
+  ] as const) {
+    if (id) {
+      const valor = Number(id);
+      if (!Number.isSafeInteger(valor) || valor < 1) throw new HttpError(400, `Identificador de ${entidad} no válido`);
+      where.push(`${columna} = ${add(valor)}`);
+    }
+  }
   if (sp.get("desde")) where.push(`p.fecha_prestamo >= ${add(sp.get("desde"))}::date`);
   if (sp.get("hasta")) where.push(`p.fecha_prestamo < ${add(sp.get("hasta"))}::date + 1`);
   const W = where.length ? "WHERE " + where.join(" AND ") : "";
