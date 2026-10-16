@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { api, fecha, Paged } from "@/lib/client";
 import { Badge, Msg, PageTitle } from "@/components/ui";
 import { AlumnoAutocomplete, type Alumno } from "@/components/AlumnoAutocomplete";
+import { ProfesorAutocomplete, type Profesor } from "@/components/ProfesorAutocomplete";
 import { EjemplarAutocomplete, type LibroCantidad } from "@/components/EjemplarAutocomplete";
 
 function fechaDespuesDe(dias: number) {
@@ -18,7 +19,9 @@ function fechaDespuesDe(dias: number) {
 export default function Prestamos() {
   const [data, setData] = useState<Paged<any> | null>(null);
   const [filtro, setFiltro] = useState("");
+  const [tipoPrestatario, setTipoPrestatario] = useState<"ALUMNO" | "PROFESOR">("ALUMNO");
   const [alumno, setAlumno] = useState<Alumno | null>(null);
+  const [profesor, setProfesor] = useState<Profesor | null>(null);
   const [cantidades, setCantidades] = useState<LibroCantidad[]>([]);
   const [codigos, setCodigos] = useState("");
   const [fechaDevolucion, setFechaDevolucion] = useState(() => fechaDespuesDe(7));
@@ -35,19 +38,25 @@ export default function Prestamos() {
 
   async function crear(e: React.FormEvent) {
     e.preventDefault(); setMsg(null);
-    if (!alumno) {
-      setMsg({ t: "error", m: "Selecciona un alumno registrado de las sugerencias." });
+    if (tipoPrestatario === "ALUMNO" ? !alumno : !profesor) {
+      setMsg({ t: "error", m: `Selecciona un ${tipoPrestatario === "ALUMNO" ? "alumno" : "profesor"} registrado de las sugerencias.` });
       return;
     }
     const items = [...codigos.split(/[\s,;]+/).filter(Boolean).map((c) => ({ codigoEjemplar: c })),
       ...cantidades.map(({ libroId, cantidad }) => ({ libroId, cantidad }))];
     try {
-      await api("/prestamos", { json: { alumnoId: alumno.id, items, fechaPrevistaDevolucion: fechaDevolucion } });
+      await api("/prestamos", { json: {
+        ...(tipoPrestatario === "ALUMNO" ? { alumnoId: alumno!.id } : { profesorId: profesor!.id }),
+        items,
+        fechaPrevistaDevolucion: fechaDevolucion,
+      } });
       setCantidades([]);
       setFormVersion((v) => v + 1);
       setMsg({ t: "ok", m: "Préstamo registrado correctamente" });
       setCodigos("");
       setAlumno(null);
+      setProfesor(null);
+      setTipoPrestatario("ALUMNO");
       setFechaDevolucion(fechaDespuesDe(7));
       dialogRef.current?.close();
       cargar();
@@ -69,7 +78,7 @@ export default function Prestamos() {
         <div className="flex items-start justify-between gap-4 border-b border-slate-200 px-5 py-4 sm:px-6">
           <div>
             <h2 id="prestamo-dialog-title" className="text-lg font-semibold text-slate-900">Registrar préstamo</h2>
-            <p className="mt-1 text-sm text-slate-500">Selecciona el alumno y los libros que se prestarán.</p>
+            <p className="mt-1 text-sm text-slate-500">Selecciona al prestatario y los libros que se prestarán.</p>
           </div>
           <button
             type="button"
@@ -81,7 +90,16 @@ export default function Prestamos() {
           </button>
         </div>
         <form onSubmit={crear} className="grid gap-4 p-5 sm:p-6">
-          <AlumnoAutocomplete value={alumno} onChange={setAlumno} />
+          <fieldset className="grid gap-2">
+            <legend className="label">Tipo de prestatario</legend>
+            <div className="flex flex-wrap gap-4 text-sm text-slate-700">
+              <label className="flex items-center gap-2"><input type="radio" name="tipoPrestatario" value="ALUMNO" checked={tipoPrestatario === "ALUMNO"} onChange={() => { setTipoPrestatario("ALUMNO"); setProfesor(null); }} />Alumno</label>
+              <label className="flex items-center gap-2"><input type="radio" name="tipoPrestatario" value="PROFESOR" checked={tipoPrestatario === "PROFESOR"} onChange={() => { setTipoPrestatario("PROFESOR"); setAlumno(null); }} />Profesor</label>
+            </div>
+          </fieldset>
+          {tipoPrestatario === "ALUMNO"
+            ? <AlumnoAutocomplete value={alumno} onChange={setAlumno} />
+            : <ProfesorAutocomplete value={profesor} onChange={setProfesor} />}
           <EjemplarAutocomplete key={formVersion} codigos={codigos} onChange={setCodigos} cantidades={cantidades} onCantidadesChange={setCantidades} />
           <label className="grid gap-1.5 text-sm font-medium text-slate-700">
             Fecha de devolución
