@@ -55,3 +55,51 @@ export function useDebounced<T>(value: T, ms = 300) {
 export function Field({ label, children, className = "" }: { label: string; children: React.ReactNode; className?: string }) {
   return <label className={className}><span className="label">{label}</span>{children}</label>;
 }
+
+const TONOS_PORTADA = [
+  "bg-gradient-to-br from-[#dde8fb] to-[#bfd3f3] text-[#2a5cb8]",
+  "bg-gradient-to-br from-[#e0eef5] to-[#bdd8e8] text-[#2c6a8f]",
+  "bg-gradient-to-br from-[#e6e6f8] to-[#c9c9ec] text-[#4a4a9e]",
+  "bg-gradient-to-br from-[#e2f0e7] to-[#c2dfcd] text-[#2f7a52]",
+  "bg-gradient-to-br from-[#f7ead9] to-[#ecd2ae] text-[#96682a]",
+  "bg-gradient-to-br from-[#f6e2e5] to-[#ecc4cb] text-[#9c4557]",
+];
+
+function tonoDe(titulo: string) {
+  let h = 0;
+  for (let i = 0; i < titulo.length; i++) h = (h * 31 + titulo.charCodeAt(i)) >>> 0;
+  return TONOS_PORTADA[h % TONOS_PORTADA.length];
+}
+
+function inicialesDe(titulo: string) {
+  const palabras = titulo.trim().split(/\s+/).filter(Boolean);
+  return palabras.slice(0, 2).map((p) => p[0]?.toUpperCase() ?? "").join("");
+}
+
+/** Portada de libro: muestra la imagen y, si no hay (o falla la URL), una portada
+ *  decorativa con el ícono del libro y las iniciales del título. */
+export function Portada({ src, titulo, className = "", compacto = false }: {
+  src?: string | null; titulo?: string | null; className?: string; compacto?: boolean;
+}) {
+  const [falla, setFalla] = useState(false);
+  const url = src?.trim() || null;
+  const nombre = titulo?.trim() || "";
+  if (url && !falla) {
+    return <img src={url} alt={nombre ? `Portada de ${nombre}` : "Portada"}
+      className={`object-cover ${className}`} onError={() => setFalla(true)} />;
+  }
+  return (
+    <div aria-hidden="true"
+      className={`relative flex flex-col items-center justify-center gap-1 overflow-hidden ${tonoDe(nombre)} ${className}`}>
+      <span className="pointer-events-none absolute inset-y-0 left-[13%] w-[3px] rounded-full bg-white/55" />
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round"
+        className={compacto ? "h-5 w-5" : "h-[34%] w-[34%] max-h-14 max-w-14"}>
+        <path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v18H6.5A2.5 2.5 0 0 1 4 17.5z" />
+        <path d="M4 17.5A2.5 2.5 0 0 1 6.5 15H20M8 6h8M8 9h8" />
+      </svg>
+      {!compacto && inicialesDe(nombre) && (
+        <span className="px-1 text-[0.62rem] font-bold uppercase tracking-[0.12em]">{inicialesDe(nombre)}</span>
+      )}
+    </div>
+  );
+}

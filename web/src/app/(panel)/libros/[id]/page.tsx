@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { use, useCallback, useEffect, useState } from "react";
 import { api } from "@/lib/client";
-import { Badge, Msg, PageTitle } from "@/components/ui";
+import { Badge, Msg, PageTitle, Portada } from "@/components/ui";
 
 type Detalle = any;
 
@@ -38,7 +38,7 @@ export default function LibroDetalle({ params }: { params: Promise<{ id: string 
       <div className="grid gap-4 lg:grid-cols-3">
         <div className="card lg:col-span-2">
           <div className="flex gap-4">
-            {l.imagenUrl ? <img src={l.imagenUrl} alt="Portada" className="h-40 w-28 rounded-lg object-cover" /> : <div className="h-40 w-28 rounded-lg bg-[#eef2f7]" />}
+            <Portada src={l.imagenUrl} titulo={l.titulo} className="h-40 w-28 rounded-lg" />
             <dl className="grid flex-1 gap-x-4 gap-y-1 text-sm sm:grid-cols-2">
               {[["ISBN", l.isbn], ["Autor", l.autores], ["Editorial", l.editorial], ["Categoría", l.categoria], ["Año", l.anioPublicacion],
                 ["Edición", l.edicion], ["Idioma", l.idioma], ["Nivel", l.nivelEducativo], ["Grado", l.gradoRecomendado], ["Control", indiv ? "Individual" : "Por cantidad"]]

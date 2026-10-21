@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { api, Paged } from "@/lib/client";
-import { Badge, Msg, PageTitle, useDebounced } from "@/components/ui";
+import { Badge, Msg, PageTitle, Portada, useDebounced } from "@/components/ui";
 
 type Libro = {
   id: number; titulo: string; autores: string | null; isbn: string | null; categoria: string | null; tipoControl: string;
@@ -79,7 +79,7 @@ export default function Libros() {
             <tbody className="divide-y divide-[#eef2f7]">
               {data?.items.map((l) => (
                 <tr key={l.id} className="hover:bg-[#f7faff]">
-                  <td className="td w-12" data-label="">{l.imagenUrl ? <img src={l.imagenUrl} alt="" className="h-12 w-9 rounded-lg object-cover" /> : <div className="h-12 w-9 rounded-lg bg-[#eef2f7]" />}</td>
+                  <td className="td w-12" data-label=""><Portada src={l.imagenUrl} titulo={l.titulo} compacto className="h-12 w-9 rounded-lg" /></td>
                   <td className="td font-medium" data-label="Título"><Link href={`/libros/${l.id}`} className="text-brand-700 hover:underline">{l.titulo}</Link></td>
                   <td className="td" data-label="Autor">{l.autores ?? "—"}</td>
                   <td className="td tabular-nums" data-label="ISBN">{l.isbn ?? "—"}</td>
@@ -100,9 +100,7 @@ export default function Libros() {
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
           {data?.items.map((l) => (
             <Link key={l.id} href={`/libros/${l.id}`} className="overflow-hidden rounded-xl border border-[#e6ecf4] bg-white shadow-soft transition hover:-translate-y-0.5 hover:border-brand-300 hover:shadow-lift">
-              {l.imagenUrl
-                ? <img src={l.imagenUrl} alt="" className="aspect-[2/3] w-full object-cover" />
-                : <div aria-hidden="true" className="aspect-[2/3] bg-[#eef2f7]" />}
+              <Portada src={l.imagenUrl} titulo={l.titulo} className="aspect-[2/3] w-full" />
               <span className="line-clamp-2 block min-h-10 p-2.5 text-sm font-medium text-[#334155]">{l.titulo}</span>
             </Link>
           ))}
