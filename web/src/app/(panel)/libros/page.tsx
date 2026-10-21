@@ -61,25 +61,25 @@ export default function Libros() {
       <Msg type="error">{err}</Msg>
       {errorCategorias && <Msg type="error">No se pudieron cargar las categorías: {errorCategorias}</Msg>}
       <div className="mb-3 flex justify-end" role="group" aria-label="Vista de libros">
-        <button type="button" aria-pressed={vista === "tabla"} onClick={() => setVista("tabla")}
-          className={`rounded-l border px-3 py-2 text-sm ${vista === "tabla" ? "bg-slate-800 text-white" : "bg-white text-slate-700 hover:bg-slate-50"}`}>
-          Tabla
-        </button>
-        <button type="button" aria-pressed={vista === "portadas"} onClick={() => setVista("portadas")}
-          className={`rounded-r border border-l-0 px-3 py-2 text-sm ${vista === "portadas" ? "bg-slate-800 text-white" : "bg-white text-slate-700 hover:bg-slate-50"}`}>
-          Portadas
-        </button>
+        <div className="segmented">
+          <button type="button" aria-pressed={vista === "tabla"} onClick={() => setVista("tabla")}>
+            Tabla
+          </button>
+          <button type="button" aria-pressed={vista === "portadas"} onClick={() => setVista("portadas")}>
+            Portadas
+          </button>
+        </div>
       </div>
       {vista === "tabla" ? (
         <div className="card responsive-table-shell overflow-x-auto p-0">
           <table className="responsive-table w-full min-w-[820px]">
-            <thead className="border-b border-slate-200 bg-slate-50"><tr>
+            <thead className="border-b border-[#e6ecf4] bg-[#f7f9fc]"><tr>
               {["", "Título", "Autor", "ISBN", "Categoría", "Control", "Total", "Disp.", "Prest.", "Ubicación", "Estado"].map((h) => <th key={h} className="th">{h}</th>)}
             </tr></thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-[#eef2f7]">
               {data?.items.map((l) => (
-                <tr key={l.id} className="hover:bg-slate-50">
-                  <td className="td w-12" data-label="">{l.imagenUrl ? <img src={l.imagenUrl} alt="" className="h-12 w-9 rounded object-cover" /> : <div className="h-12 w-9 rounded bg-slate-100" />}</td>
+                <tr key={l.id} className="hover:bg-[#f7faff]">
+                  <td className="td w-12" data-label="">{l.imagenUrl ? <img src={l.imagenUrl} alt="" className="h-12 w-9 rounded-lg object-cover" /> : <div className="h-12 w-9 rounded-lg bg-[#eef2f7]" />}</td>
                   <td className="td font-medium" data-label="Título"><Link href={`/libros/${l.id}`} className="text-brand-700 hover:underline">{l.titulo}</Link></td>
                   <td className="td" data-label="Autor">{l.autores ?? "—"}</td>
                   <td className="td tabular-nums" data-label="ISBN">{l.isbn ?? "—"}</td>
@@ -99,11 +99,11 @@ export default function Libros() {
       ) : (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
           {data?.items.map((l) => (
-            <Link key={l.id} href={`/libros/${l.id}`} className="overflow-hidden rounded border border-slate-200 bg-white hover:border-slate-400">
+            <Link key={l.id} href={`/libros/${l.id}`} className="overflow-hidden rounded-xl border border-[#e6ecf4] bg-white shadow-soft transition hover:-translate-y-0.5 hover:border-brand-300 hover:shadow-lift">
               {l.imagenUrl
                 ? <img src={l.imagenUrl} alt="" className="aspect-[2/3] w-full object-cover" />
-                : <div aria-hidden="true" className="aspect-[2/3] bg-slate-100" />}
-              <span className="line-clamp-2 block min-h-10 p-2 text-sm font-medium text-slate-800">{l.titulo}</span>
+                : <div aria-hidden="true" className="aspect-[2/3] bg-[#eef2f7]" />}
+              <span className="line-clamp-2 block min-h-10 p-2.5 text-sm font-medium text-[#334155]">{l.titulo}</span>
             </Link>
           ))}
           {data && data.items.length === 0 && <p className="col-span-full py-8 text-center text-sm text-slate-500">No hay libros con esos criterios. Registra el primero con «Registrar libro».</p>}

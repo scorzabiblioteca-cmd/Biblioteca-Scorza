@@ -75,14 +75,14 @@ export function AlumnoAutocomplete({ value, onChange }: {
       <p id="alumno-ayuda" className="mt-1 text-xs text-slate-500">
         {value ? `DNI: ${value.dni} · Código: ${value.codigoAlumno}` : "Elige una opción."}
       </p>
-      {mostrar && <div className="absolute z-20 mt-1 w-full rounded-md border bg-white shadow-lg">
+      {mostrar && <div className="absolute z-20 mt-1 w-full overflow-hidden rounded-xl border border-[#e6ecf4] bg-white shadow-[0_18px_45px_rgba(11,27,51,0.18)]">
         <p role="status" className="px-3 text-sm text-slate-500">
           {cargando ? "Buscando alumnos…" : error || (items.length === 0 ? "No se encontraron alumnos activos." : "")}
         </p>
         <ul id="alumno-opciones" role="listbox" aria-label="Alumnos registrados" className="max-h-64 overflow-y-auto">
           {items.map((alumno, index) => <li key={alumno.id} id={`alumno-opcion-${alumno.id}`}
             role="option" aria-selected={activo === index}
-            className={`cursor-pointer px-3 py-2 text-sm hover:bg-emerald-50 ${activo === index ? "bg-emerald-50" : ""}`}
+            className={`cursor-pointer px-3 py-2.5 text-sm transition-colors hover:bg-[#f7faff] ${activo === index ? "bg-brand-50 font-medium text-brand-900" : ""}`}
             onMouseDown={(e) => e.preventDefault()} onClick={() => seleccionar(alumno)}>
             <span className="block font-medium">{alumno.apellidos}, {alumno.nombres}</span>
             <span className="text-xs text-slate-500">DNI: {alumno.dni} · Código: {alumno.codigoAlumno}</span>

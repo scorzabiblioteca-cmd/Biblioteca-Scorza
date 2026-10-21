@@ -90,13 +90,13 @@ export default function Profesores() {
         ref={dialogRef}
         aria-labelledby="profesor-dialog-title"
         onCancel={() => setAbrir(false)}
-        className="m-auto max-h-[90dvh] w-[min(48rem,calc(100%-2rem))] overflow-y-auto rounded-xl border border-slate-200 bg-white p-0 text-slate-800 shadow-2xl backdrop:bg-slate-950/50"
+        className="m-auto max-h-[90dvh] w-[min(48rem,calc(100%-2rem))] overflow-y-auto rounded-2xl border border-[#e6ecf4] bg-white p-0 text-[#334155] shadow-panel backdrop:bg-[#0b1b33]/55"
       >
-        <div className="flex items-start justify-between gap-4 border-b border-slate-200 px-5 py-4 sm:px-6">
+        <div className="flex items-start justify-between gap-4 border-b border-[#e6ecf4] px-5 py-4 sm:px-6">
           <div>
-            <h2 id="profesor-dialog-title" className="text-lg font-semibold text-slate-900">{editarId ? "Editar profesor" : "Registrar profesor"}</h2>
+            <h2 id="profesor-dialog-title" className="text-lg font-semibold tracking-[-0.02em] text-[#172b4d]">{editarId ? "Editar profesor" : "Registrar profesor"}</h2>
           </div>
-          <button type="button" className="rounded-md px-2 py-1 text-xl leading-none text-slate-500 hover:bg-slate-100 hover:text-slate-800" aria-label="Cerrar ventana" onClick={() => setAbrir(false)}>×</button>
+          <button type="button" className="rounded-lg px-2 py-1 text-xl leading-none text-[#718096] hover:bg-[#f1f5fb] hover:text-[#172b4d]" aria-label="Cerrar ventana" onClick={() => setAbrir(false)}>×</button>
         </div>
         <form onSubmit={crear} className="grid gap-4 p-5 sm:grid-cols-2 sm:p-6">
           <Field label="DNI"><input className="input" value={f.dni} onChange={set("dni")} inputMode="numeric" /></Field>
@@ -116,8 +116,8 @@ export default function Profesores() {
       <input className="input mb-3 max-w-md" placeholder="Nombre o DNI" value={qtxt} onChange={(e) => setQ(e.target.value)} />
       <div className="card responsive-table-shell mt-3 overflow-x-auto p-0">
         <table className="responsive-table w-full min-w-[640px]">
-          <thead className="border-b bg-slate-50"><tr>{["DNI", "Profesor", "Área", "Teléfono", "Correo", "Estado", "Acciones"].map((h) => <th key={h} className="th">{h}</th>)}</tr></thead>
-          <tbody className="divide-y divide-slate-100">
+          <thead className="border-b border-[#e6ecf4] bg-[#f7f9fc]"><tr>{["DNI", "Profesor", "Área", "Teléfono", "Correo", "Estado", "Acciones"].map((h) => <th key={h} className="th">{h}</th>)}</tr></thead>
+          <tbody className="divide-y divide-[#eef2f7]">
             {data?.items.map((profesor) => (
               <tr key={profesor.id}>
                 <td className="td" data-label="DNI">{profesor.dni ?? "—"}</td>

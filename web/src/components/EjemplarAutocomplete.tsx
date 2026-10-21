@@ -92,14 +92,14 @@ export function EjemplarAutocomplete({ codigos, onChange, cantidades, onCantidad
               if (abierto && activo >= 0 && items[activo]) seleccionar(items[activo]);
             }
           }} />
-        {abierto && <div className="absolute z-20 mt-1 w-full rounded-md border bg-white shadow-lg">
+        {abierto && <div className="absolute z-20 mt-1 w-full overflow-hidden rounded-xl border border-[#e6ecf4] bg-white shadow-[0_18px_45px_rgba(11,27,51,0.18)]">
           <p role="status" className="px-3 text-sm text-slate-500">
             {cargando ? "Buscando libros…" : error || (items.length === 0 ? "No se encontraron ejemplares disponibles." : "")}
           </p>
           <ul id="ejemplar-opciones" role="listbox" aria-label="Ejemplares disponibles" className="max-h-64 overflow-y-auto">
             {items.map((ejemplar, index) => <li key={`${ejemplar.libroId ? "libro" : "ejemplar"}-${ejemplar.id}`} id={`ejemplar-opcion-${ejemplar.libroId ? "libro" : "ejemplar"}-${ejemplar.id}`}
               role="option" aria-selected={activo === index} aria-disabled={seleccionados.has(ejemplar.codigoInterno)}
-              className={`cursor-pointer px-3 py-2 text-sm hover:bg-emerald-50 ${activo === index ? "bg-emerald-50" : ""} ${seleccionados.has(ejemplar.codigoInterno) ? "opacity-50" : ""}`}
+              className={`cursor-pointer px-3 py-2.5 text-sm transition-colors hover:bg-[#f7faff] ${activo === index ? "bg-brand-50 font-medium text-brand-900" : ""} ${seleccionados.has(ejemplar.codigoInterno) ? "opacity-50" : ""}`}
               onMouseDown={(e) => e.preventDefault()} onClick={() => seleccionar(ejemplar)}>
               <span className="block font-medium">{ejemplar.titulo}</span>
               <span className="text-xs text-slate-500">{ejemplar.libroId ? `${ejemplar.disponibles} unidades disponibles` : `Código: ${ejemplar.codigoInterno}`} · {ejemplar.categoria || "Sin categoría"}
@@ -113,7 +113,7 @@ export function EjemplarAutocomplete({ codigos, onChange, cantidades, onCantidad
         <textarea className="input" rows={2} required={cantidades.length === 0} placeholder="Pega códigos separados por coma"
           value={codigos} onChange={(e) => onChange(e.target.value)} />
       </label>
-      {cantidades.map((libro) => <div key={libro.libroId} className="flex items-center gap-2 rounded border p-2 text-sm">
+      {cantidades.map((libro) => <div key={libro.libroId} className="flex items-center gap-2 rounded-xl border border-[#e6ecf4] bg-[#fbfcfe] p-2 text-sm">
         <span className="flex-1">{libro.titulo}</span>
         <input className="input max-w-20" type="number" min={1} max={libro.disponibles} required
           aria-label={`Cantidad de ${libro.titulo}`} value={libro.cantidad}

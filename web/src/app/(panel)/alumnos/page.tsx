@@ -78,13 +78,13 @@ export default function Alumnos() {
         ref={dialogRef}
         aria-labelledby="alumno-dialog-title"
         onCancel={() => setAbrir(false)}
-        className="m-auto max-h-[90dvh] w-[min(48rem,calc(100%-2rem))] overflow-y-auto rounded-xl border border-slate-200 bg-white p-0 text-slate-800 shadow-2xl backdrop:bg-slate-950/50"
+        className="m-auto max-h-[90dvh] w-[min(48rem,calc(100%-2rem))] overflow-y-auto rounded-2xl border border-[#e6ecf4] bg-white p-0 text-[#334155] shadow-panel backdrop:bg-[#0b1b33]/55"
       >
-        <div className="flex items-start justify-between gap-4 border-b border-slate-200 px-5 py-4 sm:px-6">
+        <div className="flex items-start justify-between gap-4 border-b border-[#e6ecf4] px-5 py-4 sm:px-6">
           <div>
-            <h2 id="alumno-dialog-title" className="text-lg font-semibold text-slate-900">{editarId ? "Editar alumno" : "Registrar alumno"}</h2>
+            <h2 id="alumno-dialog-title" className="text-lg font-semibold tracking-[-0.02em] text-[#172b4d]">{editarId ? "Editar alumno" : "Registrar alumno"}</h2>
           </div>
-          <button type="button" className="rounded-md px-2 py-1 text-xl leading-none text-slate-500 hover:bg-slate-100 hover:text-slate-800" aria-label="Cerrar ventana" onClick={() => setAbrir(false)}>×</button>
+          <button type="button" className="rounded-lg px-2 py-1 text-xl leading-none text-[#718096] hover:bg-[#f1f5fb] hover:text-[#172b4d]" aria-label="Cerrar ventana" onClick={() => setAbrir(false)}>×</button>
         </div>
         <form onSubmit={crear} className="grid gap-4 p-5 sm:grid-cols-2 sm:p-6">
           <Field label="Código de alumno *"><input className="input" required value={f.codigoAlumno} onChange={set("codigoAlumno")} /></Field>
@@ -106,8 +106,8 @@ export default function Alumnos() {
       </dialog>
       <input className="input mb-3 max-w-md" placeholder="Nombre, DNI o código" value={qtxt} onChange={(e) => setQ(e.target.value)} />
       <div className="card responsive-table-shell mt-3 overflow-x-auto p-0">
-        <table className="responsive-table w-full min-w-[700px]"><thead className="border-b bg-slate-50"><tr>{["Código", "DNI", "Alumno", "Grado", "Sección", "Estado", "Acciones"].map((h) => <th key={h} className="th">{h}</th>)}</tr></thead>
-          <tbody className="divide-y divide-slate-100">
+        <table className="responsive-table w-full min-w-[700px]"><thead className="border-b border-[#e6ecf4] bg-[#f7f9fc]"><tr>{["Código", "DNI", "Alumno", "Grado", "Sección", "Estado", "Acciones"].map((h) => <th key={h} className="th">{h}</th>)}</tr></thead>
+          <tbody className="divide-y divide-[#eef2f7]">
             {data?.items.map((a) => (
               <tr key={a.id}><td className="td font-mono" data-label="Código">{a.codigoAlumno}</td><td className="td" data-label="DNI">{a.dni ?? "—"}</td><td className="td font-medium" data-label="Alumno">
                   <button type="button" className="text-left hover:text-brand-700 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600" onClick={() => setHistorialDe({ id: a.id, tipo: "alumno", nombre: `${a.apellidos}, ${a.nombres}` })}>

@@ -64,9 +64,9 @@ export default function Devoluciones() {
       <Msg type={msg?.t ?? "ok"}>{msg?.m}</Msg>
       {resultados.length > 0 && !p && (
         <div className="card responsive-table-shell mt-4 max-w-3xl overflow-x-auto p-0">
-          <table className="responsive-table w-full min-w-[600px]"><thead className="border-b bg-slate-50"><tr>
+          <table className="responsive-table w-full min-w-[600px]"><thead className="border-b border-[#e6ecf4] bg-[#f7f9fc]"><tr>
             {["Libro", "Código", "Prestatario", "DNI / código", "Vence", ""].map((h) => <th key={h} className="th">{h}</th>)}
-          </tr></thead><tbody className="divide-y divide-slate-100">
+          </tr></thead><tbody className="divide-y divide-[#eef2f7]">
             {resultados.map((item) => <tr key={item.detalleId}>
               <td className="td font-medium" data-label="Libro">{item.titulo}</td>
               <td className="td font-mono text-sm" data-label="Código">{item.codigoInterno ?? "Por cantidad"}</td>
@@ -103,10 +103,10 @@ export default function Devoluciones() {
         </div>
         <div className="card responsive-table-shell overflow-x-auto p-0">
           <table className="responsive-table w-full min-w-[720px]">
-            <thead className="border-b bg-slate-50"><tr>
+            <thead className="border-b border-[#e6ecf4] bg-[#f7f9fc]"><tr>
               {["Fecha", "Libro", "Código", "Prestatario", "Resultado", "Observaciones"].map((h) => <th key={h} className="th">{h}</th>)}
             </tr></thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-[#eef2f7]">
               {historial?.items.map((item) => (
                 <tr key={item.id}>
                   <td className="td whitespace-nowrap" data-label="Fecha">{fechaHora(item.fechaDevolucion)}</td>

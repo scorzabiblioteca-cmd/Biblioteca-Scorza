@@ -66,16 +66,16 @@ export function HistorialPrestatarioDialog({
       ref={dialogRef}
       aria-labelledby="historial-prestatario-title"
       onCancel={onClose}
-      className="m-auto max-h-[90dvh] w-[min(64rem,calc(100%-2rem))] overflow-y-auto rounded-xl border border-slate-200 bg-white p-0 text-slate-800 shadow-2xl backdrop:bg-slate-950/50"
+      className="m-auto max-h-[90dvh] w-[min(64rem,calc(100%-2rem))] overflow-y-auto rounded-2xl border border-[#e6ecf4] bg-white p-0 text-[#334155] shadow-panel backdrop:bg-[#0b1b33]/55"
     >
       {prestatario && (
         <>
-          <div className="flex items-start justify-between gap-4 border-b border-slate-200 px-5 py-4 sm:px-6">
+          <div className="flex items-start justify-between gap-4 border-b border-[#e6ecf4] px-5 py-4 sm:px-6">
             <div>
-              <h2 id="historial-prestatario-title" className="text-lg font-semibold text-slate-900">Historial de préstamos</h2>
-              <p className="mt-1 text-sm text-slate-500">{prestatario.nombre}</p>
+              <h2 id="historial-prestatario-title" className="text-lg font-semibold tracking-[-0.02em] text-[#172b4d]">Historial de préstamos</h2>
+              <p className="mt-1 text-sm text-[#718096]">{prestatario.nombre}</p>
             </div>
-            <button type="button" className="rounded-md px-2 py-1 text-xl leading-none text-slate-500 hover:bg-slate-100 hover:text-slate-800" aria-label="Cerrar ventana" onClick={onClose}>×</button>
+            <button type="button" className="rounded-lg px-2 py-1 text-xl leading-none text-[#718096] hover:bg-[#f1f5fb] hover:text-[#172b4d]" aria-label="Cerrar ventana" onClick={onClose}>×</button>
           </div>
           <div className="p-5 sm:p-6">
             {historial && <p className="mb-3 text-sm text-slate-500">{historial.total} préstamo(s)</p>}
@@ -85,10 +85,10 @@ export function HistorialPrestatarioDialog({
               <>
                 <div className="responsive-table-shell overflow-x-auto">
                   <table className="responsive-table w-full min-w-[720px]">
-                    <thead className="border-b bg-slate-50"><tr>
+                    <thead className="border-b border-[#e6ecf4] bg-[#f7f9fc]"><tr>
                       {["#", "Libros", "Préstamo", "Devolver antes de", "Devolución", "Estado"].map((titulo) => <th key={titulo} className="th">{titulo}</th>)}
                     </tr></thead>
-                    <tbody className="divide-y divide-slate-100">
+                    <tbody className="divide-y divide-[#eef2f7]">
                       {historial.items.map((prestamo) => (
                         <tr key={prestamo.id}>
                           <td className="td" data-label="#">{prestamo.id}</td>

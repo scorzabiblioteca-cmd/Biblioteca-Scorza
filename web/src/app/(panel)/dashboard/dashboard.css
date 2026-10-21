@@ -18,7 +18,7 @@
 
 .dash-kicker {
   margin: 0;
-  color: #94a3b8;
+  color: #2563eb;
   font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.12em;
@@ -47,10 +47,10 @@
   gap: 0.45rem;
   min-height: 2.5rem;
   padding: 0 0.9rem;
-  border: 1px solid #e2e8f0;
+  border: 1px solid #d6dfeb;
   border-radius: 12px;
   background: #fff;
-  color: #334155;
+  color: #35445b;
   font: inherit;
   font-size: 0.82rem;
   font-weight: 550;
@@ -60,15 +60,21 @@
   cursor: pointer;
 }
 
+.dash-range:hover {
+  border-color: #aebed1;
+  background: #f7faff;
+}
+
 .dash-export {
   color: #fff;
   border-color: transparent;
-  background: #2563eb;
+  background: linear-gradient(105deg, #2867d9, #2456bd);
+  box-shadow: 0 8px 18px rgba(37, 99, 235, 0.2);
   text-decoration: none;
 }
 
 .dash-export:hover {
-  background: #1d4ed8;
+  background: linear-gradient(105deg, #2f70e0, #2456bd);
 }
 
 .dash-export svg {
@@ -92,10 +98,10 @@
   position: relative;
   padding: 1.15rem 1.2rem 1.1rem;
   overflow: hidden;
-  border: 1px solid #edf1f6;
+  border: 1px solid #e6ecf4;
   border-radius: 1.15rem;
   background: #fff;
-  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.035);
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.04);
 }
 
 .dash-kpi-top {
@@ -177,10 +183,10 @@
 
 .dash-card {
   padding: 1.2rem 1.25rem 1.15rem;
-  border: 1px solid #edf1f6;
+  border: 1px solid #e6ecf4;
   border-radius: 1.15rem;
   background: #fff;
-  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.035);
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.04);
 }
 
 .dash-card-title {
@@ -257,7 +263,7 @@
 }
 
 .dash-bar.active {
-  background: #3b82f6;
+  background: #2563eb;
 }
 
 .dash-bar-label {

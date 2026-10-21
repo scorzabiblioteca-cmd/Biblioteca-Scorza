@@ -73,16 +73,16 @@ export default function Prestamos() {
       <dialog
         ref={dialogRef}
         aria-labelledby="prestamo-dialog-title"
-        className="m-auto max-h-[90dvh] w-[min(48rem,calc(100%-2rem))] overflow-y-auto rounded-xl border border-slate-200 bg-white p-0 text-slate-800 shadow-2xl backdrop:bg-slate-950/50"
+        className="m-auto max-h-[90dvh] w-[min(48rem,calc(100%-2rem))] overflow-y-auto rounded-2xl border border-[#e6ecf4] bg-white p-0 text-[#334155] shadow-panel backdrop:bg-[#0b1b33]/55"
       >
-        <div className="flex items-start justify-between gap-4 border-b border-slate-200 px-5 py-4 sm:px-6">
+        <div className="flex items-start justify-between gap-4 border-b border-[#e6ecf4] px-5 py-4 sm:px-6">
           <div>
-            <h2 id="prestamo-dialog-title" className="text-lg font-semibold text-slate-900">Registrar préstamo</h2>
-            <p className="mt-1 text-sm text-slate-500">Elige a quién y qué prestar.</p>
+            <h2 id="prestamo-dialog-title" className="text-lg font-semibold tracking-[-0.02em] text-[#172b4d]">Registrar préstamo</h2>
+            <p className="mt-1 text-sm text-[#718096]">Elige a quién y qué prestar.</p>
           </div>
           <button
             type="button"
-            className="rounded-md px-2 py-1 text-xl leading-none text-slate-500 hover:bg-slate-100 hover:text-slate-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
+            className="rounded-lg px-2 py-1 text-xl leading-none text-[#718096] hover:bg-[#f1f5fb] hover:text-[#172b4d] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
             aria-label="Cerrar ventana"
             onClick={() => dialogRef.current?.close()}
           >
@@ -124,8 +124,8 @@ export default function Prestamos() {
         <option value="">Todos los estados</option><option value="ACTIVO">Activos</option><option value="vencidos">Vencidos</option><option value="CERRADO">Cerrados</option><option value="ANULADO">Anulados</option>
       </select>
       <div className="card responsive-table-shell overflow-x-auto p-0">
-        <table className="responsive-table w-full min-w-[720px]"><thead className="border-b bg-slate-50"><tr>{["#", "Prestatario", "Libros", "Préstamo", "Devolver antes de", "Estado", "Registró"].map((h) => <th key={h} className="th">{h}</th>)}</tr></thead>
-          <tbody className="divide-y divide-slate-100">
+        <table className="responsive-table w-full min-w-[720px]"><thead className="border-b border-[#e6ecf4] bg-[#f7f9fc]"><tr>{["#", "Prestatario", "Libros", "Préstamo", "Devolver antes de", "Estado", "Registró"].map((h) => <th key={h} className="th">{h}</th>)}</tr></thead>
+          <tbody className="divide-y divide-[#eef2f7]">
             {data?.items.map((p) => (
               <tr key={p.id}><td className="td" data-label="#">{p.id}</td><td className="td font-medium" data-label="Prestatario">{p.prestatario}</td><td className="td" data-label="Libros">{p.items}</td>
                 <td className="td" data-label="Préstamo">{fecha(p.fechaPrestamo)}</td>

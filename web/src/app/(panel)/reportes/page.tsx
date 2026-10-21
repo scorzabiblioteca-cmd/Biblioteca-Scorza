@@ -36,7 +36,7 @@ export default function Reportes() {
       <Msg type="error">{err}</Msg>
       {rows && (
         <div className="card responsive-table-shell overflow-x-auto p-0">
-            <table className="responsive-table w-full"><thead className="border-b bg-slate-50"><tr>{cols.map((c) => <th key={c} className="th">{c}</th>)}</tr></thead>
+            <table className="responsive-table w-full"><thead className="border-b border-[#e6ecf4] bg-[#f7f9fc]"><tr>{cols.map((c) => <th key={c} className="th">{c}</th>)}</tr></thead>
             <tbody className="divide-y divide-slate-100">
                 {rows.map((r, i) => <tr key={i}>{cols.map((c) => <td key={c} className="td" data-label={c}>{r[c] == null ? "—" : String(r[c])}</td>)}</tr>)}
               {rows.length === 0 && <tr><td className="td text-slate-500">Sin datos para este reporte.</td></tr>}

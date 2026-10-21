@@ -38,7 +38,7 @@ export default function LibroDetalle({ params }: { params: Promise<{ id: string 
       <div className="grid gap-4 lg:grid-cols-3">
         <div className="card lg:col-span-2">
           <div className="flex gap-4">
-            {l.imagenUrl ? <img src={l.imagenUrl} alt="Portada" className="h-40 w-28 rounded object-cover" /> : <div className="h-40 w-28 rounded bg-slate-100" />}
+            {l.imagenUrl ? <img src={l.imagenUrl} alt="Portada" className="h-40 w-28 rounded-lg object-cover" /> : <div className="h-40 w-28 rounded-lg bg-[#eef2f7]" />}
             <dl className="grid flex-1 gap-x-4 gap-y-1 text-sm sm:grid-cols-2">
               {[["ISBN", l.isbn], ["Autor", l.autores], ["Editorial", l.editorial], ["Categoría", l.categoria], ["Año", l.anioPublicacion],
                 ["Edición", l.edicion], ["Idioma", l.idioma], ["Nivel", l.nivelEducativo], ["Grado", l.gradoRecomendado], ["Control", indiv ? "Individual" : "Por cantidad"]]
@@ -61,16 +61,16 @@ export default function LibroDetalle({ params }: { params: Promise<{ id: string 
       </form>
       <div className="card responsive-table-shell mt-4 overflow-x-auto p-0">
         {indiv ? (
-          <table className="responsive-table w-full"><thead className="border-b bg-slate-50"><tr>{["Código", "Estado", "Condición", "Ubicación"].map((h) => <th key={h} className="th">{h}</th>)}</tr></thead>
-            <tbody className="divide-y divide-slate-100">
+          <table className="responsive-table w-full"><thead className="border-b border-[#e6ecf4] bg-[#f7f9fc]"><tr>{["Código", "Estado", "Condición", "Ubicación"].map((h) => <th key={h} className="th">{h}</th>)}</tr></thead>
+            <tbody className="divide-y divide-[#eef2f7]">
               {l.ejemplares.map((e: any) => (
                 <tr key={e.id}><td className="td font-medium" data-label="Código"><Link className="text-brand-700 hover:underline" href={`/ejemplares/${e.id}`}>{e.codigoInterno}</Link></td>
                   <td className="td" data-label="Estado"><Badge v={e.estado} /></td><td className="td" data-label="Condición">{e.condicion}</td><td className="td" data-label="Ubicación">{e.ubicacion ?? "—"}</td></tr>))}
               {l.ejemplares.length === 0 && <tr><td className="td text-slate-500" colSpan={4}>Aún no hay ejemplares.</td></tr>}
             </tbody></table>
         ) : (
-          <table className="responsive-table w-full"><thead className="border-b bg-slate-50"><tr>{["Ubicación", "Total", "Dañados", "Perdidos", "De baja"].map((h) => <th key={h} className="th">{h}</th>)}</tr></thead>
-            <tbody className="divide-y divide-slate-100">
+          <table className="responsive-table w-full"><thead className="border-b border-[#e6ecf4] bg-[#f7f9fc]"><tr>{["Ubicación", "Total", "Dañados", "Perdidos", "De baja"].map((h) => <th key={h} className="th">{h}</th>)}</tr></thead>
+            <tbody className="divide-y divide-[#eef2f7]">
               {l.existencias.map((x: any) => <tr key={x.id}><td className="td" data-label="Ubicación">{x.ubicacion ?? "Sin ubicación"}</td><td className="td" data-label="Total">{x.cantidadTotal}</td><td className="td" data-label="Dañados">{x.cantidadDanada}</td><td className="td" data-label="Perdidos">{x.cantidadPerdida}</td><td className="td" data-label="De baja">{x.cantidadBaja}</td></tr>)}
             </tbody></table>
         )}

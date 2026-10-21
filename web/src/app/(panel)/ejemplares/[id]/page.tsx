@@ -62,8 +62,8 @@ export default function EjemplarDetalle({ params }: { params: Promise<{ id: stri
         </div>
       </div>
       <div className="card responsive-table-shell mt-4 overflow-x-auto p-0 print:hidden">
-        <table className="responsive-table w-full"><thead className="border-b bg-slate-50"><tr>{["Fecha", "Evento", "Detalle", "Registró"].map((x) => <th key={x} className="th">{x}</th>)}</tr></thead>
-          <tbody className="divide-y divide-slate-100">
+        <table className="responsive-table w-full"><thead className="border-b border-[#e6ecf4] bg-[#f7f9fc]"><tr>{["Fecha", "Evento", "Detalle", "Registró"].map((x) => <th key={x} className="th">{x}</th>)}</tr></thead>
+          <tbody className="divide-y divide-[#eef2f7]">
             {h.map((x) => (
               <tr key={x.id}><td className="td whitespace-nowrap" data-label="Fecha">{fechaHora(x.createdAt)}</td>
                 <td className="td" data-label="Evento">{x.tipoEvento.replace(/_/g, " ").toLowerCase()}{x.estadoNuevo ? ` → ${x.estadoNuevo}` : ""}</td>

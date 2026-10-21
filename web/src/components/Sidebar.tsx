@@ -52,69 +52,80 @@ export default function Sidebar() {
     router.push("/login");
   }
   return (
-    <aside className="border-b border-slate-200 bg-white print:hidden md:w-56 md:shrink-0 md:border-b-0 md:border-r">
-      <div className="flex items-center justify-between px-4 py-3 md:block">
-        <div className="flex items-center gap-3">
-          <img
-            src="/escudo-colegio.png"
-            alt="Escudo del colegio Manuel Scorza Torres"
-            width="64"
-            height="64"
-            className="h-16 w-16 shrink-0 object-contain"
-          />
-          <div>
-            <p className="text-base font-semibold text-brand-700">BiblioScorza</p>
-            <p className="text-xs text-slate-500">Biblioteca escolar</p>
-          </div>
+    <>
+      <div className="rail-top flex items-center gap-3 px-4 py-3 print:hidden md:hidden">
+        <span className="rail-mark">
+          <img src="/escudo-colegio.png" alt="Escudo del colegio Manuel Scorza Torres" width="44" height="44" />
+        </span>
+        <div>
+          <p className="rail-eyebrow">Biblioteca escolar</p>
+          <p className="rail-title">BiblioScorza</p>
         </div>
       </div>
-      <nav aria-label="Navegación del panel" className="hidden px-2 pb-3 md:block">
-        {LINKS.map(([href, label]) => (
-          <Link key={href} href={href} onClick={() => setOpen(false)}
-            aria-current={path.startsWith(href) ? "page" : undefined}
-            className={`block rounded-md px-3 py-2 text-sm ${path.startsWith(href) ? "bg-brand-50 font-medium text-brand-700" : "text-slate-600 hover:bg-slate-50"}`}>
-            {label}
-          </Link>
-        ))}
-        <button onClick={salir} className="mt-3 block w-full rounded-md px-3 py-2 text-left text-sm text-slate-500 hover:bg-slate-50">Cerrar sesión</button>
-      </nav>
+
+      <aside className="rail print:hidden md:w-60 md:shrink-0 md:flex-col">
+        <div className="flex items-center gap-3 px-5 py-6">
+          <span className="rail-mark">
+            <img src="/escudo-colegio.png" alt="Escudo del colegio Manuel Scorza Torres" width="56" height="56" />
+          </span>
+          <div>
+            <p className="rail-eyebrow">Biblioteca escolar</p>
+            <p className="rail-title">BiblioScorza</p>
+          </div>
+        </div>
+        <nav aria-label="Navegación del panel" className="flex-1 px-3">
+          {LINKS.map(([href, label]) => (
+            <Link key={href} href={href} onClick={() => setOpen(false)}
+              aria-current={path.startsWith(href) ? "page" : undefined}
+              className="rail-link">
+              {label}
+            </Link>
+          ))}
+        </nav>
+        <div className="px-3 pb-5">
+          <div className="rail-divider" />
+          <button onClick={salir} className="rail-link w-full text-left">Cerrar sesión</button>
+          <p className="rail-footnote mt-4">© 2026 Derechos reservados al colegio Manuel Scorza Torres, R.R.R.H.Y.</p>
+        </div>
+      </aside>
+
       {open && (
-        <div id="mobile-more-menu" className="fixed inset-x-3 bottom-[calc(4.25rem+env(safe-area-inset-bottom))] z-40 max-h-[70dvh] overflow-y-auto rounded-2xl border border-slate-200 bg-white p-3 shadow-[0_4px_20px_rgba(15,23,42,0.12)] md:hidden">
+        <div id="mobile-more-menu" className="mobile-sheet fixed inset-x-3 bottom-[calc(4.25rem+env(safe-area-inset-bottom))] z-40 max-h-[70dvh] overflow-y-auto rounded-2xl p-3 md:hidden">
           <nav aria-label="Más secciones" className="flex flex-col gap-1">
-            <p className="px-3 pb-1 pt-1 text-xs font-semibold uppercase tracking-wide text-slate-400">Más opciones</p>
+            <p className="px-3 pb-1 pt-1 text-[0.68rem] font-bold uppercase tracking-[0.12em] text-[#94a3b8]">Más opciones</p>
             {MOBILE_MORE_LINKS.map(([href, label, icon]) => (
               <Link key={href} href={href} onClick={() => setOpen(false)}
                 aria-current={path.startsWith(href) ? "page" : undefined}
-                className={`flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-cyan-500 ${path.startsWith(href) ? "bg-cyan-50 font-semibold text-cyan-700" : "text-slate-600 hover:bg-slate-50"}`}>
+                className={`flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-600 ${path.startsWith(href) ? "bg-brand-50 font-semibold text-brand-700" : "text-[#35445b] hover:bg-[#f7faff]"}`}>
                 <MobileIcon name={icon} />
                 <span className="flex-1">{label}</span>
-                {path.startsWith(href) && <span aria-hidden="true" className="h-2 w-2 rounded-full bg-cyan-500" />}
+                {path.startsWith(href) && <span aria-hidden="true" className="h-2 w-2 rounded-full bg-brand-600" />}
               </Link>
             ))}
-            <div className="my-1 border-t border-slate-100" />
-            <button onClick={salir} className="flex min-h-11 items-center gap-3 rounded-xl px-3 text-left text-sm text-slate-500 transition-colors hover:bg-slate-50 hover:text-slate-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-cyan-500">
+            <div className="my-1 border-t border-[#e6ecf4]" />
+            <button onClick={salir} className="flex min-h-11 items-center gap-3 rounded-xl px-3 text-left text-sm text-[#718096] transition-colors hover:bg-[#f7faff] hover:text-[#172b4d] focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-600">
               <MobileIcon name="logout" />
               Cerrar sesión
             </button>
           </nav>
         </div>
       )}
-      <nav aria-label="Navegación principal" className="fixed inset-x-3 bottom-3 z-50 grid grid-cols-5 rounded-2xl border border-slate-200 bg-white px-2 pt-2 pb-[calc(0.375rem+env(safe-area-inset-bottom))] shadow-[0_4px_20px_rgba(15,23,42,0.12)] md:hidden">
+      <nav aria-label="Navegación principal" className="mobile-nav fixed inset-x-3 bottom-3 z-50 grid grid-cols-5 rounded-2xl px-2 pt-2 pb-[calc(0.375rem+env(safe-area-inset-bottom))] md:hidden">
         {MOBILE_LINKS.map(([href, label, icon]) => (
           <Link key={href} href={href} onClick={() => setOpen(false)} aria-current={path.startsWith(href) ? "page" : undefined}
-            className={`relative flex min-w-0 flex-col items-center gap-1 rounded-lg px-1 pt-1 pb-2 text-[10px] transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-cyan-500 ${path.startsWith(href) ? "font-semibold text-cyan-600" : "text-slate-500 hover:text-slate-800"}`}>
+            className={`relative flex min-w-0 flex-col items-center gap-1 rounded-lg px-1 pt-1 pb-2 text-[10px] transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-brand-600 ${path.startsWith(href) ? "font-semibold text-brand-600" : "text-[#718096] hover:text-[#172b4d]"}`}>
             <MobileIcon name={icon} />
             <span className="max-w-full truncate">{label}</span>
-            {path.startsWith(href) && <span aria-hidden="true" className="absolute bottom-0 h-0.5 w-8 rounded-full bg-cyan-500" />}
+            {path.startsWith(href) && <span aria-hidden="true" className="absolute bottom-0 h-0.5 w-8 rounded-full bg-brand-600" />}
           </Link>
         ))}
         <button type="button" aria-expanded={open} aria-controls="mobile-more-menu" onClick={() => setOpen(!open)}
-          className={`relative flex min-w-0 flex-col items-center gap-1 rounded-lg px-1 pt-1 pb-2 text-[10px] transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-cyan-500 ${open || moreActive ? "font-semibold text-cyan-600" : "text-slate-500 hover:text-slate-800"}`}>
+          className={`relative flex min-w-0 flex-col items-center gap-1 rounded-lg px-1 pt-1 pb-2 text-[10px] transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-brand-600 ${open || moreActive ? "font-semibold text-brand-600" : "text-[#718096] hover:text-[#172b4d]"}`}>
           <MobileIcon name="more" />
           Más
-          {(open || moreActive) && <span aria-hidden="true" className="absolute bottom-0 h-0.5 w-8 rounded-full bg-cyan-500" />}
+          {(open || moreActive) && <span aria-hidden="true" className="absolute bottom-0 h-0.5 w-8 rounded-full bg-brand-600" />}
         </button>
       </nav>
-    </aside>
+    </>
   );
 }

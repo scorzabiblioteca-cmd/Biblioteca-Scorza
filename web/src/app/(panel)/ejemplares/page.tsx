@@ -28,10 +28,10 @@ export default function Ejemplares() {
       </div>
       <Msg type="error">{err}</Msg>
       <div className="card responsive-table-shell overflow-x-auto p-0">
-        <table className="responsive-table w-full min-w-[640px]"><thead className="border-b bg-slate-50"><tr>{["Código", "Título", "Estado", "Condición", "Ubicación"].map((h) => <th key={h} className="th">{h}</th>)}</tr></thead>
-          <tbody className="divide-y divide-slate-100">
+        <table className="responsive-table w-full min-w-[640px]"><thead className="border-b border-[#e6ecf4] bg-[#f7f9fc]"><tr>{["Código", "Título", "Estado", "Condición", "Ubicación"].map((h) => <th key={h} className="th">{h}</th>)}</tr></thead>
+          <tbody className="divide-y divide-[#eef2f7]">
             {data?.items.map((e) => (
-              <tr key={e.id} className="hover:bg-slate-50">
+              <tr key={e.id} className="hover:bg-[#f7faff]">
                 <td className="td font-medium" data-label="Código"><Link className="text-brand-700 hover:underline" href={`/ejemplares/${e.id}`}>{e.codigoInterno}</Link></td>
                 <td className="td" data-label="Título">{e.titulo}</td><td className="td" data-label="Estado"><Badge v={e.estado} /></td><td className="td" data-label="Condición">{e.condicion}</td><td className="td" data-label="Ubicación">{e.ubicacion ?? "—"}</td>
               </tr>))}
