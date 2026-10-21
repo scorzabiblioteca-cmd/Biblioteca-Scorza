@@ -88,12 +88,33 @@ public class LibroFormActivity extends AppCompatActivity {
         rapido = getIntent().getBooleanExtra("rapido", false);
         String isbn = getIntent().getStringExtra("isbn");
         if (isbn != null) etIsbn.setText(isbn);
+        aplicarDatoInicial(etTitulo, "titulo");
+        aplicarDatoInicial(etSubtitulo, "subtitulo");
+        aplicarDatoInicial(etAutor, "autor");
+        aplicarDatoInicial(etEditorial, "editorial");
+        aplicarDatoInicial(etCategoria, "categoria");
+        aplicarDatoInicial(etEdicion, "edicion");
+        aplicarDatoInicial(etDescripcion, "descripcion");
+        Integer anio = getIntent().hasExtra("anioPublicacion")
+                ? getIntent().getIntExtra("anioPublicacion", 0) : null;
+        if (anio != null && anio > 0) etAnio.setText(String.valueOf(anio));
+        imagenUrl = getIntent().getStringExtra("imagenUrl");
+        if (imagenUrl != null && !imagenUrl.trim().isEmpty()) {
+            Glide.with(this).load(imagenUrl).placeholder(R.drawable.ic_book_stack)
+                    .error(R.drawable.ic_book_stack).into(ivFoto);
+            ivFoto.setVisibility(View.VISIBLE);
+        }
 
         cargarUbicaciones();
         findViewById(R.id.btnScanIsbn).setOnClickListener(v -> escanear.launch(new Intent(this, ScannerActivity.class)
                 .putExtra(ScannerActivity.EXTRA_GUIA, "Escanea el código de barras (ISBN) del libro")));
         findViewById(R.id.btnFoto).setOnClickListener(v -> abrirCamaraFoto());
         btnGuardar.setOnClickListener(v -> guardar());
+    }
+
+    private void aplicarDatoInicial(EditText campo, String clave) {
+        String valor = getIntent().getStringExtra(clave);
+        if (valor != null && !valor.trim().isEmpty()) campo.setText(valor);
     }
 
     private void cargarUbicaciones() {
@@ -133,11 +154,7 @@ private void verificarIsbn() {
 
                     new AlertDialog.Builder(LibroFormActivity.this)
                         .setTitle("Libro existente")
-                        .setMessage(
-                            existente.titulo
-                            + "\nISBN: "
-                            + (existente.isbn != null ? existente.isbn : isbn)
-                        )
+                        .setView(LibroDetalleDialog.contenido(LibroFormActivity.this, existente))
                         .setPositiveButton("Agregar otro ejemplar", (d, w) -> {
                             AgregarReq req = new AgregarReq();
                             req.cantidad = 1;
@@ -172,7 +189,7 @@ private void verificarIsbn() {
                                 }
                             );
                         })
-                        .setNegativeButton("Cancelar", null)
+                        .setNegativeButton("Cerrar", null)
                         .show();
 
                     return;
@@ -233,12 +250,14 @@ private void verificarIsbn() {
 
             @Override
             public void error(String m, int h, String c) {
-                // Si falla la consulta, se permite el registro manual.
-                Toast.makeText(
-                    LibroFormActivity.this,
-                    "No se pudo consultar el ISBN. Puedes ingresar los datos manualmente.",
-                    Toast.LENGTH_LONG
-                ).show();
+                new AlertDialog.Builder(LibroFormActivity.this)
+                    .setTitle("No se pudo consultar el ISBN")
+                    .setMessage(h == 0
+                        ? "Revisa tu conexión. Puedes reintentar o continuar el registro manualmente."
+                        : "El servidor no pudo completar la consulta. Puedes reintentar o continuar manualmente.")
+                    .setPositiveButton("Reintentar", (d, w) -> verificarIsbn())
+                    .setNegativeButton("Continuar manualmente", null)
+                    .show();
             }
         }
     );

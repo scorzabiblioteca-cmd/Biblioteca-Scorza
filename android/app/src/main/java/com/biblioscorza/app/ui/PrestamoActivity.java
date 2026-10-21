@@ -8,11 +8,13 @@ import android.widget.TextView;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.biblioscorza.app.R;
 import com.biblioscorza.app.data.ApiClient;
 import com.biblioscorza.app.data.Models.Alumno;
+import com.biblioscorza.app.data.Models.ConsultaIsbn;
 import com.biblioscorza.app.data.Models.Ejemplar;
 import com.biblioscorza.app.data.Models.Libro;
 import com.biblioscorza.app.data.Models.Paged;
@@ -118,23 +120,55 @@ public class PrestamoActivity extends AppCompatActivity {
                 @Override public void error(String msg, int h, String c) { tvMsg.setText(msg); }
             });
         } else {
-            buscarLibroPorIsbn(valor, new Api.Result<Libro>() {
-                @Override public void ok(Libro l, String m) {
-                    if (!"CANTIDAD".equals(l.tipoControl)) { tvMsg.setText("\"" + l.titulo + "\" es de control individual: escanea el QR del ejemplar"); return; }
-                    if (l.disponibles <= 0) { tvMsg.setText("No hay copias disponibles de \"" + l.titulo + "\""); return; }
-                    for (int i = 0; i < items.size(); i++) {
-                        PrestamoReq.Item it = items.get(i);
-                        if (it.libroId != null && it.libroId == l.id) {
-                            if (it.cantidad >= l.disponibles) { tvMsg.setText("No hay más copias disponibles"); return; }
-                            it.cantidad++; lineas.set(i, l.titulo + " × " + it.cantidad); actualizar(); return;
-                        }
-                    }
-                    PrestamoReq.Item it = new PrestamoReq.Item(); it.libroId = l.id; it.cantidad = 1;
-                    items.add(it); lineas.add(l.titulo + " × 1"); actualizar();
-                }
-                @Override public void error(String msg, int h, String c) { tvMsg.setText(msg); }
-            });
+            consultarFichaIsbn(valor.replaceAll("[\\s-]", ""));
         }
+    }
+
+    private void consultarFichaIsbn(String isbn) {
+        if (isbn == null || !isbn.matches("\\d{10,13}")) {
+            tvMsg.setText("El código escaneado no es un ISBN válido ni un código de ejemplar.");
+            return;
+        }
+        Api.call(ApiClient.api().libroPorIsbn(isbn), new Api.Result<ConsultaIsbn>() {
+            @Override public void ok(ConsultaIsbn consulta, String m) {
+                if (consulta == null) {
+                    tvMsg.setText("El servidor devolvió una respuesta incompleta.");
+                } else if (consulta.existente == null) {
+                    tvMsg.setText("Este ISBN no está registrado en la biblioteca.");
+                } else {
+                    new AlertDialog.Builder(PrestamoActivity.this)
+                            .setTitle("Ficha del libro")
+                            .setView(LibroDetalleDialog.contenido(PrestamoActivity.this, consulta.existente))
+                            .setPositiveButton("Continuar préstamo", (d, w) -> agregarIsbnAlPrestamo(isbn))
+                            .setNegativeButton("Cerrar", null)
+                            .show();
+                }
+            }
+            @Override public void error(String msg, int http, String code) {
+                tvMsg.setText(http == 0
+                        ? "No hay conexión para consultar el ISBN. Inténtalo nuevamente."
+                        : "No se pudo consultar el ISBN. " + msg);
+            }
+        });
+    }
+
+    private void agregarIsbnAlPrestamo(String isbn) {
+        buscarLibroPorIsbn(isbn, new Api.Result<Libro>() {
+            @Override public void ok(Libro l, String m) {
+                if (!"CANTIDAD".equals(l.tipoControl)) { tvMsg.setText("\"" + l.titulo + "\" es de control individual: escanea el QR del ejemplar"); return; }
+                if (l.disponibles <= 0) { tvMsg.setText("No hay copias disponibles de \"" + l.titulo + "\""); return; }
+                for (int i = 0; i < items.size(); i++) {
+                    PrestamoReq.Item it = items.get(i);
+                    if (it.libroId != null && it.libroId == l.id) {
+                        if (it.cantidad >= l.disponibles) { tvMsg.setText("No hay más copias disponibles"); return; }
+                        it.cantidad++; lineas.set(i, l.titulo + " × " + it.cantidad); actualizar(); return;
+                    }
+                }
+                PrestamoReq.Item it = new PrestamoReq.Item(); it.libroId = l.id; it.cantidad = 1;
+                items.add(it); lineas.add(l.titulo + " × 1"); actualizar();
+            }
+            @Override public void error(String msg, int h, String c) { tvMsg.setText(msg); }
+        });
     }
 
     private void actualizar() {

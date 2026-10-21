@@ -6,6 +6,7 @@ import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -26,8 +27,9 @@ import com.biblioscorza.app.R;
 import com.biblioscorza.app.data.ApiClient;
 import com.biblioscorza.app.data.Models.Agregado;
 import com.biblioscorza.app.data.Models.AgregarReq;
-import com.biblioscorza.app.data.Models.Libro;
-import com.biblioscorza.app.data.Models.Paged;
+import com.biblioscorza.app.data.Models.ConsultaIsbn;
+import com.biblioscorza.app.data.Models.LibroDatos;
+import com.biblioscorza.app.data.Models.LibroRegistrado;
 import com.biblioscorza.app.util.Api;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.mlkit.vision.barcode.BarcodeScanner;
@@ -117,32 +119,6 @@ public class ScannerActivity extends AppCompatActivity {
         }, ContextCompat.getMainExecutor(this));
     }
 
-    private void buscarLibroPorIsbn(String isbn, Api.Result<Libro> cb) {
-        final String limpio = isbn == null ? "" : isbn.replaceAll("[\\s-]", "");
-        if (limpio.isEmpty()) {
-            cb.error("ISBN inválido", 400, "ISBN_INVALIDO");
-            return;
-        }
-        Api.call(ApiClient.api().buscarLibros(limpio, 10), new Api.Result<Paged<Libro>>() {
-            @Override public void ok(Paged<Libro> pagina, String m) {
-                if (pagina == null || pagina.items == null || pagina.items.isEmpty()) {
-                    cb.error("No hay libros registrados con ese ISBN", 404, "LIBRO_NO_ENCONTRADO");
-                    return;
-                }
-                String normalizado = limpio.toLowerCase();
-                for (Libro l : pagina.items) {
-                    String isbnLibro = l.isbn == null ? "" : l.isbn.replaceAll("[\\s-]", "").toLowerCase();
-                    if (normalizado.equals(isbnLibro)) {
-                        cb.ok(l, m);
-                        return;
-                    }
-                }
-                cb.error("No hay libros registrados con ese ISBN", 404, "LIBRO_NO_ENCONTRADO");
-            }
-            @Override public void error(String msg, int h, String c) { cb.error(msg, h, c); }
-        });
-    }
-
     private void alLeer(String valor) {
         if (MODO_RAW.equals(modo)) {
             setResult(RESULT_OK, new Intent().putExtra(EXTRA_VALOR, valor));
@@ -155,30 +131,80 @@ public class ScannerActivity extends AppCompatActivity {
             main.postDelayed(() -> ocupado.set(false), 1500);
             return;
         }
-        buscarLibroPorIsbn(isbn, new Api.Result<Libro>() {
-            @Override public void ok(Libro l, String m) { libroExistente(l); }
-            @Override public void error(String msg, int http, String code) {
-                if ("LIBRO_NO_ENCONTRADO".equals(code)) {
-                    formulario.launch(new Intent(ScannerActivity.this, LibroFormActivity.class)
-                            .putExtra("isbn", isbn).putExtra("rapido", true));
+        Api.call(ApiClient.api().libroPorIsbn(isbn), new Api.Result<ConsultaIsbn>() {
+            @Override public void ok(ConsultaIsbn consulta, String m) {
+                if (consulta == null) {
+                    mostrarErrorConsulta(isbn, "El servidor devolvió una respuesta incompleta.");
+                } else if (consulta.existente != null) {
+                    libroExistente(consulta.existente);
                 } else {
-                    Toast.makeText(ScannerActivity.this, msg, Toast.LENGTH_LONG).show();
-                    main.postDelayed(() -> ocupado.set(false), 1500);
+                    libroNoRegistrado(isbn, consulta.libro, consulta.estadoConsulta);
                 }
+            }
+            @Override public void error(String msg, int http, String code) {
+                mostrarErrorConsulta(isbn, http == 0
+                        ? "No hay conexión con el servidor. Revisa tu internet."
+                        : "No se pudo consultar el ISBN. " + msg);
             }
         });
     }
 
-    private void libroExistente(Libro l) {
+    private void mostrarErrorConsulta(String isbn, String mensaje) {
         new AlertDialog.Builder(this)
-                .setTitle("Libro existente")
-                .setMessage(l.titulo + "\n\nCantidad actual: " + l.total + "\nDisponibles: " + l.disponibles)
-                .setCancelable(false)
-                .setPositiveButton("Agregar otro ejemplar", (d, w) -> {
-                    Api.call(ApiClient.api().agregarEjemplares(l.id, new AgregarReq()), new Api.Result<Agregado>() {
+                .setTitle("No se pudo consultar")
+                .setMessage(mensaje)
+                .setPositiveButton("Reintentar", (d, w) -> alLeer(isbn))
+                .setNegativeButton("Cerrar", (d, w) -> ocupado.set(false))
+                .setOnCancelListener(d -> ocupado.set(false))
+                .show();
+    }
+
+    private void libroNoRegistrado(String isbn, LibroDatos datos, String estadoConsulta) {
+        String mensaje = "Este ISBN todavía no está registrado en la biblioteca.";
+        if (datos != null) mensaje += "\n\nSe encontraron datos bibliográficos que puedes revisar antes de guardarlo.";
+        else if ("no-disponible".equals(estadoConsulta)) {
+            mensaje += "\nEl servicio de datos bibliográficos no está disponible; podrás completar el formulario manualmente.";
+        }
+        new AlertDialog.Builder(this)
+                .setTitle("ISBN no registrado")
+                .setMessage(mensaje)
+                .setPositiveButton("Continuar al registro", (d, w) -> abrirFormulario(isbn, datos))
+                .setNegativeButton("Seguir escaneando", (d, w) -> ocupado.set(false))
+                .setOnCancelListener(d -> ocupado.set(false))
+                .show();
+    }
+
+    private void abrirFormulario(String isbn, LibroDatos datos) {
+        Intent intent = new Intent(this, LibroFormActivity.class)
+                .putExtra("isbn", isbn)
+                .putExtra("rapido", true);
+        if (datos != null) {
+            if (datos.titulo != null) intent.putExtra("titulo", datos.titulo);
+            if (datos.subtitulo != null) intent.putExtra("subtitulo", datos.subtitulo);
+            if (datos.autor != null) intent.putExtra("autor", datos.autor);
+            if (datos.editorial != null) intent.putExtra("editorial", datos.editorial);
+            if (datos.categoria != null) intent.putExtra("categoria", datos.categoria);
+            if (datos.anioPublicacion != null) intent.putExtra("anioPublicacion", datos.anioPublicacion);
+            if (datos.edicion != null) intent.putExtra("edicion", datos.edicion);
+            if (datos.descripcion != null) intent.putExtra("descripcion", datos.descripcion);
+            if (datos.imagenUrl != null) intent.putExtra("imagenUrl", datos.imagenUrl);
+        }
+        formulario.launch(intent);
+    }
+
+    private void libroExistente(LibroRegistrado libro) {
+        View contenido = LibroDetalleDialog.contenido(this, libro);
+        new AlertDialog.Builder(this)
+                .setTitle("Ficha del libro")
+                .setView(contenido)
+                .setPositiveButton("Agregar ejemplar", (d, w) -> {
+                    AgregarReq solicitud = new AgregarReq();
+                    Api.call(ApiClient.api().agregarEjemplares(libro.id, solicitud), new Api.Result<Agregado>() {
                         @Override public void ok(Agregado a, String m) {
-                            String extra = a.codigos != null && !a.codigos.isEmpty() ? " (" + a.codigos.get(0) + ")" : "";
-                            Toast.makeText(ScannerActivity.this, "Agregado. Total: " + a.libro.total + extra, Toast.LENGTH_LONG).show();
+                            String mensaje = "Ejemplar agregado";
+                            if (a != null && a.libro != null) mensaje += ". Total: " + a.libro.total;
+                            if (a != null && a.codigos != null && !a.codigos.isEmpty()) mensaje += " (" + a.codigos.get(0) + ")";
+                            Toast.makeText(ScannerActivity.this, mensaje, Toast.LENGTH_LONG).show();
                             ocupado.set(false);
                         }
                         @Override public void error(String msg, int http, String code) {
@@ -187,7 +213,8 @@ public class ScannerActivity extends AppCompatActivity {
                         }
                     });
                 })
-                .setNegativeButton("Seguir escaneando", (d, w) -> ocupado.set(false))
+                .setNegativeButton("Cerrar", (d, w) -> ocupado.set(false))
+                .setOnCancelListener(d -> ocupado.set(false))
                 .show();
     }
 
