@@ -1,14 +1,12 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import Link from "next/link";
 import { api } from "@/lib/client";
 import { Msg } from "@/components/ui";
 import "./dashboard.css";
 
 type Punto = { fecha: string; cantidad: number };
 type Dia = { dow: number; cantidad: number };
-type LibroTop = { titulo: string; vecesPrestado: number; categoria: string };
 type Resumen = {
   titulos: number;
   ejemplares: number;
@@ -26,7 +24,6 @@ type Resumen = {
   dias: number;
   seriePrestamos: Punto[];
   actividadSemana: Dia[];
-  masPrestados: LibroTop[];
 };
 
 const NUMBER_FORMAT = new Intl.NumberFormat("es-PE");
@@ -282,42 +279,7 @@ export default function Dashboard() {
           </div>
 
           <div className="dash-grid dash-bottom">
-            <section className="dash-card" aria-labelledby="top-heading">
-              <div className="dash-card-title">
-                <div>
-                  <h2 id="top-heading">Libros más prestados</h2>
-                  <p>En el periodo seleccionado</p>
-                </div>
-                <Link href="/reportes" className="text-sm font-medium text-blue-600 hover:text-blue-700">Ver reportes</Link>
-              </div>
-              {r.masPrestados.length === 0 ? (
-                <p className="dash-empty">Aún no hay préstamos en este periodo.</p>
-              ) : (
-                <div className="overflow-x-auto">
-                  <table className="dash-table">
-                    <thead>
-                      <tr>
-                        <th>Título</th>
-                        <th>Categoría</th>
-                        <th>Préstamos</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {r.masPrestados.map((libro) => (
-                        <tr key={libro.titulo}>
-                          <td data-label="Título">{libro.titulo}</td>
-                          <td data-label="Categoría">{libro.categoria}</td>
-                          <td data-label="Préstamos">{NUMBER_FORMAT.format(libro.vecesPrestado)}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </section>
-
-            <div className="grid gap-[0.9rem]">
-              <section className="dash-card" aria-labelledby="stock-heading">
+            <section className="dash-card" aria-labelledby="stock-heading">
                 <div className="dash-card-title">
                   <div>
                     <h2 id="stock-heading">Estado del inventario</h2>
@@ -338,16 +300,15 @@ export default function Dashboard() {
                 </div>
               </section>
 
-              <section className="dash-card" aria-labelledby="disp-heading">
-                <div className="dash-card-title">
-                  <div>
-                    <h2 id="disp-heading">Colección disponible</h2>
-                    <p>Sobre el inventario activo</p>
-                  </div>
+            <section className="dash-card" aria-labelledby="disp-heading">
+              <div className="dash-card-title">
+                <div>
+                  <h2 id="disp-heading">Colección disponible</h2>
+                  <p>Sobre el inventario activo</p>
                 </div>
-                <Gauge value={disponibilidad} />
-              </section>
-            </div>
+              </div>
+              <Gauge value={disponibilidad} />
+            </section>
           </div>
         </>
       )}

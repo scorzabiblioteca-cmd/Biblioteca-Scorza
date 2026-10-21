@@ -7,6 +7,15 @@ import { AlumnoAutocomplete, type Alumno } from "@/components/AlumnoAutocomplete
 import { ProfesorAutocomplete, type Profesor } from "@/components/ProfesorAutocomplete";
 import { EjemplarAutocomplete, type LibroCantidad } from "@/components/EjemplarAutocomplete";
 
+type LibroTop = { titulo: string; vecesPrestado: number; categoria: string };
+
+const NUMBER_FORMAT = new Intl.NumberFormat("es-PE");
+const PERIODOS = [
+  { value: 7, label: "Últimos 7 días" },
+  { value: 30, label: "Últimos 30 días" },
+  { value: 90, label: "Últimos 90 días" },
+] as const;
+
 function fechaDespuesDe(dias: number) {
   const date = new Date();
   date.setDate(date.getDate() + dias);
@@ -27,6 +36,8 @@ export default function Prestamos() {
   const [fechaDevolucion, setFechaDevolucion] = useState(() => fechaDespuesDe(7));
   const [formVersion, setFormVersion] = useState(0);
   const [msg, setMsg] = useState<{ t: "ok" | "error"; m: string } | null>(null);
+  const [top, setTop] = useState<LibroTop[]>([]);
+  const [diasTop, setDiasTop] = useState(30);
   const dialogRef = useRef<HTMLDialogElement>(null);
 
   const cargar = useCallback(() => {
@@ -35,6 +46,12 @@ export default function Prestamos() {
     api<Paged<any>>(`/prestamos?${p}`).then(setData).catch((e) => setMsg({ t: "error", m: e.message }));
   }, [filtro]);
   useEffect(() => { cargar(); }, [cargar]);
+
+  useEffect(() => {
+    api<{ dias: number; masPrestados: LibroTop[] }>(`/prestamos/mas-prestados?dias=${diasTop}`)
+      .then((r) => setTop(r.masPrestados))
+      .catch(() => setTop([]));
+  }, [diasTop]);
 
   async function crear(e: React.FormEvent) {
     e.preventDefault(); setMsg(null);
@@ -120,6 +137,54 @@ export default function Prestamos() {
           </div>
         </form>
       </dialog>
+      <section className="card mb-4 p-0">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#e6ecf4] px-4 py-3">
+          <div>
+            <h2 className="text-[0.98rem] font-bold tracking-[-0.01em] text-[#172b4d]">Libros más prestados</h2>
+            <p className="mt-0.5 text-xs text-[#94a3b8]">Ranking por préstamos del periodo</p>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <label className="sr-only" htmlFor="top-periodo">Periodo del ranking</label>
+            <select
+              id="top-periodo"
+              className="input w-auto min-h-0 py-1.5 text-sm"
+              value={diasTop}
+              onChange={(e) => setDiasTop(Number(e.target.value))}
+            >
+              {PERIODOS.map((p) => <option key={p.value} value={p.value}>{p.label}</option>)}
+            </select>
+            <a className="btn-ghost" href="/api/reportes/mas-prestados?formato=csv">Exportar CSV</a>
+          </div>
+        </div>
+        {top.length === 0 ? (
+          <p className="px-4 py-6 text-center text-sm text-[#94a3b8]">Aún no hay préstamos en este periodo.</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="responsive-table w-full min-w-[560px]">
+              <thead className="border-b border-[#e6ecf4] bg-[#f7f9fc]">
+                <tr>
+                  <th className="th w-12">#</th>
+                  <th className="th">Título</th>
+                  <th className="th">Categoría</th>
+                  <th className="th">Préstamos</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[#eef2f7]">
+                {top.map((libro, i) => (
+                  <tr key={libro.titulo} className="transition hover:bg-[#f7faff]">
+                    <td className="td w-12" data-label="#">{i + 1}</td>
+                    <td className="td font-medium text-[#172b4d]" data-label="Título">{libro.titulo}</td>
+                    <td className="td" data-label="Categoría">{libro.categoria}</td>
+                    <td className="td" data-label="Préstamos">
+                      <span className="font-semibold text-[#2563eb]">{NUMBER_FORMAT.format(libro.vecesPrestado)}</span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
       <select className="input mb-3 w-full sm:max-w-xs" value={filtro} onChange={(e) => setFiltro(e.target.value)} aria-label="Estado del préstamo">
         <option value="">Todos los estados</option><option value="ACTIVO">Activos</option><option value="vencidos">Vencidos</option><option value="CERRADO">Cerrados</option><option value="ANULADO">Anulados</option>
       </select>
