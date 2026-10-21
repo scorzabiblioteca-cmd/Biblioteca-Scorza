@@ -24,6 +24,7 @@ import com.biblioscorza.app.util.Api;
 import java.util.ArrayList;
 import java.util.List;
 
+/** waaaaaaaaaaa */
 /** Flujo: identificar alumno -> escanear libro(s) -> confirmar. */
 public class PrestamoActivity extends AppCompatActivity {
     private EditText etAlumno;
