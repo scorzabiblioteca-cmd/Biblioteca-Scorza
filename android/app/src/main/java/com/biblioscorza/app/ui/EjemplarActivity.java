@@ -50,7 +50,13 @@ public class EjemplarActivity extends AppCompatActivity {
         tvError.setText("");
         ((TextView) findViewById(R.id.tvTitulo)).setText(e.titulo);
         ImageView portada = findViewById(R.id.ivPortada);
-        if (e.imagenUrl != null) { portada.setVisibility(View.VISIBLE); Glide.with(this).load(e.imagenUrl).into(portada); }
+        portada.setVisibility(View.VISIBLE);
+        Glide.with(this)
+                .load(e.imagenUrl == null || e.imagenUrl.trim().isEmpty() ? null : e.imagenUrl)
+                .placeholder(R.drawable.ic_book_stack)
+                .error(R.drawable.ic_book_stack)
+                .centerCrop()
+                .into(portada);
         StringBuilder sb = new StringBuilder();
         sb.append("ISBN: ").append(e.isbn == null ? "—" : e.isbn)
           .append("\nCódigo: ").append(e.codigoInterno)
