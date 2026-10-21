@@ -45,6 +45,16 @@ interface LibroRegistrado {
   descripcion: string | null;
   idioma: string | null;
   imagenUrl: string | null;
+  nivelEducativo: string | null;
+  gradoRecomendado: number | null;
+  tipoControl: string;
+  ubicaciones: string | null;
+  estado: string;
+  total: number;
+  disponibles: number;
+  prestados: number;
+  danados: number;
+  perdidos: number;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -90,6 +100,16 @@ export const GET = withAuth(["BIBLIOTECARIO"], async (_req, { params }) => {
     descripcion: existente.descripcion,
     idioma: existente.idioma,
     imagenUrl: existente.imagenUrl,
+    nivelEducativo: existente.nivelEducativo,
+    gradoRecomendado: existente.gradoRecomendado,
+    tipoControl: existente.tipoControl,
+    ubicaciones: existente.ubicaciones,
+    estado: existente.estado,
+    total: existente.total,
+    disponibles: existente.disponibles,
+    prestados: existente.prestados,
+    danados: existente.danados,
+    perdidos: existente.perdidos,
   } : null;
   if (existente) {
     const libro: Libro = {

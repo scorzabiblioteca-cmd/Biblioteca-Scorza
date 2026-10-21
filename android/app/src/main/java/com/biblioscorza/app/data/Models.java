@@ -29,9 +29,9 @@ public final class Models {
     }
 
     public static class ConsultaIsbn {
-    public LibroRegistrado existente;
-    public String estadoConsulta;
-    public LibroDatos libro;
+        public LibroRegistrado existente;
+        public String estadoConsulta;
+        public LibroDatos libro;
     }
 
     public static class LibroRegistrado {
@@ -40,6 +40,8 @@ public final class Models {
         public String editorial, categoria, edicion;
         public String descripcion, idioma, imagenUrl;
         public Integer anioPublicacion;
+        public String nivelEducativo, tipoControl, ubicaciones, estado;
+        public Integer gradoRecomendado, total, disponibles, prestados, danados, perdidos;
     }
 
     public static class LibroDatos {
