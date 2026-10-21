@@ -42,12 +42,13 @@ export default function Login() {
       <div className="login-shell">
         <aside className="login-brand" aria-label="BiblioScorza">
           <div className="login-brand-content">
-            <div className="login-brand-mark" aria-hidden="true">
-              <svg viewBox="0 0 48 48" fill="none">
-                <path d="M8 12.5c6.2-.9 11.5.4 16 3.8v23c-4.5-3.4-9.8-4.7-16-3.8v-23Z" />
-                <path d="M40 12.5c-6.2-.9-11.5.4-16 3.8v23c4.5-3.4 9.8-4.7 16-3.8v-23Z" />
-                <path d="M24 16.3v23" />
-              </svg>
+            <div className="login-brand-mark">
+              <img
+                src="/escudo-colegio.png"
+                alt="Escudo del colegio Manuel Scorza Torres"
+                width="96"
+                height="96"
+              />
             </div>
             <p className="login-eyebrow">Biblioteca escolar</p>
             <h1 className="login-title">BiblioScorza</h1>
@@ -160,7 +161,9 @@ export default function Login() {
               ¿Necesitas ayuda? Comunícate con el equipo de biblioteca.
             </p>
           </form>
-          <p className="login-copyright">Sistema de gestión de biblioteca escolar</p>
+          <p className="login-copyright">
+            © 2026 Derechos reservados al colegio Manuel Scorza Torres, R.R.R.H.Y.
+          </p>
         </section>
       </div>
     </main>

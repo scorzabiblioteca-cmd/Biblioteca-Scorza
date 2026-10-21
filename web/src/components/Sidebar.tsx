@@ -54,9 +54,18 @@ export default function Sidebar() {
   return (
     <aside className="border-b border-slate-200 bg-white print:hidden md:w-56 md:shrink-0 md:border-b-0 md:border-r">
       <div className="flex items-center justify-between px-4 py-3 md:block">
-        <div>
-          <p className="text-base font-semibold text-brand-700">BiblioScorza</p>
-          <p className="text-xs text-slate-500">Biblioteca escolar</p>
+        <div className="flex items-center gap-3">
+          <img
+            src="/escudo-colegio.png"
+            alt="Escudo del colegio Manuel Scorza Torres"
+            width="64"
+            height="64"
+            className="h-16 w-16 shrink-0 object-contain"
+          />
+          <div>
+            <p className="text-base font-semibold text-brand-700">BiblioScorza</p>
+            <p className="text-xs text-slate-500">Biblioteca escolar</p>
+          </div>
         </div>
       </div>
       <nav aria-label="Navegación del panel" className="hidden px-2 pb-3 md:block">
