@@ -5,11 +5,14 @@ import android.os.Handler;
 import android.os.Looper;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.content.Intent;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -29,6 +32,13 @@ public class BuscarActivity extends AppCompatActivity {
     private ArrayAdapter<String> adapter;
     private TextView tvMsg;
     private Runnable pendiente;
+    private EditText etBuscar;
+    private final ActivityResultLauncher<Intent> editarLibro = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(), resultado -> {
+                if (resultado.getResultCode() == RESULT_OK && etBuscar != null) {
+                    buscar(etBuscar.getText().toString().trim());
+                }
+            });
 
     @Override protected void onCreate(Bundle b) {
         super.onCreate(b);
@@ -38,7 +48,8 @@ public class BuscarActivity extends AppCompatActivity {
         adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, textos);
         lista.setAdapter(adapter);
         lista.setOnItemClickListener((p, v, pos, id) -> detalle(libros.get(pos)));
-        ((EditText) findViewById(R.id.etBuscar)).addTextChangedListener(new TextWatcher() {
+        etBuscar = findViewById(R.id.etBuscar);
+        etBuscar.addTextChangedListener(new TextWatcher() {
             @Override public void beforeTextChanged(CharSequence s, int a, int c, int d) { }
             @Override public void onTextChanged(CharSequence s, int a, int c, int d) { }
             @Override public void afterTextChanged(Editable s) {
@@ -55,9 +66,15 @@ public class BuscarActivity extends AppCompatActivity {
         Api.call(ApiClient.api().buscarLibros(q, 30), new Api.Result<Paged<Libro>>() {
             @Override public void ok(Paged<Libro> d, String m) {
                 libros.clear(); textos.clear();
+                if (d == null || d.items == null) {
+                    adapter.notifyDataSetChanged();
+                    tvMsg.setText("El servidor devolvió una lista incompleta. Inténtalo de nuevo.");
+                    return;
+                }
                 for (Libro l : d.items) {
                     libros.add(l);
-                    textos.add(l.titulo + "\n" + (l.autores == null ? "" : l.autores + " · ") + "Disp. " + l.disponibles + "/" + l.total);
+                    textos.add(l.titulo + "\n" + (l.autores == null ? "" : l.autores + " · ")
+                            + "Disponibles " + cantidad(l.disponibles) + " · Total " + cantidad(l.total));
                 }
                 adapter.notifyDataSetChanged();
                 tvMsg.setText(d.items.isEmpty() ? "Sin resultados" : d.total + " resultado(s)");
@@ -67,13 +84,31 @@ public class BuscarActivity extends AppCompatActivity {
     }
 
     private void detalle(Libro l) {
-        String s = "ISBN: " + (l.isbn == null ? "—" : l.isbn)
-                + "\nAutor: " + (l.autores == null ? "—" : l.autores)
-                + "\nEditorial: " + (l.editorial == null ? "—" : l.editorial)
+        String s = "ISBN: " + valor(l.isbn)
+                + "\nAutor(es): " + valor(l.autores)
+                + "\nEditorial: " + valor(l.editorial)
                 + "\nControl: " + ("CANTIDAD".equals(l.tipoControl) ? "por cantidad" : "individual")
-                + "\n\nTotal: " + l.total + "   Disponibles: " + l.disponibles + "   Prestados: " + l.prestados
-                + "\nDañados: " + l.danados + "   Perdidos: " + l.perdidos
-                + "\n\nUbicación: " + (l.ubicaciones == null ? "Sin ubicación" : l.ubicaciones);
-        new AlertDialog.Builder(this).setTitle(l.titulo).setMessage(s).setPositiveButton("Cerrar", null).show();
+                + "\n\nInventario del libro"
+                + "\nTotal de ejemplares: " + cantidad(l.total)
+                + "\nDisponibles: " + cantidad(l.disponibles)
+                + "\nPrestados: " + cantidad(l.prestados)
+                + "\nDañados: " + cantidad(l.danados)
+                + "\nPerdidos: " + cantidad(l.perdidos)
+                + "\n\nUbicación: " + valor(l.ubicaciones);
+        new AlertDialog.Builder(this)
+                .setTitle(l.titulo)
+                .setMessage(s)
+                .setNeutralButton("Editar", (dialog, which) ->
+                        editarLibro.launch(new Intent(this, LibroFormActivity.class).putExtra("libroId", l.id)))
+                .setPositiveButton("Cerrar", null)
+                .show();
+    }
+
+    private static String cantidad(Integer cantidad) {
+        return cantidad == null ? "No informado" : String.valueOf(cantidad);
+    }
+
+    private static String valor(String texto) {
+        return texto == null || texto.trim().isEmpty() ? "No registrado" : texto;
     }
 }

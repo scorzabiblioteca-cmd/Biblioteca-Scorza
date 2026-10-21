@@ -2,6 +2,10 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent" android:layout_height="match_parent" android:background="#000000">
     <androidx.camera.view.PreviewView android:id="@+id/preview" android:layout_width="match_parent" android:layout_height="match_parent" />
+    <ImageView android:layout_width="44dp" android:layout_height="44dp"
+        android:layout_gravity="top|center_horizontal" android:layout_marginTop="24dp"
+        android:adjustViewBounds="true" android:background="#EFFFFFFF" android:contentDescription="Escudo de la I.E. Manuel Scorza Torres"
+        android:padding="3dp" android:scaleType="fitCenter" android:src="@drawable/escudo_colegio" />
     <TextView android:id="@+id/tvGuia" android:layout_width="match_parent" android:layout_height="wrap_content"
         android:layout_gravity="bottom" android:background="#99000000" android:padding="16dp"
         android:gravity="center" android:textColor="#FFFFFF" android:textSize="16sp" />

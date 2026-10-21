@@ -13,22 +13,43 @@ export const GET = withAuth(R, async (_req, { params }) => {
   const id = Number(params.id);
   const libro = await q1(pool, `${LIBRO_SELECT} WHERE l.id = $1`, [id]);
   if (!libro) throw new HttpError(404, "Libro no encontrado");
+  const ubicacionInventario = await q1<{
+    ubicacionInventario: number | null;
+    ubicacionesMultiples: boolean;
+    tieneInventario: boolean;
+  }>(
+    pool,
+    `SELECT CASE WHEN count(DISTINCT COALESCE(ubicacion_id, 0)) = 1 THEN min(ubicacion_id) END AS ubicacion_inventario,
+            count(DISTINCT COALESCE(ubicacion_id, 0)) > 1 AS ubicaciones_multiples,
+            count(*) > 0 AS tiene_inventario
+     FROM (
+       SELECT ubicacion_id FROM ejemplares WHERE libro_id = $1
+       UNION ALL
+       SELECT ubicacion_id FROM existencias WHERE libro_id = $1
+     ) ubicaciones`,
+    [id]
+  );
   const ejemplares = await q(
     pool,
-    `SELECT e.id, e.codigo_interno, e.estado, e.condicion, ${UBIC_TXT} AS ubicacion
+    `SELECT e.id, e.codigo_interno, e.estado, e.condicion, e.ubicacion_id, ${UBIC_TXT} AS ubicacion
      FROM ejemplares e LEFT JOIN ubicaciones u ON u.id = e.ubicacion_id WHERE e.libro_id = $1 ORDER BY e.codigo_interno`,
     [id]
   );
   const existencias = await q(
     pool,
-    `SELECT x.id, x.cantidad_total, x.cantidad_danada, x.cantidad_perdida, x.cantidad_baja, ${UBIC_TXT} AS ubicacion
+    `SELECT x.id, x.ubicacion_id, x.cantidad_total, x.cantidad_danada, x.cantidad_perdida, x.cantidad_baja, ${UBIC_TXT} AS ubicacion
      FROM existencias x LEFT JOIN ubicaciones u ON u.id = x.ubicacion_id WHERE x.libro_id = $1`,
     [id]
   );
-  return ok({ ...libro, ejemplares, existencias });
+  return ok({ ...libro, ...ubicacionInventario, ejemplares, existencias });
 });
 
-const editSchema = libroSchema.omit({ cantidad: true, ubicacionId: true, condicion: true, tipoControl: true, prefijoCodigo: true });
+const ubicacionEdicionSchema = z.preprocess(
+  (value) => value === "" || value === undefined ? undefined : value === null || value === 0 || value === "0" ? null : Number(value),
+  z.number().int().positive().nullable().optional()
+);
+const editSchema = libroSchema.omit({ cantidad: true, ubicacionId: true, condicion: true, tipoControl: true, prefijoCodigo: true })
+  .extend({ ubicacionId: ubicacionEdicionSchema });
 
 export const PUT = withAuth(R, async (req, { params, session }) => {
   const id = Number(params.id);
@@ -43,6 +64,29 @@ export const PUT = withAuth(R, async (req, { params, session }) => {
     if (dup) throw new HttpError(409, "El ISBN ya se encuentra registrado", "ISBN_DUPLICADO");
   }
   await tx(async (c) => {
+    if (d.ubicacionId !== undefined) {
+      if (d.ubicacionId !== null) {
+        const ubicacion = await q1<{ id: number }>(c, "SELECT id FROM ubicaciones WHERE id = $1 AND activo", [d.ubicacionId]);
+        if (!ubicacion) throw new HttpError(400, "La ubicación seleccionada no está disponible", "UBICACION_INVALIDA");
+      }
+      const distribucion = await q1<{ ubicacionesMultiples: boolean; tieneInventario: boolean }>(
+        c,
+        `SELECT count(DISTINCT COALESCE(ubicacion_id, 0)) > 1 AS ubicaciones_multiples,
+                count(*) > 0 AS tiene_inventario
+         FROM (
+           SELECT ubicacion_id FROM ejemplares WHERE libro_id = $1
+           UNION ALL
+           SELECT ubicacion_id FROM existencias WHERE libro_id = $1
+         ) ubicaciones`,
+        [id]
+      );
+      if (!distribucion?.tieneInventario) {
+        throw new HttpError(409, "No hay inventario registrado al que asignar una ubicación", "SIN_INVENTARIO");
+      }
+      if (distribucion?.ubicacionesMultiples) {
+        throw new HttpError(409, "Este libro tiene inventario en varias ubicaciones. Cambia sus ubicaciones desde el detalle del inventario para evitar mover copias incorrectamente.", "UBICACIONES_MULTIPLES");
+      }
+    }
     const editorialId = d.editorial ? await getOrCreate(c, "editoriales", d.editorial) : null;
     const categoriaId = d.categoria ? await getOrCreate(c, "categorias", d.categoria) : null;
     await c.query(
@@ -53,6 +97,35 @@ export const PUT = withAuth(R, async (req, { params, session }) => {
        d.idioma, d.nivelEducativo ?? null, d.gradoRecomendado ?? null, d.imagenUrl ?? null, d.observaciones, session.id]
     );
     await setAutores(c, id, d.autor);
+    if (d.ubicacionId !== undefined) {
+      const ejemplaresMovidos = await q<{ id: number; ubicacionAnteriorId: number | null }>(
+        c,
+        "SELECT id, ubicacion_id AS ubicacion_anterior_id FROM ejemplares WHERE libro_id = $1 AND ubicacion_id IS DISTINCT FROM $2",
+        [id, d.ubicacionId]
+      );
+      await c.query(
+        "UPDATE ejemplares SET ubicacion_id = $2, updated_at = now() WHERE libro_id = $1 AND ubicacion_id IS DISTINCT FROM $2",
+        [id, d.ubicacionId]
+      );
+      if (ejemplaresMovidos.length) {
+        await c.query(
+          `INSERT INTO historial_ejemplares
+             (ejemplar_id, tipo_evento, ubicacion_anterior_id, ubicacion_nueva_id, usuario_id, detalle)
+           SELECT id, 'CAMBIO_UBICACION', ubicacion_anterior_id, $4, $2, 'Cambio de ubicación desde edición del libro'
+           FROM unnest($1::bigint[], $3::bigint[]) AS movidos(id, ubicacion_anterior_id)`,
+          [
+            ejemplaresMovidos.map((ejemplar) => ejemplar.id),
+            session.id,
+            ejemplaresMovidos.map((ejemplar) => ejemplar.ubicacionAnteriorId),
+            d.ubicacionId,
+          ]
+        );
+      }
+      await c.query(
+        "UPDATE existencias SET ubicacion_id = $2, updated_at = now() WHERE libro_id = $1 AND ubicacion_id IS DISTINCT FROM $2",
+        [id, d.ubicacionId]
+      );
+    }
     await audit(c, session, "EDITAR_LIBRO", "libros", id, antes, { ...d, isbn }, req);
   });
   return ok(await q1(pool, `${LIBRO_SELECT} WHERE l.id = $1`, [id]), "Libro actualizado correctamente");

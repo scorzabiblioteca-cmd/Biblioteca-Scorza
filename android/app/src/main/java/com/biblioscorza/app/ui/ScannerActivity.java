@@ -202,7 +202,7 @@ public class ScannerActivity extends AppCompatActivity {
                     Api.call(ApiClient.api().agregarEjemplares(libro.id, solicitud), new Api.Result<Agregado>() {
                         @Override public void ok(Agregado a, String m) {
                             String mensaje = "Ejemplar agregado";
-                            if (a != null && a.libro != null) mensaje += ". Total: " + a.libro.total;
+                            if (a != null && a.libro != null && a.libro.total != null) mensaje += ". Total: " + a.libro.total;
                             if (a != null && a.codigos != null && !a.codigos.isEmpty()) mensaje += " (" + a.codigos.get(0) + ")";
                             Toast.makeText(ScannerActivity.this, mensaje, Toast.LENGTH_LONG).show();
                             ocupado.set(false);

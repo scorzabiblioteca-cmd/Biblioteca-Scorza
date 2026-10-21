@@ -16,8 +16,6 @@ import com.biblioscorza.app.data.ApiClient;
 import com.biblioscorza.app.data.Models.Alumno;
 import com.biblioscorza.app.data.Models.ConsultaIsbn;
 import com.biblioscorza.app.data.Models.Ejemplar;
-import com.biblioscorza.app.data.Models.Libro;
-import com.biblioscorza.app.data.Models.Paged;
 import com.biblioscorza.app.data.Models.PrestamoReq;
 import com.biblioscorza.app.util.Api;
 
@@ -80,32 +78,6 @@ public class PrestamoActivity extends AppCompatActivity {
         else Api.call(ApiClient.api().alumnoPorCodigo(v), cb);
     }
 
-    private void buscarLibroPorIsbn(String isbn, Api.Result<Libro> cb) {
-        final String limpio = isbn == null ? "" : isbn.replaceAll("[\\s-]", "");
-        if (limpio.isEmpty()) {
-            cb.error("ISBN inválido", 400, "ISBN_INVALIDO");
-            return;
-        }
-        Api.call(ApiClient.api().buscarLibros(limpio, 10), new Api.Result<Paged<Libro>>() {
-            @Override public void ok(Paged<Libro> pagina, String m) {
-                if (pagina == null || pagina.items == null || pagina.items.isEmpty()) {
-                    cb.error("No hay libros registrados con ese ISBN", 404, "LIBRO_NO_ENCONTRADO");
-                    return;
-                }
-                String normalizado = limpio.toLowerCase();
-                for (Libro l : pagina.items) {
-                    String isbnLibro = l.isbn == null ? "" : l.isbn.replaceAll("[\\s-]", "").toLowerCase();
-                    if (normalizado.equals(isbnLibro)) {
-                        cb.ok(l, m);
-                        return;
-                    }
-                }
-                cb.error("No hay libros registrados con ese ISBN", 404, "LIBRO_NO_ENCONTRADO");
-            }
-            @Override public void error(String msg, int h, String c) { cb.error(msg, h, c); }
-        });
-    }
-
     private void procesarLibro(String valor) {
         tvMsg.setText("");
         if (valor == null) return;
@@ -154,9 +126,15 @@ public class PrestamoActivity extends AppCompatActivity {
     }
 
     private void agregarIsbnAlPrestamo(String isbn) {
-        buscarLibroPorIsbn(isbn, new Api.Result<Libro>() {
-            @Override public void ok(Libro l, String m) {
+        Api.call(ApiClient.api().libroPorIsbn(isbn), new Api.Result<ConsultaIsbn>() {
+            @Override public void ok(ConsultaIsbn consulta, String m) {
+                if (consulta == null || consulta.existente == null) {
+                    tvMsg.setText("Este ISBN no está registrado en la biblioteca.");
+                    return;
+                }
+                com.biblioscorza.app.data.Models.LibroRegistrado l = consulta.existente;
                 if (!"CANTIDAD".equals(l.tipoControl)) { tvMsg.setText("\"" + l.titulo + "\" es de control individual: escanea el QR del ejemplar"); return; }
+                if (l.disponibles == null) { tvMsg.setText("El inventario no devolvió la cantidad disponible. Vuelve a consultar el libro."); return; }
                 if (l.disponibles <= 0) { tvMsg.setText("No hay copias disponibles de \"" + l.titulo + "\""); return; }
                 for (int i = 0; i < items.size(); i++) {
                     PrestamoReq.Item it = items.get(i);
@@ -168,7 +146,9 @@ public class PrestamoActivity extends AppCompatActivity {
                 PrestamoReq.Item it = new PrestamoReq.Item(); it.libroId = l.id; it.cantidad = 1;
                 items.add(it); lineas.add(l.titulo + " × 1"); actualizar();
             }
-            @Override public void error(String msg, int h, String c) { tvMsg.setText(msg); }
+            @Override public void error(String msg, int h, String c) {
+                tvMsg.setText(h == 0 ? "No hay conexión para consultar el inventario." : msg);
+            }
         });
     }
 

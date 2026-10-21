@@ -18,15 +18,16 @@ import retrofit2.Response;
 public final class ImageUploader {
     public interface Listener { void ok(String url); void error(String msg); }
 
-    public static void subir(File foto, Listener l) {
+    public static void subir(File foto, String mimeType, Listener l) {
         Api.call(ApiClient.api().firmaImagen(new HashMap<>()), new Api.Result<Firma>() {
             @Override public void ok(Firma f, String m) {
-                RequestBody file = RequestBody.create(foto, MediaType.parse("image/jpeg"));
+                RequestBody file = RequestBody.create(foto, MediaType.parse(mimeType));
                 MultipartBody.Part part = MultipartBody.Part.createFormData("file", foto.getName(), file);
                 ApiClient.cloudinary().subir(f.cloudName, part, txt(f.apiKey), txt(String.valueOf(f.timestamp)),
                         txt(f.folder), txt(f.signature)).enqueue(new Callback<CloudinaryResp>() {
                     @Override public void onResponse(Call<CloudinaryResp> c, Response<CloudinaryResp> r) {
-                        if (r.isSuccessful() && r.body() != null && r.body().secure_url != null) l.ok(r.body().secure_url);
+                        if (r.isSuccessful() && r.body() != null && r.body().secure_url != null
+                                && r.body().secure_url.startsWith("https://")) l.ok(r.body().secure_url);
                         else l.error("Cloudinary rechazó la imagen (" + r.code() + ")");
                     }
                     @Override public void onFailure(Call<CloudinaryResp> c, Throwable t) { l.error("No se pudo subir la foto. Revisa tu internet."); }

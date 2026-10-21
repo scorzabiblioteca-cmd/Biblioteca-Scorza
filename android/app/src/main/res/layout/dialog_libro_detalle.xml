@@ -10,6 +10,8 @@
         android:orientation="vertical"
         android:padding="20dp">
 
+        <include layout="@layout/header_brand" />
+
         <ImageView
             android:id="@+id/ivPortadaDetalle"
             android:layout_width="136dp"

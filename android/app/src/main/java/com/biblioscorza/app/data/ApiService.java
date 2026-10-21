@@ -15,7 +15,9 @@ public interface ApiService {
 
     @GET("libros/isbn/{isbn}") Call<ApiResponse<ConsultaIsbn>> libroPorIsbn(@Path("isbn") String isbn);
     @GET("libros") Call<ApiResponse<Paged<Libro>>> buscarLibros(@Query("q") String q, @Query("pageSize") int size);
+    @GET("libros/{id}") Call<ApiResponse<LibroEdicion>> libro(@Path("id") long id);
     @POST("libros") Call<ApiResponse<Libro>> crearLibro(@Body LibroReq body);
+    @PUT("libros/{id}") Call<ApiResponse<Libro>> actualizarLibro(@Path("id") long id, @Body LibroReq body);
     @POST("libros/{id}/ejemplares") Call<ApiResponse<Agregado>> agregarEjemplares(@Path("id") long id, @Body AgregarReq body);
 
     @GET("ubicaciones") Call<ApiResponse<List<Ubicacion>>> ubicaciones();

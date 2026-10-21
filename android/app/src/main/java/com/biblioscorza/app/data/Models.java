@@ -25,7 +25,13 @@ public final class Models {
     public static class Libro {
         public long id;
         public String isbn, titulo, subtitulo, autores, editorial, categoria, imagenUrl, tipoControl, ubicaciones, estado;
-        public int total, disponibles, prestados, danados, perdidos;
+        public String edicion, descripcion, idioma, nivelEducativo, observaciones;
+        public Integer anioPublicacion, gradoRecomendado, total, disponibles, prestados, danados, perdidos;
+    }
+
+    public static class LibroEdicion extends Libro {
+        public Long ubicacionInventario;
+        public boolean ubicacionesMultiples, tieneInventario;
     }
 
     public static class ConsultaIsbn {
@@ -53,7 +59,7 @@ public final class Models {
 
     /** Petición de alta de libro. Los campos null no se envían (Gson los omite). */
     public static class LibroReq {
-        public String isbn, titulo, subtitulo, autor, editorial, categoria, edicion, descripcion, nivelEducativo;
+        public String isbn, titulo, subtitulo, autor, editorial, categoria, edicion, descripcion, idioma, nivelEducativo;
         public String tipoControl, prefijoCodigo, observaciones, imagenUrl;
         public Integer anioPublicacion, gradoRecomendado, cantidad;
         public Long ubicacionId;

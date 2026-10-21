@@ -15,10 +15,12 @@
         android:padding="24dp">
 
         <ImageView
-            android:layout_width="72dp"
-            android:layout_height="72dp"
-            android:contentDescription="Libros"
-            android:src="@drawable/ic_book_stack" />
+            android:layout_width="82dp"
+            android:layout_height="76dp"
+            android:adjustViewBounds="true"
+            android:contentDescription="Escudo de la I.E. 40122 Manuel Scorza Torres"
+            android:scaleType="fitCenter"
+            android:src="@drawable/escudo_colegio" />
 
         <TextView
             android:layout_width="wrap_content"
