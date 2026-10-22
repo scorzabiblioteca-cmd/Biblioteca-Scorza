@@ -18,7 +18,7 @@ export const GET = withAuth(["BIBLIOTECARIO"], async (req) => {
   const t = sp.get("q")?.trim();
   if (t) {
     const n = add(t);
-    where.push(`(${norm("apellidos || ' ' || nombres")} LIKE '%' || ${norm(n)} || '%' OR ${norm("nombres || ' ' || apellidos")} LIKE '%' || ${norm(n)} || '%' OR dni LIKE '%' || ${n} || '%' OR codigo_alumno ILIKE '%' || ${n} || '%')`);
+    where.push(`(${norm("apellidos || ' ' || nombres")} LIKE '%' || ${norm(n)} || '%' OR ${norm("nombres || ' ' || apellidos")} LIKE '%' || ${norm(n)} || '%' OR dni LIKE '%' || ${n} || '%' OR codigo_alumno ILIKE '%' || ${n} || '%' OR id::text = ${n})`);
   }
   const W = where.length ? "WHERE " + where.join(" AND ") : "";
   const total = (await q1<{ n: number }>(pool, `SELECT count(*)::int AS n FROM alumnos ${W}`, params))!.n;

@@ -14,19 +14,26 @@ public interface ApiService {
     @POST("auth/login") Call<ApiResponse<LoginData>> login(@Body LoginReq body);
 
     @GET("libros/isbn/{isbn}") Call<ApiResponse<ConsultaIsbn>> libroPorIsbn(@Path("isbn") String isbn);
-    @GET("libros") Call<ApiResponse<Paged<Libro>>> buscarLibros(@Query("q") String q, @Query("pageSize") int size);
+    @GET("libros") Call<ApiResponse<Paged<Libro>>> buscarLibros(
+            @Query("q") String q, @Query("page") int page, @Query("pageSize") int size, @Query("estado") String estado,
+            @Query("categoriaId") Long categoriaId, @Query("nivelEducativo") String nivelEducativo,
+            @Query("disponibilidad") String disponibilidad, @Query("tipoControl") String tipoControl,
+            @Query("ubicacionId") Long ubicacionId);
     @GET("libros/{id}") Call<ApiResponse<LibroEdicion>> libro(@Path("id") long id);
     @POST("libros") Call<ApiResponse<Libro>> crearLibro(@Body LibroReq body);
     @PUT("libros/{id}") Call<ApiResponse<Libro>> actualizarLibro(@Path("id") long id, @Body LibroReq body);
     @POST("libros/{id}/ejemplares") Call<ApiResponse<Agregado>> agregarEjemplares(@Path("id") long id, @Body AgregarReq body);
 
     @GET("ubicaciones") Call<ApiResponse<List<Ubicacion>>> ubicaciones();
+    @GET("categorias") Call<ApiResponse<List<Categoria>>> categorias();
 
     @GET("ejemplares/codigo/{codigo}") Call<ApiResponse<Ejemplar>> ejemplarPorCodigo(@Path("codigo") String codigo);
     @PATCH("ejemplares/{id}") Call<ApiResponse<Ejemplar>> cambiarEstado(@Path("id") long id, @Body EjemplarPatch body);
 
     @GET("alumnos/dni/{dni}") Call<ApiResponse<Alumno>> alumnoPorDni(@Path("dni") String dni);
     @GET("alumnos/codigo/{codigo}") Call<ApiResponse<Alumno>> alumnoPorCodigo(@Path("codigo") String codigo);
+    @GET("alumnos") Call<ApiResponse<Paged<Alumno>>> buscarAlumnos(
+            @Query("q") String q, @Query("estado") String estado, @Query("pageSize") int size);
 
     @POST("prestamos") Call<ApiResponse<Object>> prestar(@Body PrestamoReq body);
     @GET("prestamos/activo/ejemplar/{codigo}") Call<ApiResponse<PrestamoActivo>> prestamoActivo(@Path("codigo") String codigo);

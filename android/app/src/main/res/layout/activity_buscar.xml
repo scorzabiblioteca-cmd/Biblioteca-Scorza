@@ -3,7 +3,45 @@
     android:layout_width="match_parent" android:layout_height="match_parent"
     android:orientation="vertical" android:padding="16dp">
     <include layout="@layout/header_brand" />
-    <EditText android:id="@+id/etBuscar" style="@style/BsInput" android:hint="Título, autor, ISBN, código o estante" android:inputType="text" />
+    <EditText android:id="@+id/etBuscar" style="@style/BsInput"
+        android:hint="Título, autor, ISBN, editorial, categoría o ejemplar" android:inputType="text" />
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:orientation="horizontal">
+        <Button android:id="@+id/btnBuscar" android:layout_width="0dp" android:layout_height="48dp"
+            android:layout_weight="1" android:layout_marginTop="8dp" android:text="Buscar" />
+        <Button android:id="@+id/btnLimpiar" style="@style/BsButtonOutline"
+            android:layout_width="0dp" android:layout_height="48dp" android:layout_weight="1"
+            android:text="Limpiar filtros" />
+    </LinearLayout>
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:orientation="horizontal">
+        <Spinner android:id="@+id/spCategoria" android:layout_width="0dp" android:layout_height="48dp"
+            android:layout_weight="1" android:contentDescription="Filtrar por categoría" />
+        <Spinner android:id="@+id/spNivel" android:layout_width="0dp" android:layout_height="48dp"
+            android:layout_weight="1" android:contentDescription="Filtrar por nivel educativo" />
+    </LinearLayout>
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:orientation="horizontal">
+        <Spinner android:id="@+id/spDisponibilidad" android:layout_width="0dp" android:layout_height="48dp"
+            android:layout_weight="1" android:contentDescription="Filtrar por disponibilidad" />
+        <Spinner android:id="@+id/spTipoControl" android:layout_width="0dp" android:layout_height="48dp"
+            android:layout_weight="1" android:contentDescription="Filtrar por tipo de control" />
+    </LinearLayout>
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:orientation="horizontal">
+        <Spinner android:id="@+id/spUbicacion" android:layout_width="0dp" android:layout_height="48dp"
+            android:layout_weight="1" android:contentDescription="Filtrar por ubicación" />
+        <Spinner android:id="@+id/spEstado" android:layout_width="0dp" android:layout_height="48dp"
+            android:layout_weight="1" android:contentDescription="Filtrar por estado del libro" />
+    </LinearLayout>
+    <ProgressBar android:id="@+id/progreso" android:layout_width="wrap_content"
+        android:layout_height="wrap_content" android:layout_gravity="center_horizontal"
+        android:visibility="gone" />
+    <TextView android:id="@+id/tvFiltros" style="@style/BsText" />
     <TextView android:id="@+id/tvMsg" style="@style/BsText" />
-    <ListView android:id="@+id/lista" android:layout_width="match_parent" android:layout_height="match_parent" android:layout_marginTop="8dp" />
+    <ListView android:id="@+id/lista" android:layout_width="match_parent"
+        android:layout_height="0dp" android:layout_weight="1" android:layout_marginTop="8dp"
+        android:dividerHeight="8dp" />
+    <Button android:id="@+id/btnMas" android:layout_width="match_parent"
+        android:layout_height="48dp" android:text="Cargar más" android:visibility="gone" />
 </LinearLayout>

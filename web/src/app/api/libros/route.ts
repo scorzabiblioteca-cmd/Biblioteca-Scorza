@@ -21,6 +21,13 @@ export const GET = withAuth(R, async (req) => {
   if (tipo) where.push(`l.tipo_control = ${add(tipo)}`);
   const cat = sp.get("categoriaId");
   if (cat) where.push(`l.categoria_id = ${add(Number(cat))}`);
+  const nivel = sp.get("nivelEducativo");
+  if (nivel) {
+    if (!["INICIAL", "PRIMARIA", "SECUNDARIA", "GENERAL"].includes(nivel)) {
+      throw new HttpError(400, "Nivel educativo no válido");
+    }
+    where.push(`l.nivel_educativo = ${add(nivel)}`);
+  }
   const edi = sp.get("editorialId");
   if (edi) where.push(`l.editorial_id = ${add(Number(edi))}`);
   const grado = sp.get("grado");
@@ -35,6 +42,7 @@ export const GET = withAuth(R, async (req) => {
   }
   const disp = sp.get("disponibilidad");
   if (disp === "disponibles") where.push("s.disponibles > 0");
+  if (disp === "sin_disponibles") where.push("s.disponibles = 0");
   if (disp === "prestados") where.push("s.prestados > 0");
   if (disp === "danados") where.push("s.danados > 0");
   if (disp === "perdidos") where.push("s.perdidos > 0");

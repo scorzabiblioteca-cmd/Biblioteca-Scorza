@@ -5,8 +5,10 @@
         android:orientation="vertical" android:padding="20dp">
         <include layout="@layout/header_brand" />
         <TextView style="@style/BsTitle" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Nuevo préstamo" />
-        <EditText android:id="@+id/etAlumno" style="@style/BsInput" android:hint="DNI o código del alumno" android:inputType="text" />
-        <Button android:id="@+id/btnBuscarAlumno" style="@style/BsButton" android:text="Buscar alumno" />
+        <AutoCompleteTextView android:id="@+id/etAlumno" style="@style/BsInput"
+            android:hint="Nombre, apellido o código del alumno" android:inputType="text"
+            android:completionThreshold="2" android:singleLine="true" android:imeOptions="actionSearch" />
+        <Button android:id="@+id/btnBuscarAlumno" style="@style/BsButton" android:text="Buscar coincidencias" />
         <Button android:id="@+id/btnScanAlumno" style="@style/BsButtonOutline" android:text="Escanear QR del alumno" />
         <TextView android:id="@+id/tvAlumno" style="@style/BsText" android:textStyle="bold" />
         <Button android:id="@+id/btnScanLibro" style="@style/BsButton" android:text="Escanear libro (QR o ISBN)" android:enabled="false" />

@@ -24,6 +24,7 @@ public final class Models {
 
     public static class Libro {
         public long id;
+        public Long categoriaId;
         public String isbn, titulo, subtitulo, autores, editorial, categoria, imagenUrl, tipoControl, ubicaciones, estado;
         public String edicion, descripcion, idioma, nivelEducativo, observaciones;
         public Integer anioPublicacion, gradoRecomendado, total, disponibles, prestados, danados, perdidos;
@@ -76,6 +77,12 @@ public final class Models {
         @Override public String toString() { return descripcion != null ? codigo + " — " + descripcion : codigo; }
     }
 
+    public static class Categoria {
+        public long id;
+        public String nombre;
+        @Override public String toString() { return nombre; }
+    }
+
     public static class UltimoPrestamo { public String prestatario, fechaPrestamo, fechaDevolucion, estado; }
     public static class Ejemplar {
         public long id, libroId;
@@ -89,11 +96,13 @@ public final class Models {
     }
 
     public static class Alumno {
-        public long id; public String codigoAlumno, dni, nombres, apellidos, seccion; public Integer grado;
+        public long id; public String codigoAlumno, dni, nombres, apellidos, seccion, estado; public Integer grado;
         public String nombreCompleto() { return apellidos + ", " + nombres; }
+        @Override public String toString() { return nombreCompleto() + " · Código: " + codigoAlumno + " · ID: " + id; }
     }
 
     public static class PrestamoReq {
+        public Long alumnoId;
         public String alumnoDni, alumnoCodigo;
         public List<Item> items;
         public static class Item {
