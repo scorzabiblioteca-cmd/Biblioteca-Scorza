@@ -36,6 +36,7 @@ public class DevolucionActivity extends AppCompatActivity {
     @Override protected void onCreate(Bundle b) {
         super.onCreate(b);
         setContentView(R.layout.activity_devolucion);
+        findViewById(R.id.btnVolver).setOnClickListener(v -> getOnBackPressedDispatcher().onBackPressed());
         tvDatos = findViewById(R.id.tvDatos); tvMsg = findViewById(R.id.tvMsg);
         spResultado = findViewById(R.id.spResultado); etObs = findViewById(R.id.etObs); btnConfirmar = findViewById(R.id.btnConfirmar);
         spResultado.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, ETIQ));

@@ -51,6 +51,7 @@ public class BuscarActivity extends AppCompatActivity {
     @Override protected void onCreate(Bundle b) {
         super.onCreate(b);
         setContentView(R.layout.activity_buscar);
+        findViewById(R.id.btnVolver).setOnClickListener(v -> getOnBackPressedDispatcher().onBackPressed());
         etBuscar = findViewById(R.id.etBuscar);
         tvMsg = findViewById(R.id.tvMsg);
         tvFiltros = findViewById(R.id.tvFiltros);

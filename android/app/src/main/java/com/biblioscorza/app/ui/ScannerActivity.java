@@ -110,7 +110,7 @@ public class ScannerActivity extends AppCompatActivity {
                 .setBarcodeFormats(Barcode.FORMAT_EAN_13, Barcode.FORMAT_EAN_8,
                         Barcode.FORMAT_QR_CODE, Barcode.FORMAT_CODE_128)
                 .build());
-        findViewById(R.id.btnVolver).setOnClickListener(v -> finish());
+        findViewById(R.id.btnVolver).setOnClickListener(v -> getOnBackPressedDispatcher().onBackPressed());
         btnLinterna.setOnClickListener(v -> alternarLinterna());
         btnReintentar.setOnClickListener(v -> reintentarCamara());
         preview.setOnTouchListener((view, event) -> {

@@ -4,6 +4,8 @@ import android.content.Intent;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -13,6 +15,7 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AlertDialog;
@@ -30,7 +33,6 @@ import com.biblioscorza.app.data.Models.LibroReq;
 import com.biblioscorza.app.data.Models.Ubicacion;
 import com.biblioscorza.app.util.Api;
 import com.biblioscorza.app.util.ImageUploader;
-
 import com.biblioscorza.app.data.Models.ConsultaIsbn;
 import com.biblioscorza.app.data.Models.LibroDatos;
 import com.biblioscorza.app.data.Models.LibroRegistrado;
@@ -60,6 +62,7 @@ public class LibroFormActivity extends AppCompatActivity {
     private Long ubicacionActual;
     private File imagenPendiente, archivoCaptura;
     private boolean tieneInventario;
+    private boolean trackingChanges, hasUnsavedChanges;
 
     private final ActivityResultLauncher<Intent> escanear = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(), r -> {
@@ -98,12 +101,19 @@ public class LibroFormActivity extends AppCompatActivity {
         spUbicacion = findViewById(R.id.spUbicacion); ivFoto = findViewById(R.id.ivFoto);
         tvError = findViewById(R.id.tvError); tvFotoEstado = findViewById(R.id.tvFotoEstado);
         tvUbicacionInfo = findViewById(R.id.tvUbicacionInfo); btnGuardar = findViewById(R.id.btnGuardar);
+        findViewById(R.id.btnVolver).setOnClickListener(v -> getOnBackPressedDispatcher().onBackPressed());
 
         spNivel.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, NIVELES));
         spTipo.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, new String[]{"Control por cantidad", "Control individual (QR por ejemplar)"}));
         spPrefijo.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, new String[]{"Prefijo LIB (libro común)", "Prefijo ESP (libro especial)"}));
         spTipo.setOnItemSelectedListener(new android.widget.AdapterView.OnItemSelectedListener() {
+            private int seleccionAnterior = -1;
+
             @Override public void onItemSelected(android.widget.AdapterView<?> p, View v, int pos, long id) {
+                if (seleccionAnterior >= 0 && seleccionAnterior != pos && trackingChanges) {
+                    hasUnsavedChanges = true;
+                }
+                seleccionAnterior = pos;
                 spPrefijo.setVisibility(pos == 1 ? View.VISIBLE : View.GONE);
             }
             @Override public void onNothingSelected(android.widget.AdapterView<?> p) { }
@@ -144,6 +154,58 @@ public class LibroFormActivity extends AppCompatActivity {
                 .putExtra(ScannerActivity.EXTRA_GUIA, "Escanea el código de barras (ISBN) del libro")));
         findViewById(R.id.btnFoto).setOnClickListener(v -> elegirOrigenFoto());
         btnGuardar.setOnClickListener(v -> guardar());
+        observarCambiosSinGuardar(etIsbn, etTitulo, etSubtitulo, etAutor, etEditorial, etCategoria,
+                etAnio, etEdicion, etGrado, etCantidad, etDescripcion, etObs, etIdioma);
+        observarCambiosSinGuardar(spNivel, spPrefijo, spUbicacion);
+        trackingChanges = true;
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override public void handleOnBackPressed() {
+                if (!hasUnsavedChanges) {
+                    setEnabled(false);
+                    getOnBackPressedDispatcher().onBackPressed();
+                    return;
+                }
+                new AlertDialog.Builder(LibroFormActivity.this)
+                        .setTitle("Hay cambios sin guardar")
+                        .setMessage("¿Quieres salir y descartar los cambios?")
+                        .setNegativeButton("Seguir editando", null)
+                        .setPositiveButton("Salir sin guardar", (dialog, which) -> {
+                            hasUnsavedChanges = false;
+                            setEnabled(false);
+                            getOnBackPressedDispatcher().onBackPressed();
+                        })
+                        .show();
+            }
+        });
+    }
+
+    private void observarCambiosSinGuardar(EditText... campos) {
+        for (EditText campo : campos) {
+            campo.addTextChangedListener(new TextWatcher() {
+                @Override public void beforeTextChanged(CharSequence texto, int inicio, int cuenta, int despues) { }
+                @Override public void onTextChanged(CharSequence texto, int inicio, int antes, int cuenta) { }
+                @Override public void afterTextChanged(Editable texto) {
+                    if (trackingChanges) hasUnsavedChanges = true;
+                }
+            });
+        }
+    }
+
+    private void observarCambiosSinGuardar(Spinner... campos) {
+        for (Spinner campo : campos) {
+            campo.setOnItemSelectedListener(new android.widget.AdapterView.OnItemSelectedListener() {
+                private int seleccionAnterior = -1;
+
+                @Override public void onItemSelected(android.widget.AdapterView<?> parent, View view, int position, long id) {
+                    if (seleccionAnterior >= 0 && seleccionAnterior != position && trackingChanges) {
+                        hasUnsavedChanges = true;
+                    }
+                    seleccionAnterior = position;
+                }
+
+                @Override public void onNothingSelected(android.widget.AdapterView<?> parent) { }
+            });
+        }
     }
 
     private void cargarLibroParaEditar() {
@@ -153,6 +215,7 @@ public class LibroFormActivity extends AppCompatActivity {
                     tvError.setText("No se recibieron los datos del libro");
                     return;
                 }
+                trackingChanges = false;
                 etIsbn.setText(libro.isbn == null ? "" : libro.isbn);
                 etTitulo.setText(libro.titulo == null ? "" : libro.titulo);
                 etSubtitulo.setText(libro.subtitulo == null ? "" : libro.subtitulo);
@@ -178,6 +241,8 @@ public class LibroFormActivity extends AppCompatActivity {
                 }
                 datosEdicionCargados = true;
                 configurarUbicaciones();
+                hasUnsavedChanges = false;
+                trackingChanges = true;
                 btnGuardar.setEnabled(true);
             }
             @Override public void error(String msg, int h, String c) {
@@ -444,6 +509,7 @@ private void verificarIsbn() {
         imagenPendiente = archivo;
         mimeFotoPendiente = mime;
         urlFotoSubida = null;
+        if (trackingChanges) hasUnsavedChanges = true;
         tvError.setText("");
         tvFotoEstado.setText("Vista previa lista; se subirá al guardar.");
         mostrarImagen(archivo);

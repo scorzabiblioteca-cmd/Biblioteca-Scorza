@@ -66,6 +66,7 @@ public class PrestamoActivity extends AppCompatActivity {
     @Override protected void onCreate(Bundle b) {
         super.onCreate(b);
         setContentView(R.layout.activity_prestamo);
+        findViewById(R.id.btnVolver).setOnClickListener(v -> getOnBackPressedDispatcher().onBackPressed());
         etAlumno = findViewById(R.id.etAlumno);
         tvAlumno = findViewById(R.id.tvAlumno);
         tvItems = findViewById(R.id.tvItems);

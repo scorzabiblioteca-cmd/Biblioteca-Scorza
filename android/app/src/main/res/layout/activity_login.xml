@@ -20,7 +20,7 @@
             android:adjustViewBounds="true"
             android:contentDescription="Escudo de la I.E. 40122 Manuel Scorza Torres"
             android:scaleType="fitCenter"
-            android:src="@drawable/escudo_colegio" />
+            android:src="@drawable/escudo_colegio_transparente" />
 
         <TextView
             android:layout_width="wrap_content"

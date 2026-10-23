@@ -26,6 +26,7 @@ public class EjemplarActivity extends AppCompatActivity {
     @Override protected void onCreate(Bundle b) {
         super.onCreate(b);
         setContentView(R.layout.activity_ejemplar);
+        findViewById(R.id.btnVolver).setOnClickListener(v -> getOnBackPressedDispatcher().onBackPressed());
         tvError = findViewById(R.id.tvError);
         codigo = getIntent().getStringExtra("codigo");
     }
