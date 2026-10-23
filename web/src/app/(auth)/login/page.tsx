@@ -1,6 +1,7 @@
 ﻿"use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/client";
 import { Msg } from "@/components/ui";
@@ -160,6 +161,9 @@ export default function Login() {
             <p className="login-help">
               ¿Necesitas ayuda? Comunícate con el equipo de biblioteca.
             </p>
+            <Link className="login-library-button" href="/biblioteca">
+              Ver biblioteca
+            </Link>
           </form>
           <p className="login-copyright">
             © 2026 Derechos reservados al colegio Manuel Scorza Torres, R.R.R.H.Y.

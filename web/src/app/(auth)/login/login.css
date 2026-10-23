@@ -402,6 +402,33 @@
   opacity: 0.75;
 }
 
+.login-library-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 48px;
+  margin-top: -0.8rem;
+  border: 1px solid #cbd8e8;
+  border-radius: 11px;
+  color: #2456bd;
+  background: #fff;
+  font-size: 0.92rem;
+  font-weight: 650;
+  text-decoration: none;
+  transition: background-color 0.16s ease, border-color 0.16s ease;
+}
+
+.login-library-button:hover {
+  border-color: #9bb7df;
+  background: #f5f8fd;
+}
+
+.login-library-button:focus-visible {
+  outline: 3px solid rgba(37, 99, 235, 0.35);
+  outline-offset: 3px;
+}
+
 .login-spinner {
   width: 16px;
   height: 16px;
