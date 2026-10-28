@@ -68,11 +68,6 @@
   height: 96px;
   margin-bottom: 2rem;
   place-items: center;
-  overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.35);
-  border-radius: 18px;
-  background: #fff;
-  box-shadow: 0 8px 20px rgba(5, 17, 34, 0.2);
 }
 
 .login-brand-mark img {
