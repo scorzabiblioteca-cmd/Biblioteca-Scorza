@@ -38,6 +38,7 @@ export default function Prestamos() {
   const [msg, setMsg] = useState<{ t: "ok" | "error"; m: string } | null>(null);
   const [top, setTop] = useState<LibroTop[]>([]);
   const [diasTop, setDiasTop] = useState(30);
+  const [mostrarTop, setMostrarTop] = useState(true);
   const dialogRef = useRef<HTMLDialogElement>(null);
 
   const cargar = useCallback(() => {
@@ -140,7 +141,7 @@ export default function Prestamos() {
       <section className="card mb-4 p-0">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#e6ecf4] px-4 py-3">
           <div>
-            <h2 className="text-[0.98rem] font-bold tracking-[-0.01em] text-[#172b4d]">Libros más prestados</h2>
+            <h2 id="libros-mas-prestados-heading" className="text-[0.98rem] font-bold tracking-[-0.01em] text-[#172b4d]">Libros más prestados</h2>
             <p className="mt-0.5 text-xs text-[#94a3b8]">Ranking por préstamos del periodo</p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
@@ -154,34 +155,47 @@ export default function Prestamos() {
               {PERIODOS.map((p) => <option key={p.value} value={p.value}>{p.label}</option>)}
             </select>
             <a className="btn-ghost" href="/api/reportes/mas-prestados?formato=csv">Exportar CSV</a>
+            <button
+              type="button"
+              className="btn-ghost"
+              aria-expanded={mostrarTop}
+              aria-controls="libros-mas-prestados-content"
+              onClick={() => setMostrarTop((mostrar) => !mostrar)}
+            >
+              {mostrarTop ? "Ocultar" : "Mostrar"}
+            </button>
           </div>
         </div>
-        {top.length === 0 ? (
-          <p className="px-4 py-6 text-center text-sm text-[#94a3b8]">Aún no hay préstamos en este periodo.</p>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="responsive-table w-full min-w-[560px]">
-              <thead className="border-b border-[#e6ecf4] bg-[#f7f9fc]">
-                <tr>
-                  <th className="th w-12">#</th>
-                  <th className="th">Título</th>
-                  <th className="th">Categoría</th>
-                  <th className="th">Préstamos</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[#eef2f7]">
-                {top.map((libro, i) => (
-                  <tr key={libro.titulo} className="transition hover:bg-[#f7faff]">
-                    <td className="td w-12" data-label="#">{i + 1}</td>
-                    <td className="td font-medium text-[#172b4d]" data-label="Título">{libro.titulo}</td>
-                    <td className="td" data-label="Categoría">{libro.categoria}</td>
-                    <td className="td" data-label="Préstamos">
-                      <span className="font-semibold text-[#2563eb]">{NUMBER_FORMAT.format(libro.vecesPrestado)}</span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+        {mostrarTop && (
+          <div id="libros-mas-prestados-content" aria-labelledby="libros-mas-prestados-heading">
+            {top.length === 0 ? (
+              <p className="px-4 py-6 text-center text-sm text-[#94a3b8]">Aún no hay préstamos en este periodo.</p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="responsive-table w-full min-w-[560px]">
+                  <thead className="border-b border-[#e6ecf4] bg-[#f7f9fc]">
+                    <tr>
+                      <th className="th w-12">#</th>
+                      <th className="th">Título</th>
+                      <th className="th">Categoría</th>
+                      <th className="th">Préstamos</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#eef2f7]">
+                    {top.map((libro, i) => (
+                      <tr key={libro.titulo} className="transition hover:bg-[#f7faff]">
+                        <td className="td w-12" data-label="#">{i + 1}</td>
+                        <td className="td font-medium text-[#172b4d]" data-label="Título">{libro.titulo}</td>
+                        <td className="td" data-label="Categoría">{libro.categoria}</td>
+                        <td className="td" data-label="Préstamos">
+                          <span className="font-semibold text-[#2563eb]">{NUMBER_FORMAT.format(libro.vecesPrestado)}</span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
         )}
       </section>
