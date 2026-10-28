@@ -111,7 +111,7 @@ export default function Alumnos() {
       </dialog>
       <input className="input mb-3 max-w-md" placeholder="Nombre, DNI o código" value={qtxt} onChange={(e) => setQ(e.target.value)} />
       <div className="card responsive-table-shell mt-3 overflow-x-auto p-0">
-        <table className="responsive-table w-full min-w-[700px]"><thead className="border-b border-[#e6ecf4] bg-[#f7f9fc]"><tr>{["Código", "DNI", "Alumno", "Grado", "Sección", "Estado", "Acciones"].map((h) => <th key={h} className="th">{h}</th>)}</tr></thead>
+        <table className="responsive-table w-full min-w-[760px]"><thead className="border-b border-[#e6ecf4] bg-[#f7f9fc]"><tr>{["Código", "DNI", "Alumno", "Nivel", "Grado", "Sección", "Estado", "Acciones"].map((h) => <th key={h} className="th">{h}</th>)}</tr></thead>
           <tbody className="divide-y divide-[#eef2f7]">
             {data?.items.map((a) => (
               <tr key={a.id}><td className="td font-mono" data-label="Código">{a.codigoAlumno}</td><td className="td" data-label="DNI">{a.dni ?? "—"}</td><td className="td font-medium" data-label="Alumno">
@@ -119,9 +119,9 @@ export default function Alumnos() {
                     {a.apellidos}, {a.nombres}
                   </button>
                 </td>
-                <td className="td" data-label="Grado">{a.grado ?? "—"}</td><td className="td" data-label="Sección">{a.seccion ?? "—"}</td><td className="td" data-label="Estado"><Badge v={a.estado === "ACTIVO" ? "ACTIVO" : "BAJA"} /></td>
+                <td className="td" data-label="Nivel">{a.nivelEducativo ? a.nivelEducativo.charAt(0) + a.nivelEducativo.slice(1).toLowerCase() : "—"}</td><td className="td" data-label="Grado">{a.grado ?? "—"}</td><td className="td" data-label="Sección">{a.seccion ?? "—"}</td><td className="td" data-label="Estado"><Badge v={a.estado === "ACTIVO" ? "ACTIVO" : "BAJA"} /></td>
                 <td className="td" data-label="Acciones"><button type="button" className="btn-ghost py-1" onClick={() => editarAlumno(a)}>Editar</button></td></tr>))}
-            {data && data.items.length === 0 && <tr><td className="td text-slate-500" colSpan={7}>No hay alumnos registrados.</td></tr>}
+            {data && data.items.length === 0 && <tr><td className="td text-slate-500" colSpan={8}>No hay alumnos registrados.</td></tr>}
           </tbody></table>
       </div>
       {data && (
