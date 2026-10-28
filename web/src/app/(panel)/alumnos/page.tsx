@@ -20,7 +20,7 @@ export default function Alumnos() {
   const dq = useDebounced(qtxt);
   useEffect(() => { setPagina(1); }, [dq]);
   const cargar = useCallback(() => {
-    const params = new URLSearchParams({ page: String(pagina), pageSize: "50" });
+    const params = new URLSearchParams({ page: String(pagina), pageSize: "10" });
     if (dq) params.set("q", dq);
     api<Paged<any>>(`/alumnos?${params}`).then(setData).catch((e) => setMsg({ t: "error", m: e.message }));
   }, [dq, pagina]);

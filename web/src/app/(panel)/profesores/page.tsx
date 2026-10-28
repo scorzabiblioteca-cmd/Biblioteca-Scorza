@@ -32,7 +32,7 @@ export default function Profesores() {
 
   useEffect(() => { setPagina(1); }, [dq]);
   const cargar = useCallback(() => {
-    const params = new URLSearchParams({ page: String(pagina), pageSize: "50" });
+    const params = new URLSearchParams({ page: String(pagina), pageSize: "10" });
     if (dq) params.set("q", dq);
     api<Paged<Profesor>>(`/profesores?${params}`).then(setData).catch((e: Error) => setMsg({ t: "error", m: e.message }));
   }, [dq, pagina]);
