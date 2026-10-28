@@ -47,8 +47,8 @@ export default function Login() {
               <img
                 src="/escudo-colegio.png"
                 alt="Escudo del colegio Manuel Scorza Torres"
-                width="96"
-                height="96"
+                width="136"
+                height="136"
               />
             </div>
             <p className="login-eyebrow">Biblioteca escolar</p>

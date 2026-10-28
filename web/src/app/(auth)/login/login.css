@@ -62,11 +62,17 @@
   z-index: 1;
 }
 
+.login-brand-content {
+  align-self: center;
+  margin-block: auto;
+  text-align: center;
+}
+
 .login-brand-mark {
   display: grid;
-  width: 96px;
-  height: 96px;
-  margin-bottom: 2rem;
+  width: 136px;
+  height: 136px;
+  margin: 0 auto 1.5rem;
   place-items: center;
 }
 
@@ -102,6 +108,7 @@
 .login-brand-copy {
   max-width: 19rem;
   margin: 1.15rem 0 0;
+  margin-inline: auto;
   color: #c2d4e9;
   font-size: 1rem;
   line-height: 1.7;
@@ -487,10 +494,9 @@
   }
 
   .login-brand-mark {
-    width: 72px;
-    height: 72px;
+    width: 88px;
+    height: 88px;
     margin-bottom: 0.8rem;
-    border-radius: 14px;
   }
 
   .login-eyebrow {
