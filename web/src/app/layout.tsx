@@ -1,7 +1,11 @@
 import "./globals.css";
 import type { Metadata, Viewport } from "next";
 
-export const metadata: Metadata = { title: "BiblioScorza", description: "Gestión de biblioteca escolar" };
+export const metadata: Metadata = {
+  title: "BiblioScorza",
+  description: "Gestión de biblioteca escolar",
+  icons: { icon: "/escudo-colegio.png" },
+};
 export const viewport: Viewport = { width: "device-width", initialScale: 1 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
