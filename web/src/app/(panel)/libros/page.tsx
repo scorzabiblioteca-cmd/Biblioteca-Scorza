@@ -40,7 +40,10 @@ export default function Libros() {
   const pages = data ? Math.max(1, Math.ceil(data.total / data.pageSize)) : 1;
   return (
     <>
-      <PageTitle action={<Link href="/libros/nuevo" className="btn">Registrar libro</Link>}>Libros</PageTitle>
+      <PageTitle action={<>
+        <Link href="/libros/ejemplares" className="btn-ghost">Ver ejemplares</Link>
+        <Link href="/libros/nuevo" className="btn">Registrar libro</Link>
+      </>}>Libros</PageTitle>
       <div className="mb-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
         <input className="input sm:col-span-2" placeholder="Título, autor, ISBN, editorial o código" value={qtxt} onChange={(e) => setQ(e.target.value)} />
         <select className="input" value={categoriaId} onChange={(e) => setCategoriaId(e.target.value)} aria-label="Filtrar por categoría">

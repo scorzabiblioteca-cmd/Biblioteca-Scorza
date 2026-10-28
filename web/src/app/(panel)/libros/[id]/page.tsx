@@ -86,7 +86,7 @@ export default function LibroDetalle({ params }: { params: Promise<{ id: string 
           <table className="responsive-table w-full"><thead className="border-b border-[#e6ecf4] bg-[#f7f9fc]"><tr>{["Código", "Estado", "Condición", "Ubicación"].map((h) => <th key={h} className="th">{h}</th>)}</tr></thead>
             <tbody className="divide-y divide-[#eef2f7]">
               {l.ejemplares.map((e: any) => (
-                <tr key={e.id}><td className="td font-medium" data-label="Código"><Link className="text-brand-700 hover:underline" href={`/ejemplares/${e.id}`}>{e.codigoInterno}</Link></td>
+                <tr key={e.id}><td className="td font-medium" data-label="Código"><Link className="text-brand-700 hover:underline" href={`/libros/ejemplares/${e.id}`}>{e.codigoInterno}</Link></td>
                   <td className="td" data-label="Estado"><Badge v={e.estado} /></td><td className="td" data-label="Condición">{e.condicion}</td><td className="td" data-label="Ubicación">{e.ubicacion ?? "—"}</td></tr>))}
               {l.ejemplares.length === 0 && <tr><td className="td text-slate-500" colSpan={4}>Aún no hay ejemplares.</td></tr>}
             </tbody></table>

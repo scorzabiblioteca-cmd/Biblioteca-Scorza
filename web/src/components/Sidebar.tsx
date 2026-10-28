@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { api } from "@/lib/client";
 
 const LINKS = [
-  ["/dashboard", "Panel"], ["/libros", "Libros"], ["/ejemplares", "Ejemplares"], ["/prestamos", "Préstamos"],
+  ["/dashboard", "Panel"], ["/libros", "Libros"], ["/prestamos", "Préstamos"],
   ["/devoluciones", "Devoluciones"], ["/alumnos", "Alumnos"], ["/profesores", "Profesores"], ["/reportes", "Reportes"],
   ["/notificaciones", "Notificaciones"],
 ];
@@ -14,7 +14,7 @@ const MOBILE_LINKS = [
   ["/devoluciones", "Devoluciones", "return"],
 ] as const;
 const MOBILE_MORE_LINKS = [
-  ["/ejemplares", "Ejemplares", "copies"], ["/alumnos", "Alumnos", "students"],
+  ["/libros/ejemplares", "Ejemplares", "copies"], ["/alumnos", "Alumnos", "students"],
   ["/profesores", "Profesores", "teachers"], ["/reportes", "Reportes", "reports"],
   ["/notificaciones", "Notificaciones", "notifications"],
 ] as const;
@@ -64,7 +64,8 @@ export default function Sidebar() {
     };
   }, []);
   const moreActive = LINKS.some(([href]) =>
-    path.startsWith(href) && !MOBILE_LINKS.some(([mobileHref]) => mobileHref === href),
+    (path.startsWith(href) && !MOBILE_LINKS.some(([mobileHref]) => mobileHref === href))
+      || (href === "/libros" && path.startsWith("/libros/ejemplares")),
   );
   async function salir() {
     await fetch("/api/auth/logout", { method: "POST" });

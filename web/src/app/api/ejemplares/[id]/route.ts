@@ -58,7 +58,7 @@ export const PATCH = withAuth(["BIBLIOTECARIO"], async (req, { params, session }
           condicion !== a.condicion ? `condición ${a.condicion} → ${condicion}` : "",
           ubic !== a.ubicacionId ? "ubicación actualizada" : "",
         ].filter(Boolean).join(", ")}.`,
-        enlace: "/ejemplares",
+        enlace: "/libros/ejemplares",
       });
     }
   });
