@@ -45,6 +45,17 @@ export const alumnoSchema = z.object({
   correo: z.string().email().max(150).optional().nullable().or(z.literal("").transform(() => null)),
 });
 
+export const alumnoCreateSchema = alumnoSchema.extend({
+  nivelEducativo: z.enum(["INICIAL", "PRIMARIA", "SECUNDARIA"], {
+    required_error: "El nivel educativo es obligatorio",
+  }),
+  grado: z.preprocess(
+    (v) => (v === "" || v === null || v === undefined ? undefined : Number(v)),
+    z.number({ required_error: "El grado es obligatorio" }).int().min(1).max(6)
+  ),
+  seccion: z.string().trim().min(1, "La sección es obligatoria").max(5),
+});
+
 export const profesorSchema = z.object({
   dni: str(15),
   nombres: z.string().trim().min(1).max(100),

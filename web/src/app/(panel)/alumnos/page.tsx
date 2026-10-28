@@ -94,11 +94,11 @@ export default function Alumnos() {
         <form onSubmit={crear} className="grid gap-4 p-5 sm:grid-cols-2 sm:p-6">
           <Field label="Código de alumno *"><input className="input" required value={f.codigoAlumno} onChange={set("codigoAlumno")} /></Field>
           <Field label="DNI"><input className="input" value={f.dni} onChange={set("dni")} inputMode="numeric" /></Field>
-          <Field label="Nivel"><select className="input" value={f.nivelEducativo} onChange={set("nivelEducativo")}><option value="">—</option><option value="INICIAL">Inicial</option><option value="PRIMARIA">Primaria</option><option value="SECUNDARIA">Secundaria</option></select></Field>
+          <Field label={`Nivel${!editarId ? " *" : ""}`}><select className="input" required={!editarId} value={f.nivelEducativo} onChange={set("nivelEducativo")}><option value="">—</option><option value="INICIAL">Inicial</option><option value="PRIMARIA">Primaria</option><option value="SECUNDARIA">Secundaria</option></select></Field>
           <Field label="Nombres *"><input className="input" required value={f.nombres} onChange={set("nombres")} /></Field>
           <Field label="Apellidos *"><input className="input" required value={f.apellidos} onChange={set("apellidos")} /></Field>
-          <div className="grid grid-cols-2 gap-3"><Field label="Grado"><input className="input" type="number" min={1} max={6} value={f.grado} onChange={set("grado")} /></Field>
-            <Field label="Sección"><input className="input" maxLength={5} value={f.seccion} onChange={set("seccion")} /></Field></div>
+          <div className="grid grid-cols-2 gap-3"><Field label={`Grado${!editarId ? " *" : ""}`}><input className="input" type="number" min={1} max={6} required={!editarId} value={f.grado} onChange={set("grado")} /></Field>
+            <Field label={`Sección${!editarId ? " *" : ""}`}><input className="input" maxLength={5} required={!editarId} value={f.seccion} onChange={set("seccion")} /></Field></div>
           <Field label="Teléfono"><input className="input" value={f.telefono} onChange={set("telefono")} /></Field>
           <Field label="Correo"><input className="input" type="email" value={f.correo} onChange={set("correo")} /></Field>
           {editarId && <Field label="Estado"><select className="input" value={f.estado} onChange={set("estado")}><option value="ACTIVO">Activo</option><option value="INACTIVO">Inactivo</option><option value="RETIRADO">Retirado</option></select></Field>}
