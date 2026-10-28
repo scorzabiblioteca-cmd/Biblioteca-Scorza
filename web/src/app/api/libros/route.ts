@@ -4,6 +4,7 @@ import { libroSchema } from "@/lib/validators";
 import { normalizarIsbn } from "@/lib/isbn";
 import { LIBRO_SELECT, getOrCreate, setAutores, agregarUnidades } from "@/lib/libros";
 import { audit } from "@/lib/audit";
+import { notificar } from "@/lib/notificaciones";
 import { norm } from "@/lib/sql";
 
 const R = ["BIBLIOTECARIO"];
@@ -97,6 +98,12 @@ export const POST = withAuth(R, async (req, { session }) => {
     await agregarUnidades(c, { id: l.id, tipoControl: d.tipoControl, prefijoCodigo: d.prefijoCodigo }, cantidad,
       d.ubicacionId ?? null, d.condicion, session.id);
     await audit(c, session, "CREAR_LIBRO", "libros", l.id, null, { isbn, titulo: d.titulo, tipo: d.tipoControl, cantidad }, req);
+    await notificar(c, {
+      tipo: "INVENTARIO",
+      titulo: "Libro agregado al inventario",
+      mensaje: `"${d.titulo}" fue registrado con ${cantidad} unidad(es).`,
+      enlace: `/libros/${l.id}`,
+    });
     return l.id;
   });
   const libro = await q1(pool, `${LIBRO_SELECT} WHERE l.id = $1`, [libroId]);

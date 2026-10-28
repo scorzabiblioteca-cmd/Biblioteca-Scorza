@@ -2,6 +2,7 @@ import { withAuth, ok, created, body, HttpError, page } from "@/lib/http";
 import { q, q1, tx, pool } from "@/lib/db";
 import { devolucionSchema } from "@/lib/validators";
 import { audit } from "@/lib/audit";
+import { notificar } from "@/lib/notificaciones";
 
 const HISTORIAL_FROM = `
   FROM prestamo_detalles pd
@@ -80,6 +81,34 @@ export const POST = withAuth(["BIBLIOTECARIO"], async (req, { session }) => {
         "INSERT INTO movimientos_existencias (existencia_id, tipo_movimiento, cantidad, prestamo_detalle_id, usuario_id, detalle) VALUES ($1,$2,1,$3,$4,$5)",
         [det.existenciaId, tipo, det.id, session.id, d.observaciones]
       );
+    }
+    const resumenLibro = await q1<{ titulo: string; codigo: string; prestatario: string }>(
+      c,
+      `SELECT l.titulo, COALESCE(e.codigo_interno, 'Por cantidad') AS codigo,
+              COALESCE(al.nombres || ' ' || al.apellidos, pr.nombres || ' ' || pr.apellidos) AS prestatario
+       FROM prestamo_detalles pd
+       JOIN prestamos p ON p.id = pd.prestamo_id
+       LEFT JOIN ejemplares e ON e.id = pd.ejemplar_id
+       LEFT JOIN existencias x ON x.id = pd.existencia_id
+       JOIN libros l ON l.id = COALESCE(e.libro_id, x.libro_id)
+       LEFT JOIN alumnos al ON al.id = p.alumno_id
+       LEFT JOIN profesores pr ON pr.id = p.profesor_id
+       WHERE pd.id = $1`,
+      [det.id]
+    );
+    await notificar(c, {
+      tipo: "DEVOLUCION",
+      titulo: "Devolución registrada",
+      mensaje: `${resumenLibro!.titulo} (${resumenLibro!.codigo}) devuelto por ${resumenLibro!.prestatario}. Resultado: ${d.resultado}.`,
+      enlace: "/devoluciones",
+    });
+    if (perdido || d.resultado === "DANADO") {
+      await notificar(c, {
+        tipo: "INVENTARIO",
+        titulo: "Cambio en el inventario",
+        mensaje: `${resumenLibro!.titulo} (${resumenLibro!.codigo}) fue marcado como ${perdido ? "perdido" : "dañado"}.`,
+        enlace: "/libros",
+      });
     }
     const quedan = (await q1<{ n: number }>(c, "SELECT count(*)::int AS n FROM prestamo_detalles WHERE prestamo_id=$1 AND estado='PRESTADO'", [det.prestamoId]))!.n;
     if (quedan === 0) await c.query("UPDATE prestamos SET estado='CERRADO', fecha_cierre=now() WHERE id=$1", [det.prestamoId]);

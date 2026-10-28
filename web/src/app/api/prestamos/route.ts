@@ -2,6 +2,7 @@ import { withAuth, ok, created, body, page, HttpError } from "@/lib/http";
 import { q, q1, tx, pool } from "@/lib/db";
 import { prestamoSchema } from "@/lib/validators";
 import { audit } from "@/lib/audit";
+import { notificar } from "@/lib/notificaciones";
 
 const R = ["BIBLIOTECARIO"];
 const LIMA_HOY = "(now() AT TIME ZONE 'America/Lima')::date";
@@ -56,20 +57,25 @@ export const POST = withAuth(R, async (req, { session }) => {
     // 1) Prestatario
     let alumnoId: number | null = null;
     let profesorId: number | null = null;
+    let nombrePrestatario = "";
     if (d.profesorId) {
-      const pr = await q1(c, "SELECT id FROM profesores WHERE id=$1 AND estado='ACTIVO'", [d.profesorId]);
+      const pr = await q1<{ id: number; nombres: string; apellidos: string }>(
+        c, "SELECT id, nombres, apellidos FROM profesores WHERE id=$1 AND estado='ACTIVO'", [d.profesorId]);
       if (!pr) throw new HttpError(404, "Profesor no encontrado o inactivo");
       profesorId = d.profesorId;
+      nombrePrestatario = `${pr.nombres} ${pr.apellidos}`;
     } else {
-      const al = await q1<{ id: number; estado: string }>(
+      const al = await q1<{ id: number; estado: string; nombres: string; apellidos: string }>(
         c,
-        d.alumnoId ? "SELECT id, estado FROM alumnos WHERE id=$1"
-          : d.alumnoDni ? "SELECT id, estado FROM alumnos WHERE dni=$1" : "SELECT id, estado FROM alumnos WHERE codigo_alumno=$1",
+        d.alumnoId ? "SELECT id, estado, nombres, apellidos FROM alumnos WHERE id=$1"
+          : d.alumnoDni ? "SELECT id, estado, nombres, apellidos FROM alumnos WHERE dni=$1"
+            : "SELECT id, estado, nombres, apellidos FROM alumnos WHERE codigo_alumno=$1",
         [d.alumnoId ?? d.alumnoDni ?? d.alumnoCodigo ?? ""]
       );
       if (!al) throw new HttpError(404, "Alumno no encontrado", "ALUMNO_NO_ENCONTRADO");
       if (al.estado !== "ACTIVO") throw new HttpError(409, "El alumno no está activo", "ALUMNO_INACTIVO");
       alumnoId = al.id;
+      nombrePrestatario = `${al.nombres} ${al.apellidos}`;
       const max = Number((await q1<{ valor: number }>(c, "SELECT valor FROM configuracion WHERE clave='max_prestamos_activos_alumno'"))?.valor ?? 3);
       const activos = (await q1<{ n: number }>(c,
         `SELECT count(*)::int AS n FROM prestamo_detalles pd JOIN prestamos p ON p.id = pd.prestamo_id
@@ -161,6 +167,12 @@ export const POST = withAuth(R, async (req, { session }) => {
       }
     }
     await audit(c, session, "CREAR_PRESTAMO", "prestamos", p.id, null, { alumnoId, profesorId, detalles }, req);
+    await notificar(c, {
+      tipo: "PRESTAMO",
+      titulo: "Nuevo préstamo registrado",
+      mensaje: `Préstamo #${p.id} para ${nombrePrestatario}: ${detalles.reduce((total, item) => total + item.cantidad, 0)} unidad(es).`,
+      enlace: "/prestamos",
+    });
     return { id: p.id, detalles };
   });
   return created(resumen, "Préstamo registrado correctamente");

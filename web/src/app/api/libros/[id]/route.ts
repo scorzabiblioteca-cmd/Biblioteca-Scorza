@@ -4,6 +4,7 @@ import { libroSchema } from "@/lib/validators";
 import { normalizarIsbn } from "@/lib/isbn";
 import { LIBRO_SELECT, getOrCreate, setAutores } from "@/lib/libros";
 import { audit } from "@/lib/audit";
+import { notificar } from "@/lib/notificaciones";
 import { UBIC_TXT } from "@/lib/sql";
 import { z } from "zod";
 
@@ -121,10 +122,18 @@ export const PUT = withAuth(R, async (req, { params, session }) => {
           ]
         );
       }
-      await c.query(
+      const existenciasMovidas = await c.query(
         "UPDATE existencias SET ubicacion_id = $2, updated_at = now() WHERE libro_id = $1 AND ubicacion_id IS DISTINCT FROM $2",
         [id, d.ubicacionId]
       );
+      if (ejemplaresMovidos.length || (existenciasMovidas.rowCount ?? 0) > 0) {
+        await notificar(c, {
+          tipo: "INVENTARIO",
+          titulo: "Ubicación del inventario actualizada",
+          mensaje: `Se actualizó la ubicación del inventario de "${d.titulo}".`,
+          enlace: `/libros/${id}`,
+        });
+      }
     }
     await audit(c, session, "EDITAR_LIBRO", "libros", id, antes, { ...d, isbn }, req);
   });

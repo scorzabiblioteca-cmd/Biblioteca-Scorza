@@ -11,7 +11,7 @@
 cd web
 cp .env.example .env.local      # completa DATABASE_URL, JWT_SECRET, GOOGLE_BOOKS_API_KEY, CLOUDINARY_*, ADMIN_*
 npm install
-npm run db:migrate              # aplica database/schema.sql (solo si la BD está vacía) + seeds
+npm run db:migrate              # aplica el esquema si la BD está vacía, migraciones y seeds
 npm run db:seed-admin           # crea el usuario ADMIN de ADMIN_USERNAME / ADMIN_PASSWORD
 npm run dev                     # http://localhost:3000
 ```

@@ -3,6 +3,7 @@ import { q1, tx, pool } from "@/lib/db";
 import { EJEMPLAR_SELECT } from "@/lib/libros";
 import { ejemplarPatchSchema } from "@/lib/validators";
 import { audit } from "@/lib/audit";
+import { notificar } from "@/lib/notificaciones";
 
 export const GET = withAuth(["BIBLIOTECARIO"], async (_req, { params }) => {
   const e = await q1(pool, `${EJEMPLAR_SELECT} WHERE e.id = $1`, [Number(params.id)]);
@@ -47,6 +48,18 @@ export const PATCH = withAuth(["BIBLIOTECARIO"], async (req, { params, session }
     if (ubic !== a.ubicacionId) {
       await ev("CAMBIO_UBICACION", {});
       await audit(c, session, "CAMBIO_UBICACION_EJEMPLAR", "ejemplares", id, { ubicacionId: a.ubicacionId }, { ubicacionId: ubic }, req);
+    }
+    if (estado !== a.estado || condicion !== a.condicion || ubic !== a.ubicacionId) {
+      await notificar(c, {
+        tipo: "INVENTARIO",
+        titulo: "Inventario actualizado",
+        mensaje: `El ejemplar ${a.codigoInterno} cambió: ${[
+          estado !== a.estado ? `estado ${a.estado} → ${estado}` : "",
+          condicion !== a.condicion ? `condición ${a.condicion} → ${condicion}` : "",
+          ubic !== a.ubicacionId ? "ubicación actualizada" : "",
+        ].filter(Boolean).join(", ")}.`,
+        enlace: "/ejemplares",
+      });
     }
   });
   return ok(await q1(pool, `${EJEMPLAR_SELECT} WHERE e.id = $1`, [id]), "Ejemplar actualizado correctamente");

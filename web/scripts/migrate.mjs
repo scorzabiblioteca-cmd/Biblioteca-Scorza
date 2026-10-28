@@ -166,6 +166,12 @@ try {
     );
   }
 
+  const migrationsDir = path.join(root, "migrations");
+  for (const f of fs.readdirSync(migrationsDir).filter((x) => x.endsWith(".sql")).sort()) {
+    await client.query(fs.readFileSync(path.join(migrationsDir, f), "utf8"));
+    console.log("✓ migración", f);
+  }
+
 
   // ========================================================
   // CARPETA DE SEEDS
