@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { api, Paged } from "@/lib/client";
 import { Badge, Field, Msg, PageTitle, useDebounced } from "@/components/ui";
 import { HistorialPrestatarioDialog, type PrestatarioSeleccionado } from "@/components/HistorialPrestatarioDialog";
+import AlumnosProfesoresTabs from "@/components/AlumnosProfesoresTabs";
 
 const VACIO = { dni: "", nombres: "", apellidos: "", correo: "", telefono: "", area: "", estado: "ACTIVO" };
 
@@ -79,6 +80,7 @@ export default function Profesores() {
   const paginas = data ? Math.max(1, Math.ceil(data.total / data.pageSize)) : 1;
   return (
     <>
+      <AlumnosProfesoresTabs actual="profesores" />
       <PageTitle action={<button type="button" className="btn" onClick={nuevoProfesor}>Registrar profesor</button>}>Profesores</PageTitle>
       {msg?.t === "ok" && <Msg type="ok">{msg.m}</Msg>}
       <HistorialPrestatarioDialog

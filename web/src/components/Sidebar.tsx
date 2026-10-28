@@ -6,7 +6,7 @@ import { api } from "@/lib/client";
 
 const LINKS = [
   ["/dashboard", "Panel"], ["/libros", "Libros"], ["/prestamos", "Préstamos"],
-  ["/devoluciones", "Devoluciones"], ["/alumnos", "Alumnos"], ["/profesores", "Profesores"], ["/reportes", "Reportes"],
+  ["/devoluciones", "Devoluciones"], ["/alumnos", "Alumnos y Profesores"], ["/reportes", "Reportes"],
   ["/notificaciones", "Notificaciones"],
 ];
 const MOBILE_LINKS = [
@@ -14,8 +14,7 @@ const MOBILE_LINKS = [
   ["/devoluciones", "Devoluciones", "return"],
 ] as const;
 const MOBILE_MORE_LINKS = [
-  ["/alumnos", "Alumnos", "students"],
-  ["/profesores", "Profesores", "teachers"], ["/reportes", "Reportes", "reports"],
+  ["/alumnos", "Alumnos y Profesores", "students"], ["/reportes", "Reportes", "reports"],
   ["/notificaciones", "Notificaciones", "notifications"],
 ] as const;
 
@@ -28,7 +27,6 @@ function MobileIcon({ name }: { name: MobileIconName }) {
     loan: <><rect x="4" y="3" width="16" height="18" rx="2" /><path d="M8 7h8M8 11h8M8 15h3M15 15l2 2 3-3" /></>,
     return: <><path d="M3 11a8 8 0 0 1 14-5l2 2" /><path d="M19 3v5h-5M21 13a8 8 0 0 1-14 5l-2-2" /><path d="M5 21v-5h5" /></>,
     students: <><circle cx="9" cy="8" r="3" /><path d="M3 20v-1a6 6 0 0 1 12 0v1zM16 5.5a3 3 0 0 1 0 5.8M18 14a5 5 0 0 1 3 4.6v1" /></>,
-    teachers: <><path d="M3 8.5 12 4l9 4.5-9 4.5zM7 11v5c3 2.5 7 2.5 10 0v-5M21 9v6" /></>,
     reports: <><path d="M5 3h10l4 4v14H5z" /><path d="M14 3v5h5M8 16v-3M12 16v-5M16 16v-2" /></>,
     notifications: <><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9" /><path d="M10 21h4" /></>,
     more: <><rect x="3.5" y="3.5" width="6" height="6" rx="1" /><rect x="14.5" y="3.5" width="6" height="6" rx="1" /><rect x="3.5" y="14.5" width="6" height="6" rx="1" /><rect x="14.5" y="14.5" width="6" height="6" rx="1" /></>,
@@ -48,6 +46,7 @@ export default function Sidebar() {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [noLeidas, setNoLeidas] = useState(0);
+  const isPeoplePath = path.startsWith("/alumnos") || path.startsWith("/profesores");
   useEffect(() => {
     let activo = true;
     const cargar = () => api<{ noLeidas: number }>("/notificaciones?pageSize=1")
@@ -63,7 +62,7 @@ export default function Sidebar() {
     };
   }, []);
   const moreActive = LINKS.some(([href]) =>
-    (path.startsWith(href) && !MOBILE_LINKS.some(([mobileHref]) => mobileHref === href))
+    ((href === "/alumnos" ? isPeoplePath : path.startsWith(href)) && !MOBILE_LINKS.some(([mobileHref]) => mobileHref === href))
       || (href === "/libros" && path.startsWith("/libros/ejemplares")),
   );
   async function salir() {
@@ -95,7 +94,7 @@ export default function Sidebar() {
         <nav aria-label="Navegación del panel" className="flex-1 px-3">
           {LINKS.map(([href, label]) => (
             <Link key={href} href={href} onClick={() => setOpen(false)}
-              aria-current={path.startsWith(href) ? "page" : undefined}
+              aria-current={(href === "/alumnos" ? isPeoplePath : path.startsWith(href)) ? "page" : undefined}
               className="rail-link">
               <span className="flex items-center justify-between gap-2">
                 {label}
@@ -119,12 +118,12 @@ export default function Sidebar() {
             <p className="px-3 pb-1 pt-1 text-[0.68rem] font-bold uppercase tracking-[0.12em] text-[#94a3b8]">Más opciones</p>
             {MOBILE_MORE_LINKS.map(([href, label, icon]) => (
               <Link key={href} href={href} onClick={() => setOpen(false)}
-                aria-current={path.startsWith(href) ? "page" : undefined}
-                className={`flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-600 ${path.startsWith(href) ? "bg-brand-50 font-semibold text-brand-700" : "text-[#35445b] hover:bg-[#f7faff]"}`}>
+                aria-current={(href === "/alumnos" ? isPeoplePath : path.startsWith(href)) ? "page" : undefined}
+                className={`flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-600 ${(href === "/alumnos" ? isPeoplePath : path.startsWith(href)) ? "bg-brand-50 font-semibold text-brand-700" : "text-[#35445b] hover:bg-[#f7faff]"}`}>
                 <MobileIcon name={icon} />
                 <span className="flex-1">{label}</span>
                 {href === "/notificaciones" && noLeidas > 0 && <span className="rounded-full bg-brand-50 px-2 py-0.5 text-xs font-semibold text-brand-700">{noLeidas > 99 ? "99+" : noLeidas}</span>}
-                {path.startsWith(href) && <span aria-hidden="true" className="h-2 w-2 rounded-full bg-brand-600" />}
+                {(href === "/alumnos" ? isPeoplePath : path.startsWith(href)) && <span aria-hidden="true" className="h-2 w-2 rounded-full bg-brand-600" />}
               </Link>
             ))}
             <div className="my-1 border-t border-[#e6ecf4]" />
