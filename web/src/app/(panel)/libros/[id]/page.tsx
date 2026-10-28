@@ -1,14 +1,31 @@
 "use client";
 import Link from "next/link";
 import { use, useCallback, useEffect, useState } from "react";
-import { api } from "@/lib/client";
+import { api, fecha, fechaHora, Paged } from "@/lib/client";
 import { Badge, Msg, PageTitle, Portada } from "@/components/ui";
 
 type Detalle = any;
+type MovimientoPrestamo = {
+  id: number;
+  estado: string;
+  resultadoDevolucion: string | null;
+  fechaDevolucion: string | null;
+  prestamoId: number;
+  tipoPrestatario: string;
+  fechaPrestamo: string;
+  fechaPrevistaDevolucion: string;
+  codigoEjemplar: string | null;
+  prestatario: string;
+  registradoPor: string;
+  devueltoPor: string | null;
+};
 
 export default function LibroDetalle({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const [l, setL] = useState<Detalle | null>(null);
+  const [historial, setHistorial] = useState<Paged<MovimientoPrestamo> | null>(null);
+  const [errorHistorial, setErrorHistorial] = useState<string | null>(null);
+  const [paginaHistorial, setPaginaHistorial] = useState(1);
   const [ubis, setUbis] = useState<{ id: number; codigo: string }[]>([]);
   const [cant, setCant] = useState("1");
   const [ubi, setUbi] = useState("");
@@ -16,6 +33,11 @@ export default function LibroDetalle({ params }: { params: Promise<{ id: string 
 
   const cargar = useCallback(() => api(`/libros/${id}`).then(setL).catch((e) => setMsg({ t: "error", m: e.message })), [id]);
   useEffect(() => { cargar(); api<any[]>("/ubicaciones").then(setUbis).catch(() => {}); }, [cargar]);
+  useEffect(() => {
+    api<Paged<MovimientoPrestamo>>(`/libros/${id}/historial?page=${paginaHistorial}&pageSize=20`)
+      .then((data) => { setHistorial(data); setErrorHistorial(null); })
+      .catch((e) => setErrorHistorial(e.message));
+  }, [id, paginaHistorial]);
 
   async function agregar(e: React.FormEvent) {
     e.preventDefault();
@@ -75,6 +97,50 @@ export default function LibroDetalle({ params }: { params: Promise<{ id: string 
             </tbody></table>
         )}
       </div>
+      <section className="mt-6" aria-labelledby="historial-heading">
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <h2 id="historial-heading" className="text-lg font-semibold text-slate-800">Historial de préstamos</h2>
+            {historial && <p className="text-sm text-slate-500">{historial.total} unidad(es) prestada(s)</p>}
+          </div>
+        </div>
+        {errorHistorial && <div className="mb-3"><Msg type="error">{errorHistorial}</Msg></div>}
+        <div className="card responsive-table-shell overflow-x-auto p-0">
+          <table className="responsive-table w-full">
+            <thead className="border-b border-[#e6ecf4] bg-[#f7f9fc]">
+              <tr>{["Fecha de préstamo", "Prestatario", "Ejemplar", "Devolución prevista", "Fecha de devolución", "Resultado", "Registró / devolución"].map((h) => <th key={h} className="th">{h}</th>)}</tr>
+            </thead>
+            <tbody className="divide-y divide-[#eef2f7]">
+              {historial?.items.map((item) => (
+                <tr key={item.id}>
+                  <td className="td whitespace-nowrap" data-label="Fecha de préstamo">{fechaHora(item.fechaPrestamo)}</td>
+                  <td className="td" data-label="Prestatario">{item.prestatario}</td>
+                  <td className="td" data-label="Ejemplar">{item.codigoEjemplar ?? "Por cantidad"}</td>
+                  <td className="td whitespace-nowrap" data-label="Devolución prevista">{fecha(item.fechaPrevistaDevolucion)}</td>
+                  <td className="td whitespace-nowrap" data-label="Fecha de devolución">{fechaHora(item.fechaDevolucion)}</td>
+                  <td className="td" data-label="Resultado">{item.estado === "PRESTADO" ? "Prestado" : item.resultadoDevolucion === "BUENO" ? "Buena condición" : item.resultadoDevolucion === "DANADO" ? "Dañado" : item.resultadoDevolucion === "PERDIDO" ? "Perdido" : item.resultadoDevolucion === "DETERIORADO" ? "Deteriorado" : item.estado}</td>
+                  <td className="td" data-label="Registró / devolución">{item.registradoPor}{item.devueltoPor ? ` / ${item.devueltoPor}` : ""}</td>
+                </tr>
+              ))}
+              {historial && historial.items.length === 0 && (
+                <tr><td className="td text-slate-500" colSpan={7}>Este libro aún no registra préstamos.</td></tr>
+              )}
+              {!historial && !errorHistorial && (
+                <tr><td className="td text-slate-500" colSpan={7}>Cargando historial…</td></tr>
+              )}
+            </tbody>
+          </table>
+          {historial && historial.total > historial.pageSize && (
+            <div className="flex items-center justify-between gap-3 border-t border-[#e6ecf4] px-4 py-3 text-sm text-slate-600">
+              <span>Página {historial.page} de {Math.ceil(historial.total / historial.pageSize)}</span>
+              <div className="flex gap-2">
+                <button className="btn-ghost" disabled={paginaHistorial <= 1} onClick={() => setPaginaHistorial((n) => n - 1)}>Anterior</button>
+                <button className="btn-ghost" disabled={paginaHistorial >= Math.ceil(historial.total / historial.pageSize)} onClick={() => setPaginaHistorial((n) => n + 1)}>Siguiente</button>
+              </div>
+            </div>
+          )}
+        </div>
+      </section>
     </>
   );
 }
