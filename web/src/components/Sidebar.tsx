@@ -14,7 +14,7 @@ const MOBILE_LINKS = [
   ["/devoluciones", "Devoluciones", "return"],
 ] as const;
 const MOBILE_MORE_LINKS = [
-  ["/libros/ejemplares", "Ejemplares", "copies"], ["/alumnos", "Alumnos", "students"],
+  ["/alumnos", "Alumnos", "students"],
   ["/profesores", "Profesores", "teachers"], ["/reportes", "Reportes", "reports"],
   ["/notificaciones", "Notificaciones", "notifications"],
 ] as const;
@@ -27,7 +27,6 @@ function MobileIcon({ name }: { name: MobileIconName }) {
     books: <><path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v18H6.5A2.5 2.5 0 0 1 4 17.5z" /><path d="M4 17.5A2.5 2.5 0 0 1 6.5 15H20M8 6h8M8 9h8" /></>,
     loan: <><rect x="4" y="3" width="16" height="18" rx="2" /><path d="M8 7h8M8 11h8M8 15h3M15 15l2 2 3-3" /></>,
     return: <><path d="M3 11a8 8 0 0 1 14-5l2 2" /><path d="M19 3v5h-5M21 13a8 8 0 0 1-14 5l-2-2" /><path d="M5 21v-5h5" /></>,
-    copies: <><path d="M8 4H5a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-1" /><rect x="8" y="3" width="13" height="16" rx="2" /><path d="M11 7h7M11 11h7M11 15h4" /></>,
     students: <><circle cx="9" cy="8" r="3" /><path d="M3 20v-1a6 6 0 0 1 12 0v1zM16 5.5a3 3 0 0 1 0 5.8M18 14a5 5 0 0 1 3 4.6v1" /></>,
     teachers: <><path d="M3 8.5 12 4l9 4.5-9 4.5zM7 11v5c3 2.5 7 2.5 10 0v-5M21 9v6" /></>,
     reports: <><path d="M5 3h10l4 4v14H5z" /><path d="M14 3v5h5M8 16v-3M12 16v-5M16 16v-2" /></>,

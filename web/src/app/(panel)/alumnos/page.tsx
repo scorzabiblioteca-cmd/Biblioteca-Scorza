@@ -8,6 +8,7 @@ const VACIO = { codigoAlumno: "", dni: "", nombres: "", apellidos: "", nivelEduc
 
 export default function Alumnos() {
   const [qtxt, setQ] = useState("");
+  const [pagina, setPagina] = useState(1);
   const [data, setData] = useState<Paged<any> | null>(null);
   const [f, setF] = useState(VACIO);
   const [abrir, setAbrir] = useState(false);
@@ -16,9 +17,12 @@ export default function Alumnos() {
   const [msg, setMsg] = useState<{ t: "ok" | "error"; m: string } | null>(null);
   const dialogRef = useRef<HTMLDialogElement>(null);
   const dq = useDebounced(qtxt);
+  useEffect(() => { setPagina(1); }, [dq]);
   const cargar = useCallback(() => {
-    api<Paged<any>>(`/alumnos?pageSize=50${dq ? `&q=${encodeURIComponent(dq)}` : ""}`).then(setData).catch((e) => setMsg({ t: "error", m: e.message }));
-  }, [dq]);
+    const params = new URLSearchParams({ page: String(pagina), pageSize: "50" });
+    if (dq) params.set("q", dq);
+    api<Paged<any>>(`/alumnos?${params}`).then(setData).catch((e) => setMsg({ t: "error", m: e.message }));
+  }, [dq, pagina]);
   useEffect(() => { cargar(); }, [cargar]);
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -27,6 +31,7 @@ export default function Alumnos() {
     else if (!abrir && dialog.open) dialog.close();
   }, [abrir]);
   const set = (k: keyof typeof VACIO) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => setF((actual) => ({ ...actual, [k]: e.target.value }));
+  const paginas = data ? Math.max(1, Math.ceil(data.total / data.pageSize)) : 1;
 
   function nuevoAlumno() {
     setF(VACIO);
@@ -119,6 +124,22 @@ export default function Alumnos() {
             {data && data.items.length === 0 && <tr><td className="td text-slate-500" colSpan={7}>No hay alumnos registrados.</td></tr>}
           </tbody></table>
       </div>
+      {data && (
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-3 text-sm text-slate-600">
+          <span>
+            {data.total === 0
+              ? "0 alumnos"
+              : `${(pagina - 1) * data.pageSize + 1}–${Math.min(pagina * data.pageSize, data.total)} de ${data.total} alumnos`}
+          </span>
+          {data.total > data.pageSize && (
+            <div className="flex items-center gap-2">
+              <button className="btn-ghost" disabled={pagina <= 1} onClick={() => setPagina((n) => n - 1)}>Anterior</button>
+              <span>{pagina} / {paginas}</span>
+              <button className="btn-ghost" disabled={pagina >= paginas} onClick={() => setPagina((n) => n + 1)}>Siguiente</button>
+            </div>
+          )}
+        </div>
+      )}
     </>
   );
 }
