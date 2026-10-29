@@ -24,13 +24,19 @@ export default function Devoluciones() {
   const [historial, setHistorial] = useState<Paged<DevolucionHistorial> | null>(null);
   const [paginaHistorial, setPaginaHistorial] = useState(1);
   const [busquedaHistorial, setBusquedaHistorial] = useState("");
+  const [resultadoHistorial, setResultadoHistorial] = useState("");
+  const [desdeHistorial, setDesdeHistorial] = useState("");
+  const [hastaHistorial, setHastaHistorial] = useState("");
 
   const cargarHistorial = useCallback(() => {
     const params = new URLSearchParams({ page: String(paginaHistorial), pageSize: "20" });
     if (busquedaHistorial.trim()) params.set("q", busquedaHistorial.trim());
+    if (resultadoHistorial) params.set("resultado", resultadoHistorial);
+    if (desdeHistorial) params.set("desde", desdeHistorial);
+    if (hastaHistorial) params.set("hasta", hastaHistorial);
     return api<Paged<DevolucionHistorial>>(`/devoluciones?${params}`).then(setHistorial)
       .catch((e: Error) => setMsg({ t: "error", m: e.message }));
-  }, [paginaHistorial, busquedaHistorial]);
+  }, [paginaHistorial, busquedaHistorial, resultadoHistorial, desdeHistorial, hastaHistorial]);
 
   useEffect(() => { cargarHistorial(); }, [cargarHistorial]);
 
@@ -97,9 +103,20 @@ export default function Devoluciones() {
             <h2 className="text-base font-semibold text-slate-900">Historial de devoluciones</h2>
             <p className="text-sm text-slate-500">{historial ? `${historial.total} registro(s)` : "Cargando…"}</p>
           </div>
-          <input className="input max-w-sm" aria-label="Buscar en el historial de devoluciones"
-            placeholder="Buscar libro, prestatario o código" value={busquedaHistorial}
-            onChange={(e) => { setBusquedaHistorial(e.target.value); setPaginaHistorial(1); }} />
+          <div className="flex flex-wrap items-end gap-2">
+            <label><span className="label">Buscar</span><input className="input" aria-label="Buscar en el historial de devoluciones"
+              placeholder="Libro, prestatario o código" value={busquedaHistorial}
+              onChange={(e) => { setBusquedaHistorial(e.target.value); setPaginaHistorial(1); }} /></label>
+            <label><span className="label">Resultado</span><select className="input" value={resultadoHistorial}
+              onChange={(e) => { setResultadoHistorial(e.target.value); setPaginaHistorial(1); }}>
+              <option value="">Todos</option><option value="BUENO">Buena condición</option><option value="DETERIORADO">Deteriorado</option>
+              <option value="DANADO">Dañado</option><option value="PERDIDO">Perdido</option>
+            </select></label>
+            <label><span className="label">Desde</span><input type="date" className="input" value={desdeHistorial}
+              onChange={(e) => { setDesdeHistorial(e.target.value); setPaginaHistorial(1); }} /></label>
+            <label><span className="label">Hasta</span><input type="date" className="input" value={hastaHistorial}
+              onChange={(e) => { setHastaHistorial(e.target.value); setPaginaHistorial(1); }} /></label>
+          </div>
         </div>
         <div className="card responsive-table-shell overflow-x-auto p-0">
           <table className="responsive-table w-full min-w-[720px]">

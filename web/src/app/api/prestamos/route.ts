@@ -7,6 +7,15 @@ import { notificar } from "@/lib/notificaciones";
 const R = ["BIBLIOTECARIO"];
 const LIMA_HOY = "(now() AT TIME ZONE 'America/Lima')::date";
 
+function fechaFiltro(value: string | null, label: string) {
+  if (!value) return null;
+  const date = new Date(`${value}T00:00:00.000Z`);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value) || Number.isNaN(date.getTime()) || date.toISOString().slice(0, 10) !== value) {
+    throw new HttpError(400, `La fecha ${label} no es válida`);
+  }
+  return value;
+}
+
 export const GET = withAuth(R, async (req) => {
   const sp = req.nextUrl.searchParams;
   const { page: p, pageSize, offset } = page(req);
@@ -15,6 +24,26 @@ export const GET = withAuth(R, async (req) => {
   const add = (v: unknown) => (params.push(v), `$${params.length}`);
   if (sp.get("estado")) where.push(`p.estado = ${add(sp.get("estado"))}`);
   if (sp.get("vencidos") === "true") where.push(`p.estado = 'ACTIVO' AND p.fecha_prevista_devolucion < ${LIMA_HOY}`);
+  const tipoPrestatario = sp.get("tipoPrestatario");
+  if (tipoPrestatario) {
+    if (!["ALUMNO", "PROFESOR"].includes(tipoPrestatario)) throw new HttpError(400, "Tipo de prestatario no válido");
+    where.push(`p.tipo_prestatario = ${add(tipoPrestatario)}`);
+  }
+  const termino = sp.get("q")?.trim();
+  if (termino) {
+    where.push(`(
+      concat_ws(' ', al.nombres, al.apellidos, al.dni, al.codigo_alumno,
+        pr.nombres, pr.apellidos, pr.dni) ILIKE '%' || ${add(termino)} || '%'
+      OR EXISTS (
+        SELECT 1 FROM prestamo_detalles pd
+        LEFT JOIN ejemplares e ON e.id = pd.ejemplar_id
+        LEFT JOIN libros le ON le.id = e.libro_id
+        LEFT JOIN existencias x ON x.id = pd.existencia_id
+        LEFT JOIN libros lx ON lx.id = x.libro_id
+        WHERE pd.prestamo_id = p.id AND concat_ws(' ', e.codigo_interno, le.titulo, lx.titulo) ILIKE '%' || $${params.length} || '%'
+      )
+    )`);
+  }
   const alumnoId = sp.get("alumnoId");
   const profesorId = sp.get("profesorId");
   if (alumnoId && profesorId) throw new HttpError(400, "Indica solo un tipo de prestatario");
@@ -28,8 +57,16 @@ export const GET = withAuth(R, async (req) => {
       where.push(`${columna} = ${add(valor)}`);
     }
   }
-  if (sp.get("desde")) where.push(`p.fecha_prestamo >= ${add(sp.get("desde"))}::date`);
-  if (sp.get("hasta")) where.push(`p.fecha_prestamo < ${add(sp.get("hasta"))}::date + 1`);
+  const desde = fechaFiltro(sp.get("desde"), "de préstamo desde");
+  const hasta = fechaFiltro(sp.get("hasta"), "de préstamo hasta");
+  const venceDesde = fechaFiltro(sp.get("venceDesde"), "de vencimiento desde");
+  const venceHasta = fechaFiltro(sp.get("venceHasta"), "de vencimiento hasta");
+  if (desde && hasta && desde > hasta) throw new HttpError(400, "La fecha inicial del préstamo debe ser anterior a la fecha final");
+  if (venceDesde && venceHasta && venceDesde > venceHasta) throw new HttpError(400, "La fecha inicial de vencimiento debe ser anterior a la fecha final");
+  if (desde) where.push(`p.fecha_prestamo >= ${add(desde)}::date`);
+  if (hasta) where.push(`p.fecha_prestamo < ${add(hasta)}::date + 1`);
+  if (venceDesde) where.push(`p.fecha_prevista_devolucion >= ${add(venceDesde)}::date`);
+  if (venceHasta) where.push(`p.fecha_prevista_devolucion < ${add(venceHasta)}::date + 1`);
   const W = where.length ? "WHERE " + where.join(" AND ") : "";
   const total = (await q1<{ n: number }>(pool, `SELECT count(*)::int AS n FROM prestamos p ${W}`, params))!.n;
   const items = await q(

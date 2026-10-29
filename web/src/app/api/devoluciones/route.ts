@@ -15,14 +15,36 @@ const HISTORIAL_FROM = `
 
 export const GET = withAuth(["BIBLIOTECARIO"], async (req) => {
   const { page: pageN, pageSize, offset } = page(req);
-  const termino = req.nextUrl.searchParams.get("q")?.trim();
+  const sp = req.nextUrl.searchParams;
+  const termino = sp.get("q")?.trim();
   const params: unknown[] = [];
   const filtros = ["pd.estado IN ('DEVUELTO', 'PERDIDO')"];
+  const add = (value: unknown) => (params.push(value), `$${params.length}`);
   if (termino) {
-    params.push(`%${termino}%`);
+    const parametro = add(`%${termino}%`);
     filtros.push(`concat_ws(' ', l.titulo, e.codigo_interno, al.nombres, al.apellidos, pr.nombres, pr.apellidos,
-      al.dni, pr.dni, pd.observaciones_devolucion) ILIKE $1`);
+      al.dni, pr.dni, pd.observaciones_devolucion) ILIKE ${parametro}`);
   }
+  const resultado = sp.get("resultado");
+  if (resultado) {
+    if (!["BUENO", "DETERIORADO", "DANADO", "PERDIDO"].includes(resultado)) throw new HttpError(400, "Resultado de devolución no válido");
+    filtros.push(`pd.resultado_devolucion = ${add(resultado)}`);
+  }
+  const desde = sp.get("desde");
+  const hasta = sp.get("hasta");
+  const validaFecha = (value: string | null, etiqueta: string) => {
+    if (!value) return null;
+    const date = new Date(`${value}T00:00:00.000Z`);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(value) || Number.isNaN(date.getTime()) || date.toISOString().slice(0, 10) !== value) {
+      throw new HttpError(400, `La fecha ${etiqueta} no es válida`);
+    }
+    return value;
+  };
+  const fechaDesde = validaFecha(desde, "desde");
+  const fechaHasta = validaFecha(hasta, "hasta");
+  if (fechaDesde && fechaHasta && fechaDesde > fechaHasta) throw new HttpError(400, "La fecha inicial debe ser anterior a la fecha final");
+  if (fechaDesde) filtros.push(`pd.fecha_devolucion >= ${add(fechaDesde)}::date`);
+  if (fechaHasta) filtros.push(`pd.fecha_devolucion < ${add(fechaHasta)}::date + 1`);
   const where = `WHERE ${filtros.join(" AND ")}`;
   const total = (await q1<{ n: number }>(pool, `SELECT count(*)::int AS n ${HISTORIAL_FROM} ${where}`, params))!.n;
   const items = await q(

@@ -28,6 +28,12 @@ function fechaDespuesDe(dias: number) {
 export default function Prestamos() {
   const [data, setData] = useState<Paged<any> | null>(null);
   const [filtro, setFiltro] = useState("");
+  const [busquedaListado, setBusquedaListado] = useState("");
+  const [tipoListado, setTipoListado] = useState("");
+  const [desdePrestamo, setDesdePrestamo] = useState("");
+  const [hastaPrestamo, setHastaPrestamo] = useState("");
+  const [venceDesde, setVenceDesde] = useState("");
+  const [venceHasta, setVenceHasta] = useState("");
   const [tipoPrestatario, setTipoPrestatario] = useState<"ALUMNO" | "PROFESOR">("ALUMNO");
   const [alumno, setAlumno] = useState<Alumno | null>(null);
   const [profesor, setProfesor] = useState<Profesor | null>(null);
@@ -44,8 +50,14 @@ export default function Prestamos() {
   const cargar = useCallback(() => {
     const p = new URLSearchParams({ pageSize: "30" });
     if (filtro === "vencidos") p.set("vencidos", "true"); else if (filtro) p.set("estado", filtro);
+    if (busquedaListado.trim()) p.set("q", busquedaListado.trim());
+    if (tipoListado) p.set("tipoPrestatario", tipoListado);
+    if (desdePrestamo) p.set("desde", desdePrestamo);
+    if (hastaPrestamo) p.set("hasta", hastaPrestamo);
+    if (venceDesde) p.set("venceDesde", venceDesde);
+    if (venceHasta) p.set("venceHasta", venceHasta);
     api<Paged<any>>(`/prestamos?${p}`).then(setData).catch((e) => setMsg({ t: "error", m: e.message }));
-  }, [filtro]);
+  }, [filtro, busquedaListado, tipoListado, desdePrestamo, hastaPrestamo, venceDesde, venceHasta]);
   useEffect(() => { cargar(); }, [cargar]);
 
   useEffect(() => {
@@ -199,9 +211,20 @@ export default function Prestamos() {
           </div>
         )}
       </section>
-      <select className="input mb-3 w-full sm:max-w-xs" value={filtro} onChange={(e) => setFiltro(e.target.value)} aria-label="Estado del préstamo">
-        <option value="">Todos los estados</option><option value="ACTIVO">Activos</option><option value="vencidos">Vencidos</option><option value="CERRADO">Cerrados</option><option value="ANULADO">Anulados</option>
-      </select>
+      <section className="card mb-3 flex flex-wrap items-end gap-3">
+        <label className="w-full sm:w-auto sm:min-w-64"><span className="label">Buscar préstamo</span>
+          <input className="input" type="search" placeholder="Prestatario, libro o código" value={busquedaListado} onChange={(e) => setBusquedaListado(e.target.value)} /></label>
+        <label><span className="label">Estado</span><select className="input" value={filtro} onChange={(e) => setFiltro(e.target.value)}>
+          <option value="">Todos los estados</option><option value="ACTIVO">Activos</option><option value="vencidos">Vencidos</option><option value="CERRADO">Cerrados</option><option value="ANULADO">Anulados</option>
+        </select></label>
+        <label><span className="label">Tipo de prestatario</span><select className="input" value={tipoListado} onChange={(e) => setTipoListado(e.target.value)}>
+          <option value="">Todos</option><option value="ALUMNO">Alumno</option><option value="PROFESOR">Profesor</option>
+        </select></label>
+        <label><span className="label">Préstamo desde</span><input type="date" className="input" value={desdePrestamo} onChange={(e) => setDesdePrestamo(e.target.value)} /></label>
+        <label><span className="label">Préstamo hasta</span><input type="date" className="input" value={hastaPrestamo} onChange={(e) => setHastaPrestamo(e.target.value)} /></label>
+        <label><span className="label">Vence desde</span><input type="date" className="input" value={venceDesde} onChange={(e) => setVenceDesde(e.target.value)} /></label>
+        <label><span className="label">Vence hasta</span><input type="date" className="input" value={venceHasta} onChange={(e) => setVenceHasta(e.target.value)} /></label>
+      </section>
       <div className="card responsive-table-shell overflow-x-auto p-0">
         <table className="responsive-table w-full min-w-[720px]"><thead className="border-b border-[#e6ecf4] bg-[#f7f9fc]"><tr>{["#", "Prestatario", "Libros", "Préstamo", "Devolver antes de", "Estado", "Registró"].map((h) => <th key={h} className="th">{h}</th>)}</tr></thead>
           <tbody className="divide-y divide-[#eef2f7]">
