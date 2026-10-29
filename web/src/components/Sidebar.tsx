@@ -1,13 +1,11 @@
 "use client";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import { api } from "@/lib/client";
+import { useState } from "react";
 
 const LINKS = [
   ["/dashboard", "Panel"], ["/libros", "Libros"], ["/prestamos", "Préstamos"],
   ["/devoluciones", "Devoluciones"], ["/alumnos", "Alumnos y Profesores"], ["/reportes", "Reportes"],
-  ["/notificaciones", "Notificaciones"],
 ];
 const MOBILE_LINKS = [
   ["/dashboard", "Panel", "home"], ["/libros", "Libros", "books"], ["/prestamos", "Préstamos", "loan"],
@@ -15,7 +13,6 @@ const MOBILE_LINKS = [
 ] as const;
 const MOBILE_MORE_LINKS = [
   ["/alumnos", "Alumnos y Profesores", "students"], ["/reportes", "Reportes", "reports"],
-  ["/notificaciones", "Notificaciones", "notifications"],
 ] as const;
 
 type MobileIconName = (typeof MOBILE_LINKS)[number][2] | (typeof MOBILE_MORE_LINKS)[number][2] | "more" | "logout";
@@ -28,7 +25,6 @@ function MobileIcon({ name }: { name: MobileIconName }) {
     return: <><path d="M3 11a8 8 0 0 1 14-5l2 2" /><path d="M19 3v5h-5M21 13a8 8 0 0 1-14 5l-2-2" /><path d="M5 21v-5h5" /></>,
     students: <><circle cx="9" cy="8" r="3" /><path d="M3 20v-1a6 6 0 0 1 12 0v1zM16 5.5a3 3 0 0 1 0 5.8M18 14a5 5 0 0 1 3 4.6v1" /></>,
     reports: <><path d="M5 3h10l4 4v14H5z" /><path d="M14 3v5h5M8 16v-3M12 16v-5M16 16v-2" /></>,
-    notifications: <><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9" /><path d="M10 21h4" /></>,
     more: <><rect x="3.5" y="3.5" width="6" height="6" rx="1" /><rect x="14.5" y="3.5" width="6" height="6" rx="1" /><rect x="3.5" y="14.5" width="6" height="6" rx="1" /><rect x="14.5" y="14.5" width="6" height="6" rx="1" /></>,
     logout: <><path d="M10 17l5-5-5-5M15 12H3" /><path d="M12 3h6a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-6" /></>,
   };
@@ -45,22 +41,7 @@ export default function Sidebar() {
   const path = usePathname();
   const router = useRouter();
   const [open, setOpen] = useState(false);
-  const [noLeidas, setNoLeidas] = useState(0);
   const isPeoplePath = path.startsWith("/alumnos") || path.startsWith("/profesores");
-  useEffect(() => {
-    let activo = true;
-    const cargar = () => api<{ noLeidas: number }>("/notificaciones?pageSize=1")
-      .then((data) => { if (activo) setNoLeidas(data.noLeidas); })
-      .catch((error) => console.error("No se pudo actualizar el contador de notificaciones", error));
-    cargar();
-    const timer = window.setInterval(cargar, 60_000);
-    window.addEventListener("notificaciones:actualizadas", cargar);
-    return () => {
-      activo = false;
-      window.clearInterval(timer);
-      window.removeEventListener("notificaciones:actualizadas", cargar);
-    };
-  }, []);
   const moreActive = LINKS.some(([href]) =>
     ((href === "/alumnos" ? isPeoplePath : path.startsWith(href)) && !MOBILE_LINKS.some(([mobileHref]) => mobileHref === href))
       || (href === "/libros" && path.startsWith("/libros/ejemplares")),
@@ -71,16 +52,6 @@ export default function Sidebar() {
   }
   return (
     <>
-      <div className="rail-top flex items-center gap-3 px-4 py-3 print:hidden md:hidden">
-        <span className="rail-mark">
-          <img src="/escudo-colegio.png" alt="Escudo del colegio Manuel Scorza Torres" width="44" height="44" />
-        </span>
-        <div>
-          <p className="rail-eyebrow">Biblioteca escolar</p>
-          <p className="rail-title">BiblioScorza</p>
-        </div>
-      </div>
-
       <aside className="rail print:hidden md:w-60 md:shrink-0 md:flex-col">
         <div className="flex items-center gap-3 px-5 py-6">
           <span className="rail-mark">
@@ -96,12 +67,7 @@ export default function Sidebar() {
             <Link key={href} href={href} onClick={() => setOpen(false)}
               aria-current={(href === "/alumnos" ? isPeoplePath : path.startsWith(href)) ? "page" : undefined}
               className="rail-link">
-              <span className="flex items-center justify-between gap-2">
-                {label}
-                {label === "Notificaciones" && noLeidas > 0 && (
-                  <span className="rounded-full bg-white/15 px-2 py-0.5 text-xs font-semibold">{noLeidas > 99 ? "99+" : noLeidas}</span>
-                )}
-              </span>
+              {label}
             </Link>
           ))}
         </nav>
@@ -122,7 +88,6 @@ export default function Sidebar() {
                 className={`flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-600 ${(href === "/alumnos" ? isPeoplePath : path.startsWith(href)) ? "bg-brand-50 font-semibold text-brand-700" : "text-[#35445b] hover:bg-[#f7faff]"}`}>
                 <MobileIcon name={icon} />
                 <span className="flex-1">{label}</span>
-                {href === "/notificaciones" && noLeidas > 0 && <span className="rounded-full bg-brand-50 px-2 py-0.5 text-xs font-semibold text-brand-700">{noLeidas > 99 ? "99+" : noLeidas}</span>}
                 {(href === "/alumnos" ? isPeoplePath : path.startsWith(href)) && <span aria-hidden="true" className="h-2 w-2 rounded-full bg-brand-600" />}
               </Link>
             ))}
