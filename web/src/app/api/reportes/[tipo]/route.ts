@@ -3,6 +3,7 @@ import { withAuth, ok, HttpError } from "@/lib/http";
 import { q, pool } from "@/lib/db";
 import { UBIC_TXT } from "@/lib/sql";
 import { LIBRO_SELECT } from "@/lib/libros";
+import ExcelJS from "exceljs";
 
 const HOY = "(now() AT TIME ZONE 'America/Lima')::date";
 const REPORTES: Record<string, string> = {
@@ -53,6 +54,40 @@ const REPORTES: Record<string, string> = {
               GROUP BY al.id ORDER BY prestamos DESC, alumno`,
 };
 const CON_FECHAS = new Set(["movimientos", "prestamos-alumno"]);
+const ETIQUETAS: Record<string, string> = {
+  isbn: "ISBN",
+  titulo: "Título",
+  autores: "Autores",
+  editorial: "Editorial",
+  categoria: "Categoría",
+  tipo_control: "Tipo de control",
+  total: "Total de ejemplares",
+  disponibles: "Disponibles",
+  prestados: "Prestados",
+  danados: "Dañados",
+  perdidos: "Perdidos",
+  ubicaciones: "Ubicaciones",
+  codigo: "Código",
+  fecha_prestamo: "Fecha de préstamo",
+  fecha_prevista_devolucion: "Fecha prevista de devolución",
+  prestatario: "Prestatario",
+  dias_atraso: "Días de atraso",
+  grado: "Grado",
+  seccion: "Sección",
+  veces_prestado: "Veces prestado",
+  titulos: "Títulos",
+  ejemplares: "Ejemplares",
+  ubicacion: "Ubicación",
+  created_at: "Fecha y hora",
+  tipo_evento: "Tipo de evento",
+  estado_anterior: "Estado anterior",
+  estado_nuevo: "Estado nuevo",
+  usuario: "Usuario",
+  codigo_alumno: "Código de alumno",
+  alumno: "Alumno",
+  prestamos: "Préstamos",
+  unidades: "Unidades",
+};
 
 function csv(rows: Record<string, unknown>[]) {
   if (!rows.length) return "";
@@ -62,7 +97,37 @@ function csv(rows: Record<string, unknown>[]) {
     if (/^[=+\-@]/.test(s)) s = "'" + s; // evita inyección de fórmulas en Excel
     return `"${s.replace(/"/g, '""')}"`;
   };
-  return "\uFEFF" + [cols.join(","), ...rows.map((r) => cols.map((c) => esc(r[c])).join(","))].join("\r\n");
+  return "\uFEFF" + [cols.map((c) => ETIQUETAS[c] ?? c).join(";"), ...rows.map((r) => cols.map((c) => esc(r[c])).join(";"))].join("\r\n");
+}
+
+async function xlsx(rows: Record<string, unknown>[], tipo: string) {
+  const workbook = new ExcelJS.Workbook();
+  const worksheet = workbook.addWorksheet(tipo.slice(0, 31));
+  const cols = rows.length ? Object.keys(rows[0]) : [];
+  if (!cols.length) {
+    worksheet.addRow(["Sin datos para este reporte."]);
+  } else {
+    worksheet.columns = cols.map((key) => ({
+      header: ETIQUETAS[key] ?? key,
+      key,
+      width: Math.min(50, Math.max(12, (ETIQUETAS[key] ?? key).length + 2, ...rows.map((row) => String(row[key] ?? "").length + 2))),
+    }));
+    worksheet.addRows(rows.map((row) => cols.map((key) => {
+      const value = row[key];
+      return value == null ? "" : value instanceof Date || typeof value === "string" || typeof value === "number" || typeof value === "boolean"
+        ? value
+        : JSON.stringify(value);
+    })));
+    worksheet.views = [{ state: "frozen", ySplit: 1 }];
+    worksheet.autoFilter = {
+      from: { row: 1, column: 1 },
+      to: { row: rows.length + 1, column: cols.length },
+    };
+    worksheet.getRow(1).font = { bold: true, color: { argb: "FFFFFFFF" } };
+    worksheet.getRow(1).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1E3A5F" } };
+  }
+  const buffer = await workbook.xlsx.writeBuffer();
+  return new Uint8Array(buffer);
 }
 
 export const GET = withAuth(["BIBLIOTECARIO"], async (req, { params }) => {
@@ -76,6 +141,11 @@ export const GET = withAuth(["BIBLIOTECARIO"], async (req, { params }) => {
       headers: { "Content-Type": "text/csv; charset=utf-8", "Content-Disposition": `attachment; filename="${params.tipo}.csv"` },
     });
   }
-  if (formato !== "json") throw new HttpError(400, "Formato no soportado todavía (usa json o csv)");
+  if (formato === "xlsx") {
+    return new NextResponse(await xlsx(rows, params.tipo), {
+      headers: { "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "Content-Disposition": `attachment; filename="${params.tipo}.xlsx"` },
+    });
+  }
+  if (formato !== "json") throw new HttpError(400, "Formato no soportado todavía (usa json, csv o xlsx)");
   return ok(rows);
 });

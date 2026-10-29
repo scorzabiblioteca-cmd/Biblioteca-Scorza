@@ -31,7 +31,8 @@ export default function Reportes() {
           <label><span className="label">Desde</span><input type="date" className="input" value={desde} onChange={(e) => setDesde(e.target.value)} /></label>
           <label><span className="label">Hasta</span><input type="date" className="input" value={hasta} onChange={(e) => setHasta(e.target.value)} /></label></>)}
         <button className="btn w-full sm:w-auto" onClick={generar}>Generar</button>
-        <a className="btn-ghost w-full sm:w-auto" href={`/api/reportes/${tipo}${qs("&formato=csv")}`}>Descargar CSV (Excel)</a>
+        <a className="btn-ghost w-full sm:w-auto" href={`/api/reportes/${tipo}${qs("&formato=csv")}`}>Descargar CSV (punto y coma)</a>
+        <a className="btn-ghost w-full sm:w-auto" href={`/api/reportes/${tipo}${qs("&formato=xlsx")}`}>Descargar Excel (.xlsx)</a>
       </div>
       <Msg type="error">{err}</Msg>
       {rows && (
@@ -43,7 +44,7 @@ export default function Reportes() {
             </tbody></table>
         </div>
       )}
-      <p className="mt-3 text-xs text-slate-500">La exportación a PDF llegará en una siguiente versión; el CSV se abre directamente en Excel.</p>
+      <p className="mt-3 text-xs text-slate-500">El CSV usa punto y coma como separador para facilitar su apertura en Excel con configuración regional en español.</p>
     </>
   );
 }
