@@ -97,9 +97,21 @@ export default function Login() {
             </label>
 
             <div className="login-field">
-              <label className="login-label" htmlFor="login-password">
-                Contraseña
-              </label>
+              <div className="login-label-row">
+                <label className="login-label" htmlFor="login-password">
+                  Contraseña
+                </label>
+                <Link
+                  className="login-forgot"
+                  href={
+                    f.username.trim()
+                      ? `/recuperar-password?usuario=${encodeURIComponent(f.username.trim())}`
+                      : "/recuperar-password"
+                  }
+                >
+                  ¿Olvidaste la contraseña?
+                </Link>
+              </div>
               <div className="login-password-field">
                 <input
                   id="login-password"

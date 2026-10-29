@@ -556,3 +556,104 @@
     transition: none;
   }
 }
+
+.login-label-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.55rem;
+}
+
+.login-label-row .login-label {
+  margin-bottom: 0;
+}
+
+.login-forgot,
+.login-link-button {
+  padding: 0;
+  border: 0;
+  color: var(--login-blue);
+  background: transparent;
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 650;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.login-forgot:hover,
+.login-link-button:hover:not(:disabled) {
+  text-decoration: underline;
+}
+
+.login-link-button:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}
+
+.login-link-button--center {
+  align-self: center;
+}
+
+.login-code-input {
+  height: 58px;
+  padding-left: 0.4em;
+  font-size: 1.4rem;
+  font-weight: 700;
+  letter-spacing: 0.4em;
+  text-align: center;
+}
+
+.login-code-input::placeholder {
+  font-weight: 500;
+  letter-spacing: 0.4em;
+}
+
+.login-user-chip {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0.7rem 0.9rem;
+  border: 1px solid #dbe4f0;
+  border-radius: 10px;
+  background: #f7faff;
+  color: #35445b;
+  font-size: 0.86rem;
+}
+
+.login-user-chip strong {
+  color: var(--login-ink);
+}
+
+.login-user-chip .login-link-button {
+  margin-left: auto;
+}
+
+.login-back {
+  align-self: center;
+  color: #718096;
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.login-back:hover {
+  color: var(--login-blue);
+  text-decoration: underline;
+}
+
+.login-button {
+  text-decoration: none;
+}
+
+.login-page--scroll,
+.login-page--scroll .login-shell {
+  overflow: auto;
+}
+
+.login-page--scroll .login-copyright {
+  position: static;
+  margin-top: 2rem;
+}

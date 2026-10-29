@@ -4,6 +4,7 @@ import type { NextRequest } from "next/server";
 
 export type Session = { id: number; username: string; roles: string[] };
 export const COOKIE = "bs_token";
+const RESET_PURPOSE = "password_reset";
 
 function secret() {
   const s = process.env.JWT_SECRET;
@@ -12,7 +13,7 @@ function secret() {
 }
 
 export async function signToken(s: Session) {
-  return new SignJWT({ username: s.username, roles: s.roles })
+  return new SignJWT({ username: s.username, roles: s.roles, purpose: "session" })
     .setProtectedHeader({ alg: "HS256" })
     .setSubject(String(s.id))
     .setIssuedAt()
@@ -23,7 +24,30 @@ export async function signToken(s: Session) {
 export async function verifyToken(t: string): Promise<Session | null> {
   try {
     const { payload } = await jwtVerify(t, secret());
+    // Los tickets de recuperación no son tokens de sesión.
+    if (payload.purpose && payload.purpose !== "session") return null;
     return { id: Number(payload.sub), username: String(payload.username), roles: (payload.roles as string[]) ?? [] };
+  } catch {
+    return null;
+  }
+}
+
+/** Ticket de corta duración emitido tras verificar el código de recuperación. */
+export async function signResetTicket(usuarioId: number) {
+  return new SignJWT({ purpose: RESET_PURPOSE })
+    .setProtectedHeader({ alg: "HS256" })
+    .setSubject(String(usuarioId))
+    .setIssuedAt()
+    .setExpirationTime("10m")
+    .sign(secret());
+}
+
+export async function verifyResetTicket(t: string): Promise<number | null> {
+  try {
+    const { payload } = await jwtVerify(t, secret());
+    if (payload.purpose !== RESET_PURPOSE) return null;
+    const id = Number(payload.sub);
+    return Number.isInteger(id) && id > 0 ? id : null;
   } catch {
     return null;
   }

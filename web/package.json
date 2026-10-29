@@ -8,7 +8,8 @@
     "start": "next start",
     "typecheck": "tsc --noEmit",
     "db:migrate": "node --env-file=.env.local scripts/migrate.mjs",
-    "db:seed-admin": "node --env-file=.env.local scripts/seed-admin.mjs"
+    "db:seed-admin": "node --env-file=.env.local scripts/seed-admin.mjs",
+    "gmail:auth": "node --env-file=.env.local scripts/gmail-auth.mjs"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

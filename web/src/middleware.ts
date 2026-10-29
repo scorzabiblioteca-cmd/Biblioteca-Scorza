@@ -11,4 +11,4 @@ export function middleware(req: NextRequest) {
 }
 // Los archivos estáticos de /public llevan punto en el nombre (png, ico, jpg…), así que
 // se excluyen del redirect para que el login pueda cargar el escudo del colegio.
-export const config = { matcher: ["/((?!api|_next|login|biblioteca|favicon.ico|.*\\..*).*)"] };
+export const config = { matcher: ["/((?!api|_next|login|recuperar-password|biblioteca|favicon.ico|.*\\..*).*)"] };
