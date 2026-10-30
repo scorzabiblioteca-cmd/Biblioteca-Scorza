@@ -557,18 +557,6 @@
   }
 }
 
-.login-label-row {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 0.75rem;
-  margin-bottom: 0.55rem;
-}
-
-.login-label-row .login-label {
-  margin-bottom: 0;
-}
-
 .login-forgot,
 .login-link-button {
   padding: 0;
@@ -580,6 +568,12 @@
   font-weight: 650;
   text-decoration: none;
   cursor: pointer;
+}
+
+.login-forgot {
+  display: block;
+  margin-top: 0.55rem;
+  text-align: right;
 }
 
 .login-forgot:hover,

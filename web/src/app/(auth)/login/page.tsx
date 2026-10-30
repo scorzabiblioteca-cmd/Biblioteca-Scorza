@@ -97,21 +97,9 @@ export default function Login() {
             </label>
 
             <div className="login-field">
-              <div className="login-label-row">
-                <label className="login-label" htmlFor="login-password">
-                  Contraseña
-                </label>
-                <Link
-                  className="login-forgot"
-                  href={
-                    f.username.trim()
-                      ? `/recuperar-password?usuario=${encodeURIComponent(f.username.trim())}`
-                      : "/recuperar-password"
-                  }
-                >
-                  ¿Olvidaste la contraseña?
-                </Link>
-              </div>
+              <label className="login-label" htmlFor="login-password">
+                Contraseña
+              </label>
               <div className="login-password-field">
                 <input
                   id="login-password"
@@ -153,6 +141,16 @@ export default function Login() {
                   </svg>
                 </button>
               </div>
+              <Link
+                className="login-forgot"
+                href={
+                  f.username.trim()
+                    ? `/recuperar-password?usuario=${encodeURIComponent(f.username.trim())}`
+                    : "/recuperar-password"
+                }
+              >
+                ¿Olvidaste la contraseña?
+              </Link>
             </div>
 
             {err && (
