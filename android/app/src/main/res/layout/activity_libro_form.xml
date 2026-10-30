@@ -12,7 +12,13 @@
         <EditText android:id="@+id/etSubtitulo" style="@style/BsInput" android:hint="Subtítulo" android:inputType="textCapSentences" />
         <EditText android:id="@+id/etAutor" style="@style/BsInput" android:hint="Autor(es), separados por coma" android:inputType="textCapWords" />
         <EditText android:id="@+id/etEditorial" style="@style/BsInput" android:hint="Editorial" android:inputType="textCapWords" />
-        <EditText android:id="@+id/etCategoria" style="@style/BsInput" android:hint="Categoría" android:inputType="textCapSentences" />
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginTop="10dp" android:layout_marginBottom="6dp"
+            android:text="Categoría" android:textColor="#475569" android:textSize="14sp"
+            android:textStyle="bold" />
+        <Spinner android:id="@+id/etCategoria" android:layout_width="match_parent" android:layout_height="52dp"
+            android:background="@drawable/bg_filter_spinner" android:contentDescription="Seleccionar categoría del libro"
+            android:paddingStart="12dp" android:paddingEnd="40dp" android:spinnerMode="dropdown" />
         <EditText android:id="@+id/etAnio" style="@style/BsInput" android:hint="Año de publicación" android:inputType="number" />
         <EditText android:id="@+id/etEdicion" style="@style/BsInput" android:hint="Edición" android:inputType="text" />
         <EditText android:id="@+id/etIdioma" style="@style/BsInput" android:hint="Idioma" android:inputType="text" android:text="es" />

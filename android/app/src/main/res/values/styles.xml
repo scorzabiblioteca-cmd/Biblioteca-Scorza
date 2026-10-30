@@ -23,6 +23,22 @@
         <item name="android:textSize">16sp</item>
         <item name="cornerRadius">14dp</item>
     </style>
+    <style name="BsHomeTile" parent="Widget.Material3.Button">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">148dp</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:textColor">#17324D</item>
+        <item name="android:insetTop">0dp</item>
+        <item name="android:insetBottom">0dp</item>
+        <item name="android:paddingStart">8dp</item>
+        <item name="android:paddingEnd">8dp</item>
+        <item name="cornerRadius">20dp</item>
+        <item name="backgroundTint">#FFFFFF</item>
+        <item name="iconTint">@null</item>
+        <item name="strokeColor">#E2E8F0</item>
+        <item name="strokeWidth">1dp</item>
+        <item name="rippleColor">#E7EFF6</item>
+    </style>
     <style name="BsButtonQuiet" parent="Widget.Material3.Button.TextButton">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">48dp</item>

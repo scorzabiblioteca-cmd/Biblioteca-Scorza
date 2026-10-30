@@ -27,6 +27,7 @@ import com.biblioscorza.app.R;
 import com.biblioscorza.app.data.ApiClient;
 import com.biblioscorza.app.data.Models.Agregado;
 import com.biblioscorza.app.data.Models.AgregarReq;
+import com.biblioscorza.app.data.Models.Categoria;
 import com.biblioscorza.app.data.Models.Libro;
 import com.biblioscorza.app.data.Models.LibroEdicion;
 import com.biblioscorza.app.data.Models.LibroReq;
@@ -48,12 +49,15 @@ public class LibroFormActivity extends AppCompatActivity {
     private static final String[] TIPOS = {"CANTIDAD", "INDIVIDUAL"};
     private static final String[] PREFIJOS = {"LIB", "ESP"};
 
-    private EditText etIsbn, etTitulo, etSubtitulo, etAutor, etEditorial, etCategoria, etAnio, etEdicion, etGrado, etCantidad, etDescripcion, etObs, etIdioma;
-    private Spinner spNivel, spTipo, spPrefijo, spUbicacion;
+    private EditText etIsbn, etTitulo, etSubtitulo, etAutor, etEditorial, etAnio, etEdicion, etGrado, etCantidad, etDescripcion, etObs, etIdioma;
+    private Spinner spCategoria, spNivel, spTipo, spPrefijo, spUbicacion;
     private ImageView ivFoto;
     private TextView tvError, tvFotoEstado, tvUbicacionInfo;
     private Button btnGuardar;
     private final List<Ubicacion> ubicaciones = new ArrayList<>();
+    private final List<Categoria> categorias = new ArrayList<>();
+    private ArrayAdapter<Categoria> categoriasAdapter;
+    private String categoriaPendiente;
     private String imagenUrl;
     private String urlFotoSubida;
     private String mimeFotoPendiente;
@@ -93,7 +97,8 @@ public class LibroFormActivity extends AppCompatActivity {
         super.onCreate(b);
         setContentView(R.layout.activity_libro_form);
         etIsbn = findViewById(R.id.etIsbn); etTitulo = findViewById(R.id.etTitulo); etSubtitulo = findViewById(R.id.etSubtitulo);
-        etAutor = findViewById(R.id.etAutor); etEditorial = findViewById(R.id.etEditorial); etCategoria = findViewById(R.id.etCategoria);
+        etAutor = findViewById(R.id.etAutor); etEditorial = findViewById(R.id.etEditorial);
+        spCategoria = findViewById(R.id.etCategoria);
         etAnio = findViewById(R.id.etAnio); etEdicion = findViewById(R.id.etEdicion); etGrado = findViewById(R.id.etGrado);
         etCantidad = findViewById(R.id.etCantidad); etDescripcion = findViewById(R.id.etDescripcion); etObs = findViewById(R.id.etObs);
         etIdioma = findViewById(R.id.etIdioma);
@@ -103,6 +108,10 @@ public class LibroFormActivity extends AppCompatActivity {
         tvUbicacionInfo = findViewById(R.id.tvUbicacionInfo); btnGuardar = findViewById(R.id.btnGuardar);
         findViewById(R.id.btnVolver).setOnClickListener(v -> getOnBackPressedDispatcher().onBackPressed());
 
+        categorias.add(opcionCategoria("Seleccionar categoría"));
+        categoriasAdapter = new ArrayAdapter<>(this, R.layout.spinner_filter_item, categorias);
+        categoriasAdapter.setDropDownViewResource(R.layout.spinner_filter_dropdown_item);
+        spCategoria.setAdapter(categoriasAdapter);
         spNivel.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, NIVELES));
         spTipo.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, new String[]{"Control por cantidad", "Control individual (QR por ejemplar)"}));
         spPrefijo.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, new String[]{"Prefijo LIB (libro común)", "Prefijo ESP (libro especial)"}));
@@ -139,7 +148,7 @@ public class LibroFormActivity extends AppCompatActivity {
             aplicarDatoInicial(etSubtitulo, "subtitulo");
             aplicarDatoInicial(etAutor, "autor");
             aplicarDatoInicial(etEditorial, "editorial");
-            aplicarDatoInicial(etCategoria, "categoria");
+            establecerCategoria(getIntent().getStringExtra("categoria"));
             aplicarDatoInicial(etEdicion, "edicion");
             aplicarDatoInicial(etDescripcion, "descripcion");
             Integer anio = getIntent().hasExtra("anioPublicacion")
@@ -149,14 +158,15 @@ public class LibroFormActivity extends AppCompatActivity {
             if (imagenUrl != null && !imagenUrl.trim().isEmpty()) mostrarImagen(imagenUrl);
         }
 
+        cargarCategorias();
         cargarUbicaciones();
         findViewById(R.id.btnScanIsbn).setOnClickListener(v -> escanear.launch(new Intent(this, ScannerActivity.class)
                 .putExtra(ScannerActivity.EXTRA_GUIA, "Escanea el código de barras (ISBN) del libro")));
         findViewById(R.id.btnFoto).setOnClickListener(v -> elegirOrigenFoto());
         btnGuardar.setOnClickListener(v -> guardar());
-        observarCambiosSinGuardar(etIsbn, etTitulo, etSubtitulo, etAutor, etEditorial, etCategoria,
+        observarCambiosSinGuardar(etIsbn, etTitulo, etSubtitulo, etAutor, etEditorial,
                 etAnio, etEdicion, etGrado, etCantidad, etDescripcion, etObs, etIdioma);
-        observarCambiosSinGuardar(spNivel, spPrefijo, spUbicacion);
+        observarCambiosSinGuardar(spCategoria, spNivel, spPrefijo, spUbicacion);
         trackingChanges = true;
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
             @Override public void handleOnBackPressed() {
@@ -221,7 +231,7 @@ public class LibroFormActivity extends AppCompatActivity {
                 etSubtitulo.setText(libro.subtitulo == null ? "" : libro.subtitulo);
                 etAutor.setText(libro.autores == null ? "" : libro.autores);
                 etEditorial.setText(libro.editorial == null ? "" : libro.editorial);
-                etCategoria.setText(libro.categoria == null ? "" : libro.categoria);
+                establecerCategoria(libro.categoria);
                 etAnio.setText(libro.anioPublicacion == null ? "" : String.valueOf(libro.anioPublicacion));
                 etEdicion.setText(libro.edicion == null ? "" : libro.edicion);
                 etIdioma.setText(libro.idioma == null ? "es" : libro.idioma);
@@ -254,6 +264,71 @@ public class LibroFormActivity extends AppCompatActivity {
     private void aplicarDatoInicial(EditText campo, String clave) {
         String valor = getIntent().getStringExtra(clave);
         if (valor != null && !valor.trim().isEmpty()) campo.setText(valor);
+    }
+
+    private void cargarCategorias() {
+        Api.call(ApiClient.api().categorias(), new Api.Result<List<Categoria>>() {
+            @Override public void ok(List<Categoria> data, String mensaje) {
+                if (data == null) {
+                    tvError.setText("El servidor devolvió categorías incompletas.");
+                    establecerCategoria(categoriaPendiente);
+                    return;
+                }
+                boolean incompletas = false;
+                boolean seguimientoAnterior = trackingChanges;
+                trackingChanges = false;
+                categorias.clear();
+                categorias.add(opcionCategoria("Seleccionar categoría"));
+                for (Categoria categoria : data) {
+                    if (categoria == null || categoria.nombre == null || categoria.nombre.trim().isEmpty()) {
+                        incompletas = true;
+                    } else {
+                        categorias.add(categoria);
+                    }
+                }
+                categoriasAdapter.notifyDataSetChanged();
+                establecerCategoria(categoriaPendiente);
+                trackingChanges = seguimientoAnterior;
+                if (incompletas) tvError.setText("El servidor devolvió categorías incompletas.");
+            }
+
+            @Override public void error(String mensaje, int http, String code) {
+                tvError.setText("No se pudieron cargar las categorías: " + mensaje);
+                establecerCategoria(categoriaPendiente);
+            }
+        });
+    }
+
+    private void establecerCategoria(String nombre) {
+        categoriaPendiente = nombre;
+        if (spCategoria == null || categoriasAdapter == null) return;
+        if (nombre == null || nombre.trim().isEmpty()) {
+            spCategoria.setSelection(0);
+            return;
+        }
+        for (int i = 1; i < categorias.size(); i++) {
+            if (nombre.trim().equalsIgnoreCase(categorias.get(i).nombre.trim())) {
+                spCategoria.setSelection(i);
+                return;
+            }
+        }
+        Categoria pendiente = opcionCategoria(nombre.trim());
+        categorias.add(pendiente);
+        categoriasAdapter.notifyDataSetChanged();
+        spCategoria.setSelection(categorias.size() - 1);
+    }
+
+    private static Categoria opcionCategoria(String nombre) {
+        Categoria categoria = new Categoria();
+        categoria.nombre = nombre;
+        return categoria;
+    }
+
+    private String categoriaSeleccionada() {
+        Object seleccion = spCategoria.getSelectedItem();
+        if (spCategoria.getSelectedItemPosition() <= 0 || !(seleccion instanceof Categoria)) return null;
+        String nombre = ((Categoria) seleccion).nombre;
+        return nombre == null || nombre.trim().isEmpty() ? null : nombre.trim();
     }
 
     private void cargarUbicaciones() {
@@ -386,7 +461,7 @@ private void verificarIsbn() {
                         etEditorial.setText(datos.editorial);
                     }
                     if (datos.categoria != null) {
-                        etCategoria.setText(datos.categoria);
+                        establecerCategoria(datos.categoria);
                     }
                     if (datos.anioPublicacion != null) {
                         etAnio.setText(
@@ -557,7 +632,7 @@ private void verificarIsbn() {
         if (t(etTitulo) == null) { tvError.setText("El título es obligatorio"); return; }
         LibroReq r = new LibroReq();
         r.isbn = t(etIsbn); r.titulo = t(etTitulo); r.subtitulo = t(etSubtitulo); r.autor = t(etAutor);
-        r.editorial = t(etEditorial); r.categoria = t(etCategoria); r.edicion = t(etEdicion);
+        r.editorial = t(etEditorial); r.categoria = categoriaSeleccionada(); r.edicion = t(etEdicion);
         r.descripcion = t(etDescripcion); r.observaciones = t(etObs);
         r.anioPublicacion = n(etAnio); r.gradoRecomendado = n(etGrado);
         r.idioma = t(etIdioma) == null ? "es" : t(etIdioma);

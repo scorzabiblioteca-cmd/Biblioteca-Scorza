@@ -82,7 +82,7 @@ public class BuscarActivity extends AppCompatActivity {
                 "Control · Todos", "", "Por cantidad", "CANTIDAD", "Individual", "INDIVIDUAL"));
         configurar(spEstado, opciones(
                 "Estado · Activos", "ACTIVO", "Archivados", "ARCHIVADO", "Todos", "todos"));
-        configurar(spCategoria, opciones("Categoría · Todas", ""));
+        configurar(spCategoria, opciones("Todas las categorías", ""));
         configurar(spUbicacion, opciones("Ubicación · Todas", ""));
         cargarCatalogos();
     }
@@ -91,7 +91,7 @@ public class BuscarActivity extends AppCompatActivity {
         catalogosPendientes = 2;
         Api.call(ApiClient.api().categorias(), new Api.Result<List<Categoria>>() {
             @Override public void ok(List<Categoria> data, String message) {
-                List<FilterOption> values = opciones("Categoría · Todas", "");
+                List<FilterOption> values = opciones("Todas las categorías", "");
                 if (data == null) {
                     erroresCatalogos.add("El servidor devolvió categorías incompletas.");
                 } else {
@@ -241,8 +241,8 @@ public class BuscarActivity extends AppCompatActivity {
 
     private static void configurar(Spinner spinner, List<FilterOption> values) {
         ArrayAdapter<FilterOption> spinnerAdapter = new ArrayAdapter<>(
-                spinner.getContext(), android.R.layout.simple_spinner_item, values);
-        spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                spinner.getContext(), R.layout.spinner_filter_item, values);
+        spinnerAdapter.setDropDownViewResource(R.layout.spinner_filter_dropdown_item);
         spinner.setAdapter(spinnerAdapter);
     }
 
