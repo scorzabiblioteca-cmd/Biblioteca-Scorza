@@ -10,9 +10,7 @@
 }
 
 .rail::before,
-.rail::after,
-.rail-top::before,
-.rail-top::after {
+.rail::after {
   position: absolute;
   content: "";
   border: 1px solid rgba(255, 255, 255, 0.08);
@@ -20,28 +18,18 @@
   pointer-events: none;
 }
 
-.rail::before,
-.rail-top::before {
+.rail::before {
   width: 380px;
   height: 380px;
   right: -240px;
   top: 70px;
 }
 
-.rail::after,
-.rail-top::after {
+.rail::after {
   width: 300px;
   height: 300px;
   right: -200px;
   top: 110px;
-}
-
-.rail-top::before {
-  top: -160px;
-}
-
-.rail-top::after {
-  top: -110px;
 }
 
 .rail > *,
@@ -122,7 +110,7 @@
 
 .rail-top {
   position: relative;
-  overflow: hidden;
+  overflow: visible;
   color: #fff;
   background:
     radial-gradient(ellipse at 10% 100%, rgba(48, 112, 185, 0.42), transparent 55%),
@@ -156,14 +144,8 @@
 
 @media (min-width: 768px) {
   .rail-top {
-    overflow: visible;
     color: inherit;
     background: rgba(255, 255, 255, 0.9);
-  }
-
-  .rail-top::before,
-  .rail-top::after {
-    display: none;
   }
 
   /* El rail permanece fijo al hacer scroll; si el menú no cabe, se desplaza solo. */

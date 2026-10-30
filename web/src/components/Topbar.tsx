@@ -172,8 +172,8 @@ export default function Topbar() {
             </button>
 
             {abierto === "notificaciones" && (
-              <div className="absolute right-0 top-[calc(100%+0.5rem)] z-50 w-[min(22rem,calc(100vw-1.5rem))] overflow-hidden rounded-2xl border border-[#e6ecf4] bg-white shadow-[0_18px_45px_rgba(11,27,51,0.18)]">
-                <div className="flex items-center justify-between gap-2 border-b border-[#eef2f7] px-4 py-3">
+              <div className="fixed inset-x-3 top-[4.5rem] z-50 flex max-h-[min(20rem,55dvh)] flex-col overflow-hidden rounded-2xl border border-[#e6ecf4] bg-white shadow-[0_18px_45px_rgba(11,27,51,0.18)] md:absolute md:inset-x-auto md:right-0 md:top-[calc(100%+0.5rem)] md:max-h-none md:w-[22rem]">
+                <div className="flex shrink-0 items-center justify-between gap-2 border-b border-[#eef2f7] px-4 py-3">
                   <p className="text-sm font-semibold text-[#172b4d]">Notificaciones</p>
                   {noLeidas > 0 && (
                     <button type="button" onClick={marcarTodas} disabled={ocupado}
@@ -182,7 +182,7 @@ export default function Topbar() {
                     </button>
                   )}
                 </div>
-                <div className="max-h-[min(24rem,60dvh)] overflow-y-auto">
+                <div className="min-h-0 flex-1 overflow-y-auto md:max-h-[min(24rem,60dvh)] md:flex-none">
                   {error && <p className="px-4 py-3 text-sm text-red-600">{error}</p>}
                   {notificaciones.map((item) => (
                     <button key={item.id} type="button" onClick={() => abrirNotificacion(item)}
@@ -200,7 +200,7 @@ export default function Topbar() {
                   )}
                 </div>
                 <Link href="/notificaciones" onClick={() => setAbierto(null)}
-                  className="block border-t border-[#eef2f7] px-4 py-3 text-center text-sm font-semibold text-brand-600 hover:bg-[#f7faff]">
+                  className="block shrink-0 border-t border-[#eef2f7] px-4 py-3 text-center text-sm font-semibold text-brand-600 hover:bg-[#f7faff]">
                   Ver todas
                 </Link>
               </div>
