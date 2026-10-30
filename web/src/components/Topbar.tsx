@@ -144,13 +144,13 @@ export default function Topbar() {
   const rol = usuario?.roles?.map((r) => ROLES[r] ?? r).join(" · ") || "Usuario";
 
   return (
-    <header className="sticky top-0 z-40 border-b border-[#e6ecf4] bg-white/90 backdrop-blur print:hidden">
+    <header className="rail-top sticky top-0 z-40 border-b border-transparent backdrop-blur print:hidden md:border-[#e6ecf4]">
       <div className="flex h-16 items-center justify-between gap-3 px-3 sm:px-6 md:px-8">
         <Link href="/dashboard" className="flex items-center gap-2.5 md:hidden">
           <img src="/escudo-colegio.png" alt="Escudo del colegio Manuel Scorza Torres" width="36" height="36" className="h-9 w-9 object-contain" />
           <span>
-            <span className="block text-[0.6rem] font-bold uppercase tracking-[0.14em] text-[#94a3b8]">Biblioteca escolar</span>
-            <span className="block text-base font-bold tracking-[-0.03em] text-[#172b4d]">BiblioScorza</span>
+            <span className="block text-[0.6rem] font-bold uppercase tracking-[0.14em] text-white/75 md:text-[#94a3b8]">Biblioteca escolar</span>
+            <span className="block text-base font-bold tracking-[-0.03em] text-white md:text-[#172b4d]">BiblioScorza</span>
           </span>
         </Link>
         <div className="hidden min-w-0 md:block">
@@ -162,7 +162,7 @@ export default function Topbar() {
           <div className="relative">
             <button type="button" onClick={() => alternar("notificaciones")} aria-label="Notificaciones"
               aria-haspopup="true" aria-expanded={abierto === "notificaciones"}
-              className="relative grid h-11 w-11 place-items-center rounded-full text-[#35445b] transition hover:bg-[#f2f7ff] focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-600">
+              className="relative grid h-11 w-11 place-items-center rounded-full text-white transition hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-600 md:text-[#35445b] md:hover:bg-[#f2f7ff]">
               <IconoCampana />
               {noLeidas > 0 && (
                 <span className="absolute right-1 top-1 grid min-w-[18px] place-items-center rounded-full bg-red-500 px-1 text-[0.62rem] font-bold leading-[18px] text-white">
@@ -210,11 +210,11 @@ export default function Topbar() {
           <div className="relative">
             <button type="button" onClick={() => alternar("perfil")} aria-label="Perfil"
               aria-haspopup="true" aria-expanded={abierto === "perfil"}
-              className="flex items-center gap-2 rounded-full p-0.5 pr-2.5 transition hover:bg-[#f2f7ff] focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-600">
-              <span className="grid h-10 w-10 place-items-center rounded-full bg-gradient-to-br from-[#2867d9] to-[#2456bd] text-sm font-bold text-white">
+              className="flex items-center gap-2 rounded-full p-0.5 pr-2.5 text-white transition hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-600 md:text-[#172b4d] md:hover:bg-[#f2f7ff]">
+              <span className="grid h-10 w-10 place-items-center rounded-full bg-white/15 text-sm font-bold text-white ring-1 ring-white/25 md:bg-gradient-to-br md:from-[#2867d9] md:to-[#2456bd] md:ring-0">
                 {iniciales(nombre) || "U"}
               </span>
-              <span className="hidden max-w-[10rem] truncate text-sm font-semibold text-[#172b4d] sm:block">{nombre}</span>
+              <span className="hidden max-w-[10rem] truncate text-sm font-semibold text-white sm:block md:text-[#172b4d]">{nombre}</span>
             </button>
 
             {abierto === "perfil" && (
