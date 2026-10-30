@@ -7,6 +7,7 @@ import { Field, Msg, PageTitle } from "@/components/ui";
 import { normalizarIsbn } from "@/lib/isbn";
 
 type Ubic = { id: number; codigo: string; descripcion: string | null };
+type Categoria = { id: number; nombre: string };
 type EstadoConsultaIsbn = "inactivo" | "buscando" | "encontrado" | "sin-resultados" | "no-disponible" | "invalido";
 type LibroIsbn = {
   isbn: string;
@@ -53,6 +54,9 @@ export default function NuevoLibro() {
   const isbnActual = useRef("");
   const consultasEnCurso = useRef(new Set<string>());
   const [ubis, setUbis] = useState<Ubic[]>([]);
+  const [categorias, setCategorias] = useState<Categoria[]>([]);
+  const [cargandoCategorias, setCargandoCategorias] = useState(true);
+  const [errorCategorias, setErrorCategorias] = useState("");
   const [existente, setExistente] = useState<{ id: number; titulo: string } | null>(null);
   const [estadoIsbn, setEstadoIsbn] = useState<EstadoConsultaIsbn>("inactivo");
   const [paginasEncontradas, setPaginasEncontradas] = useState<number | null>(null);
@@ -63,6 +67,14 @@ export default function NuevoLibro() {
     setF({ ...f, [k]: e.target.value });
 
   useEffect(() => { api<Ubic[]>("/ubicaciones").then(setUbis).catch(() => {}); }, []);
+  useEffect(() => {
+    let vigente = true;
+    api<Categoria[]>("/categorias")
+      .then((items) => { if (vigente) setCategorias(items); })
+      .catch((e: Error) => { if (vigente) setErrorCategorias(e.message); })
+      .finally(() => { if (vigente) setCargandoCategorias(false); });
+    return () => { vigente = false; };
+  }, []);
 
   async function buscarIsbn() {
     const isbn = normalizarIsbn(isbnActual.current || f.isbn);
@@ -82,6 +94,7 @@ export default function NuevoLibro() {
       if (resultado.existente || resultado.libro) {
         const existenteLocal = resultado.existente;
         const libro = resultado.libro;
+        const categoriaDetectada = libro?.categoria || existenteLocal?.categoria;
         setF((actual) => ({
           ...actual,
           isbn: libro?.isbn || existenteLocal?.isbn || actual.isbn,
@@ -89,7 +102,7 @@ export default function NuevoLibro() {
           subtitulo: libro?.subtitulo || existenteLocal?.subtitulo || actual.subtitulo,
           autor: libro?.autor || existenteLocal?.autores || actual.autor,
           editorial: libro?.editorial || existenteLocal?.editorial || actual.editorial,
-          categoria: libro?.categoria || existenteLocal?.categoria || actual.categoria,
+          categoria: categorias.find((categoria) => categoria.nombre === categoriaDetectada)?.nombre ?? actual.categoria,
           anioPublicacion: String(libro?.anioPublicacion ?? existenteLocal?.anioPublicacion ?? actual.anioPublicacion),
           edicion: libro?.edicion || existenteLocal?.edicion || actual.edicion,
           descripcion: libro?.descripcion || existenteLocal?.descripcion || actual.descripcion,
@@ -156,7 +169,14 @@ export default function NuevoLibro() {
         <Field label="Subtítulo"><input className="input" value={f.subtitulo} onChange={set("subtitulo")} /></Field>
         <Field label="Autor(es) — separa con coma"><input className="input" value={f.autor} onChange={set("autor")} /></Field>
         <Field label="Editorial"><input className="input" value={f.editorial} onChange={set("editorial")} /></Field>
-        <Field label="Categoría"><input className="input" value={f.categoria} onChange={set("categoria")} list="cats" /></Field>
+        <Field label="Categoría">
+          <select className="input" value={f.categoria} onChange={set("categoria")} disabled={cargandoCategorias || Boolean(errorCategorias)}>
+            <option value="">{cargandoCategorias ? "Cargando categorías…" : "Selecciona una categoría"}</option>
+            {categorias.map((categoria) => <option key={categoria.id} value={categoria.nombre}>{categoria.nombre}</option>)}
+          </select>
+          {errorCategorias && <span role="alert" className="mt-1 block text-xs text-red-700">No se pudieron cargar las categorías: {errorCategorias}</span>}
+          {!cargandoCategorias && !errorCategorias && categorias.length === 0 && <span className="mt-1 block text-xs text-amber-700">No hay categorías registradas.</span>}
+        </Field>
         <Field label="Año de publicación"><input className="input" type="number" value={f.anioPublicacion} onChange={set("anioPublicacion")} /></Field>
         <Field label="Edición"><input className="input" value={f.edicion} onChange={set("edicion")} /></Field>
         <Field label="Idioma"><input className="input" value={f.idioma} onChange={set("idioma")} /></Field>
