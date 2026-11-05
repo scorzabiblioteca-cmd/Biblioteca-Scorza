@@ -20,6 +20,7 @@
         <activity android:name=".ui.HomeActivity" />
         <activity android:name=".ui.ScannerActivity" />
         <activity android:name=".ui.LibroFormActivity" android:windowSoftInputMode="adjustResize" />
+        <activity android:name=".ui.CoverScannerActivity" android:screenOrientation="portrait" />
         <activity android:name=".ui.EjemplarActivity" />
         <activity android:name=".ui.PrestamoActivity" />
         <activity android:name=".ui.DevolucionActivity" />

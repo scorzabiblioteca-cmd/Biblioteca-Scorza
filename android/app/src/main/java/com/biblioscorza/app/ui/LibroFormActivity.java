@@ -20,7 +20,6 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.FileProvider;
 
 import com.bumptech.glide.Glide;
 import com.biblioscorza.app.R;
@@ -64,7 +63,7 @@ public class LibroFormActivity extends AppCompatActivity {
     private boolean subiendo, editando, ubicacionesCargadas, datosEdicionCargados, ubicacionesMultiples;
     private long libroId;
     private Long ubicacionActual;
-    private File imagenPendiente, archivoCaptura;
+    private File imagenPendiente;
     private boolean tieneInventario;
     private boolean trackingChanges, hasUnsavedChanges;
 
@@ -76,17 +75,14 @@ public class LibroFormActivity extends AppCompatActivity {
                 }
             });
 
-    private final ActivityResultLauncher<Uri> tomarFoto = registerForActivityResult(
-            new ActivityResultContracts.TakePicture(), ok -> {
-                if (ok && archivoCaptura != null && imagenValida(archivoCaptura)) {
-                    reemplazarImagenPendiente(archivoCaptura, "image/jpeg");
-                } else {
-                    if (archivoCaptura != null) archivoCaptura.delete();
-                    if (ok) tvError.setText("La fotografía capturada no es válida");
-                    if (imagenPendiente != null) mostrarImagen(imagenPendiente);
-                    else restaurarPortadaGuardada();
+    private final ActivityResultLauncher<Intent> escanearPortada = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(), result -> {
+                if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                    String path = result.getData().getStringExtra(CoverScannerActivity.EXTRA_COVER_PATH);
+                    File portada = path == null ? null : new File(path);
+                    if (imagenValida(portada)) reemplazarImagenPendiente(portada, "image/jpeg");
+                    else tvError.setText("El escáner no devolvió una portada válida.");
                 }
-                archivoCaptura = null;
             });
     private final ActivityResultLauncher<String> elegirFoto = registerForActivityResult(
             new ActivityResultContracts.GetContent(), uri -> {
@@ -526,16 +522,7 @@ private void verificarIsbn() {
     }
 
     private void abrirCamaraFoto() {
-        try {
-            File dir = new File(getCacheDir(), "fotos");
-            if (!dir.exists() && !dir.mkdirs()) throw new IllegalStateException("No se pudo preparar el almacenamiento temporal");
-            archivoCaptura = new File(dir, "portada_" + System.currentTimeMillis() + ".jpg");
-            Uri uri = FileProvider.getUriForFile(this, getPackageName() + ".fileprovider", archivoCaptura);
-            tomarFoto.launch(uri);
-        } catch (RuntimeException e) {
-            archivoCaptura = null;
-            tvError.setText("No se pudo abrir la cámara. Verifica que esté disponible.");
-        }
+        escanearPortada.launch(new Intent(this, CoverScannerActivity.class));
     }
 
     private void copiarFotoSeleccionada(Uri uri) {
