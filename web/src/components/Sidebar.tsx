@@ -99,7 +99,7 @@ export default function Sidebar() {
           </nav>
         </div>
       )}
-      <nav aria-label="Navegación principal" className="mobile-nav fixed inset-x-3 bottom-3 z-50 grid grid-cols-5 rounded-2xl px-2 pt-2 pb-[calc(0.375rem+env(safe-area-inset-bottom))] md:hidden">
+      <nav aria-label="Navegación principal" className="mobile-nav fixed inset-x-0 bottom-0 z-50 grid grid-cols-5 rounded-t-2xl px-2 pt-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] md:hidden">
         {MOBILE_LINKS.map(([href, label, icon]) => (
           <Link key={href} href={href} onClick={() => setOpen(false)} aria-current={path.startsWith(href) ? "page" : undefined}
             className={`relative flex min-w-0 flex-col items-center gap-1 rounded-lg px-1 pt-1 pb-2 text-[10px] transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-brand-600 ${path.startsWith(href) ? "font-semibold text-brand-600" : "text-[#718096] hover:text-[#172b4d]"}`}>
