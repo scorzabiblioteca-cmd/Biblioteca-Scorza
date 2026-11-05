@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/client";
 import { Msg } from "@/components/ui";
+import DeveloperCredits from "@/components/DeveloperCredits";
 import LoginCharacters from "./login-characters";
 import "./login.css";
 
@@ -175,9 +176,7 @@ export default function Login() {
               Ver biblioteca
             </Link>
           </form>
-          <p className="login-copyright">
-            © 2026 Derechos reservados al colegio Manuel Scorza Torres, R.R.R.H.Y.
-          </p>
+          <DeveloperCredits className="login-copyright" />
         </section>
       </div>
     </main>

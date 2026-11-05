@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
+import DeveloperCredits from "@/components/DeveloperCredits";
 
 const LINKS = [
   ["/dashboard", "Panel"], ["/libros", "Libros"], ["/prestamos", "Préstamos"],
@@ -74,7 +75,7 @@ export default function Sidebar() {
         <div className="px-3 pb-5">
           <div className="rail-divider" />
           <button onClick={salir} className="rail-link w-full text-left">Cerrar sesión</button>
-          <p className="rail-footnote mt-4">© 2026 Derechos reservados al colegio Manuel Scorza Torres, R.R.R.H.Y.</p>
+          <DeveloperCredits className="rail-footnote mt-4" />
         </div>
       </aside>
 

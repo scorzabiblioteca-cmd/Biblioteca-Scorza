@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Msg, Portada, useDebounced } from "@/components/ui";
 import { api, Paged } from "@/lib/client";
+import DeveloperCredits from "@/components/DeveloperCredits";
 
 type Libro = {
   id: number;
@@ -125,7 +126,7 @@ export default function Biblioteca() {
         </section>
 
         <footer className="mt-12 text-left text-xs text-slate-400">
-          © 2026 Derechos reservados al colegio Manuel Scorza Torres, R.R.R.H.Y.
+          <DeveloperCredits />
         </footer>
       </div>
     </main>
