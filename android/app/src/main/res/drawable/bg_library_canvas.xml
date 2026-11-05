@@ -1,0 +1,22 @@
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="270"
+                android:startColor="#F7FAFC"
+                android:centerColor="#F1F6F8"
+                android:endColor="#EAF3F3"
+                android:type="linear" />
+        </shape>
+    </item>
+    <item
+        android:drawable="@drawable/ic_library_watermark"
+        android:gravity="top|end"
+        android:width="160dp"
+        android:height="160dp" />
+    <item
+        android:drawable="@drawable/ic_library_watermark"
+        android:gravity="bottom|start"
+        android:width="120dp"
+        android:height="120dp" />
+</layer-list>

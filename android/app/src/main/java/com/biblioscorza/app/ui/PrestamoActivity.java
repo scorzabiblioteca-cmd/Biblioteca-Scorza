@@ -45,7 +45,7 @@ public class PrestamoActivity extends AppCompatActivity {
     private final List<PrestamoReq.Item> items = new ArrayList<>();
     private final List<String> lineas = new ArrayList<>();
     private AutoCompleteTextView etAlumno;
-    private TextView tvAlumno, tvItems, tvMsg;
+    private TextView tvAlumno, tvDatosPrestatario, tvItems, tvMsg;
     private Button btnScanLibro, btnConfirmar;
     private AlumnoSugerenciaAdapter alumnosAdapter;
     private ProfesorSugerenciaAdapter profesoresAdapter;
@@ -77,6 +77,7 @@ public class PrestamoActivity extends AppCompatActivity {
         findViewById(R.id.btnVolver).setOnClickListener(v -> getOnBackPressedDispatcher().onBackPressed());
         etAlumno = findViewById(R.id.etAlumno);
         tvAlumno = findViewById(R.id.tvAlumno);
+        tvDatosPrestatario = findViewById(R.id.tvDatosPrestatario);
         tvItems = findViewById(R.id.tvItems);
         tvMsg = findViewById(R.id.tvMsg);
         btnScanLibro = findViewById(R.id.btnScanLibro);
@@ -202,11 +203,17 @@ public class PrestamoActivity extends AppCompatActivity {
                         }
                         java.util.Set<Long> ids = new java.util.HashSet<>();
                         for (Profesor item : data.items) {
-                            if (item != null && ids.add(item.id)) sugerenciasProfesores.add(item);
+                            if (item != null && item.id > 0
+                                    && !item.nombreCompleto().isEmpty()
+                                    && ids.add(item.id)) {
+                                sugerenciasProfesores.add(item);
+                            }
                         }
                         profesoresAdapter.notifyDataSetChanged();
                         if (sugerenciasProfesores.isEmpty()) {
-                            tvMsg.setText("No se encontraron profesores activos con ese dato.");
+                            tvMsg.setText(data.items.isEmpty()
+                                    ? "No se encontraron profesores activos con ese dato."
+                                    : "La API no devolvió profesores con identificador y nombre válidos.");
                         } else {
                             tvMsg.setText("Selecciona al profesor correcto. Se muestran "
                                     + sugerenciasProfesores.size() + " coincidencia(s).");
@@ -355,10 +362,23 @@ public class PrestamoActivity extends AppCompatActivity {
         etAlumno.setSelection(etAlumno.length());
         textoDeEscaner = false;
         consultaEscrita = nombre;
-        tvAlumno.setText(seleccionado.nombreCompleto()
-                + (seleccionado.grado != null ? " — " + seleccionado.grado + "° " + (seleccionado.seccion == null ? "" : seleccionado.seccion) : "")
-                + "\nCódigo: " + seleccionado.codigoAlumno
-                + "\nID: " + seleccionado.id);
+        tvAlumno.setText(nombre);
+        StringBuilder detalle = new StringBuilder();
+        if (seleccionado.codigoAlumno != null && !seleccionado.codigoAlumno.trim().isEmpty()) {
+            detalle.append("Código: ").append(seleccionado.codigoAlumno).append("\n");
+        }
+        detalle.append("ID: ").append(seleccionado.id);
+        if (seleccionado.dni != null && !seleccionado.dni.trim().isEmpty()) {
+            detalle.append("\nDNI: ").append(seleccionado.dni);
+        }
+        if (seleccionado.grado != null) {
+            detalle.append("\nGrado: ").append(seleccionado.grado).append("°");
+            if (seleccionado.seccion != null && !seleccionado.seccion.trim().isEmpty()) {
+                detalle.append(" ").append(seleccionado.seccion);
+            }
+        }
+        tvDatosPrestatario.setText(detalle);
+        tvDatosPrestatario.setVisibility(View.VISIBLE);
         tvMsg.setText("");
         actualizar();
     }
@@ -377,13 +397,18 @@ public class PrestamoActivity extends AppCompatActivity {
         etAlumno.setSelection(etAlumno.length());
         textoDeEscaner = false;
         consultaEscrita = nombre;
-        StringBuilder detalle = new StringBuilder(nombre)
-                .append("\nDNI: ").append(seleccionado.dni == null ? "No registrado" : seleccionado.dni)
-                .append("\nID: ").append(seleccionado.id);
+        tvAlumno.setText(nombre);
+        StringBuilder detalle = new StringBuilder("ID: ").append(seleccionado.id)
+                .append("\nDNI: ").append(seleccionado.dni == null
+                        || seleccionado.dni.trim().isEmpty() ? "No registrado" : seleccionado.dni);
         if (seleccionado.area != null && !seleccionado.area.trim().isEmpty()) {
             detalle.append("\nÁrea: ").append(seleccionado.area);
         }
-        tvAlumno.setText(detalle);
+        if (seleccionado.correo != null && !seleccionado.correo.trim().isEmpty()) {
+            detalle.append("\nCorreo: ").append(seleccionado.correo);
+        }
+        tvDatosPrestatario.setText(detalle);
+        tvDatosPrestatario.setVisibility(View.VISIBLE);
         tvMsg.setText("");
         actualizar();
     }
@@ -392,6 +417,8 @@ public class PrestamoActivity extends AppCompatActivity {
         alumno = null;
         profesor = null;
         tvAlumno.setText("");
+        tvDatosPrestatario.setText("");
+        tvDatosPrestatario.setVisibility(View.GONE);
         actualizar();
     }
 
@@ -553,6 +580,11 @@ public class PrestamoActivity extends AppCompatActivity {
             @Override protected void publishResults(CharSequence constraint, FilterResults results) {
                 notifyDataSetChanged();
             }
+
+            @Override public CharSequence convertResultToString(Object resultValue) {
+                return resultValue instanceof Alumno
+                        ? ((Alumno) resultValue).nombreCompleto() : "";
+            }
         };
 
         @Override public int getCount() { return sugerencias.size(); }
@@ -567,7 +599,17 @@ public class PrestamoActivity extends AppCompatActivity {
                     : convertView;
             Alumno item = getItem(position);
             ((TextView) row.findViewById(R.id.tvNombreAlumno)).setText(item.nombreCompleto());
-            row.findViewById(R.id.tvIdentificadorAlumno).setVisibility(View.GONE);
+            StringBuilder detalles = new StringBuilder();
+            if (item.codigoAlumno != null && !item.codigoAlumno.trim().isEmpty()) {
+                detalles.append("Código: ").append(item.codigoAlumno).append(" · ");
+            }
+            if (item.dni != null && !item.dni.trim().isEmpty()) {
+                detalles.append("DNI: ").append(item.dni).append(" · ");
+            }
+            detalles.append("ID: ").append(item.id);
+            TextView identificador = row.findViewById(R.id.tvIdentificadorAlumno);
+            identificador.setText(detalles);
+            identificador.setVisibility(View.VISIBLE);
             return row;
         }
     }
@@ -582,6 +624,11 @@ public class PrestamoActivity extends AppCompatActivity {
 
             @Override protected void publishResults(CharSequence constraint, FilterResults results) {
                 notifyDataSetChanged();
+            }
+
+            @Override public CharSequence convertResultToString(Object resultValue) {
+                return resultValue instanceof Profesor
+                        ? ((Profesor) resultValue).nombreCompleto() : "";
             }
         };
 
@@ -598,11 +645,16 @@ public class PrestamoActivity extends AppCompatActivity {
             Profesor item = getItem(position);
             ((TextView) row.findViewById(R.id.tvNombreAlumno)).setText(item.nombreCompleto());
             TextView detalles = row.findViewById(R.id.tvIdentificadorAlumno);
-            StringBuilder info = new StringBuilder("DNI: ")
+            StringBuilder info = new StringBuilder("ID: ").append(item.id)
+                    .append(" · DNI: ")
                     .append(item.dni == null || item.dni.trim().isEmpty() ? "No registrado" : item.dni);
             if (item.area != null && !item.area.trim().isEmpty()) info.append(" · Área: ").append(item.area);
+            if (item.correo != null && !item.correo.trim().isEmpty()) {
+                info.append("\n").append(item.correo);
+            }
             detalles.setText(info);
             detalles.setVisibility(View.VISIBLE);
+            row.setContentDescription(item.nombreCompleto() + ". " + info);
             return row;
         }
     }

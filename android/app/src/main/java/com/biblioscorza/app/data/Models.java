@@ -48,7 +48,7 @@ public final class Models {
     public static class Libro {
         public long id;
         public Long categoriaId;
-        public String isbn, titulo, subtitulo, autores, editorial, categoria, imagenUrl, tipoControl, ubicaciones, estado;
+        public String isbn, titulo, subtitulo, autores, editorial, categoria, imagenUrl, tipoControl, codigoInterno, ubicaciones, estado;
         public String edicion, descripcion, idioma, nivelEducativo, observaciones;
         public Integer anioPublicacion, gradoRecomendado, total, disponibles, prestados, danados, perdidos;
     }
@@ -127,7 +127,11 @@ public final class Models {
     public static class Profesor {
         public long id;
         public String dni, nombres, apellidos, correo, telefono, area, estado;
-        public String nombreCompleto() { return apellidos + ", " + nombres; }
+        public String nombreCompleto() {
+            String nombre = nombres == null ? "" : nombres.trim();
+            String apellido = apellidos == null ? "" : apellidos.trim();
+            return (nombre + " " + apellido).trim();
+        }
     }
 
     public static class PrestamoReq {

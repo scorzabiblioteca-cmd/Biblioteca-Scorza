@@ -33,6 +33,12 @@ final class LibroBusquedaAdapter extends BaseAdapter {
                 : convertView;
         Libro libro = getItem(position);
         ((TextView) row.findViewById(R.id.tvTitulo)).setText(valor(libro.titulo));
+        String codigo = libro.codigoInterno == null || libro.codigoInterno.trim().isEmpty()
+                ? ("CANTIDAD".equals(libro.tipoControl)
+                ? "Control por cantidad" : "Sin ejemplar codificado")
+                : libro.codigoInterno;
+        ((TextView) row.findViewById(R.id.tvIdentificadores)).setText(
+                "ID: " + libro.id + " · Código: " + codigo);
         ((TextView) row.findViewById(R.id.tvAutor)).setText("Autor(es): " + valor(libro.autores));
         ((TextView) row.findViewById(R.id.tvDetalles)).setText(
                 "ISBN: " + valor(libro.isbn) + " · Categoría: " + valor(libro.categoria));

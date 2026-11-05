@@ -12,7 +12,9 @@ export const GET = withAuth(["BIBLIOTECARIO"], async (req) => {
   const t = sp.get("q")?.trim();
   if (t) {
     const patron = add(`%${t}%`);
-    where.push(`(apellidos ILIKE ${patron} OR nombres ILIKE ${patron} OR dni ILIKE ${patron})`);
+    where.push(`(apellidos ILIKE ${patron} OR nombres ILIKE ${patron} OR dni ILIKE ${patron}
+      OR concat_ws(' ', nombres, apellidos) ILIKE ${patron}
+      OR concat_ws(' ', apellidos, nombres) ILIKE ${patron})`);
   }
   const estado = sp.get("estado");
   if (estado) where.push(`estado = ${add(estado)}`);

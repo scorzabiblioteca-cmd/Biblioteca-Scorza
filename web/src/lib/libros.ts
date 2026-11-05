@@ -7,6 +7,8 @@ export const LIBRO_SELECT = `
 SELECT l.id, l.isbn, l.titulo, l.subtitulo, l.anio_publicacion, l.edicion, l.idioma,
        l.nivel_educativo, l.grado_recomendado, l.descripcion, l.imagen_url, l.tipo_control,
        l.prefijo_codigo, l.estado, l.observaciones, l.editorial_id, l.categoria_id,
+       (SELECT e.codigo_interno FROM ejemplares e
+          WHERE e.libro_id = l.id ORDER BY e.id LIMIT 1) AS codigo_interno,
        ed.nombre AS editorial, ca.nombre AS categoria,
        (SELECT string_agg(a.nombre, ', ' ORDER BY la.orden)
           FROM libros_autores la JOIN autores a ON a.id = la.autor_id WHERE la.libro_id = l.id) AS autores,

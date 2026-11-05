@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent" android:layout_height="match_parent"
+    android:background="@drawable/bg_library_canvas"
     android:orientation="vertical">
     <include layout="@layout/view_top_bar" />
     <ScrollView android:layout_width="match_parent" android:layout_height="0dp"
@@ -28,7 +29,12 @@
             android:completionThreshold="2" android:singleLine="true" android:imeOptions="actionSearch" />
         <Button android:id="@+id/btnBuscarAlumno" style="@style/BsButton" android:text="Buscar coincidencias" />
         <Button android:id="@+id/btnScanAlumno" style="@style/BsButtonOutline" android:text="Escanear QR del alumno" />
-        <TextView android:id="@+id/tvAlumno" style="@style/BsText" android:textStyle="bold" />
+        <TextView android:id="@+id/tvAlumno" style="@style/BsText" android:textStyle="bold"
+            android:textColor="#17324D" android:textSize="16sp" />
+        <TextView android:id="@+id/tvDatosPrestatario" style="@style/BsText"
+            android:layout_marginTop="2dp" android:background="#F1F5F9"
+            android:padding="12dp" android:textColor="#526A7D"
+            android:textSize="13sp" android:visibility="gone" />
         <Button android:id="@+id/btnScanLibro" style="@style/BsButton" android:text="Escanear libro (QR o ISBN)" android:enabled="false" />
         <TextView android:id="@+id/tvItems" style="@style/BsText" />
         <TextView android:id="@+id/tvMsg" style="@style/BsText" />
