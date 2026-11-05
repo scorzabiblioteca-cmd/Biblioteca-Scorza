@@ -97,6 +97,9 @@ export default function Sidebar() {
               <MobileIcon name="logout" />
               Cerrar sesión
             </button>
+            <div className="mobile-developer-credits mt-2 border-t border-[#e6ecf4] px-3 pt-3 text-xs leading-relaxed">
+              <DeveloperCredits />
+            </div>
           </nav>
         </div>
       )}

@@ -47,7 +47,14 @@ export default function Topbar() {
   const [abierto, setAbierto] = useState<"perfil" | "notificaciones" | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [ocupado, setOcupado] = useState(false);
+  const [modoOscuro, setModoOscuro] = useState(false);
   const contenedor = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const oscuro = window.localStorage.getItem("biblioscorza-theme") === "dark";
+    setModoOscuro(oscuro);
+    document.documentElement.dataset.theme = oscuro ? "dark" : "light";
+  }, []);
 
   const cargarContador = useCallback(() => {
     api<Bandeja>("/notificaciones?pageSize=1")
@@ -105,6 +112,13 @@ export default function Topbar() {
     if (panel === "notificaciones") void cargarNotificaciones();
   }
 
+  function alternarTema() {
+    const oscuro = !modoOscuro;
+    setModoOscuro(oscuro);
+    document.documentElement.dataset.theme = oscuro ? "dark" : "light";
+    window.localStorage.setItem("biblioscorza-theme", oscuro ? "dark" : "light");
+  }
+
   async function abrirNotificacion(item: Notificacion) {
     if (!item.leidaEn) {
       try {
@@ -159,6 +173,26 @@ export default function Topbar() {
         </div>
 
         <div ref={contenedor} className="ml-auto flex items-center gap-1.5">
+          <button
+            type="button"
+            onClick={alternarTema}
+            aria-label={modoOscuro ? "Cambiar a modo claro" : "Cambiar a modo oscuro"}
+            aria-pressed={modoOscuro}
+            title={modoOscuro ? "Cambiar a modo claro" : "Cambiar a modo oscuro"}
+            className="theme-toggle grid h-11 w-11 place-items-center rounded-full text-white transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-600 md:text-[#35445b]"
+          >
+            {modoOscuro ? (
+              <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
+                <circle cx="12" cy="12" r="4" />
+                <path d="M12 2v2m0 16v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42" />
+              </svg>
+            ) : (
+              <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
+                <path d="M20.5 15.2A8.5 8.5 0 0 1 8.8 3.5 8.5 8.5 0 1 0 20.5 15.2Z" />
+                <path d="M16 3v4m-2-2h4" />
+              </svg>
+            )}
+          </button>
           <div className="relative">
             <button type="button" onClick={() => alternar("notificaciones")} aria-label="Notificaciones"
               aria-haspopup="true" aria-expanded={abierto === "notificaciones"}

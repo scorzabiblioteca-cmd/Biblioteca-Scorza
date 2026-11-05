@@ -202,3 +202,60 @@
   background: linear-gradient(105deg, #2867d9, #2456bd);
   box-shadow: 0 6px 14px rgba(37, 99, 235, 0.22);
 }
+
+html[data-theme="dark"] .segmented {
+  border-color: #3a4b63;
+  background: #111c2b;
+}
+
+html[data-theme="dark"] .segmented button {
+  color: #c3cfde;
+}
+
+html[data-theme="dark"] .segmented button:hover:not([aria-pressed="true"]) {
+  background: #243349;
+  color: #f1f5fb;
+}
+
+html[data-theme="dark"] .segmented button[aria-pressed="true"] {
+  color: #fff;
+  background: linear-gradient(105deg, #3478ed, #285dc8);
+}
+
+html[data-theme="dark"] .rail-top {
+  border-color: #2b3a50;
+  background: #111b2a;
+}
+
+html[data-theme="dark"] .mobile-nav,
+html[data-theme="dark"] .mobile-sheet {
+  border-color: #2b3a50;
+  background: #151f2e;
+}
+
+html[data-theme="dark"] .mobile-nav {
+  border-bottom: 0;
+}
+
+html[data-theme="dark"] .mobile-nav a,
+html[data-theme="dark"] .mobile-nav button {
+  color: #a8b6ca;
+}
+
+html[data-theme="dark"] .mobile-nav a[aria-current="page"],
+html[data-theme="dark"] .mobile-nav button[aria-expanded="true"] {
+  color: #7eacff;
+}
+
+html[data-theme="dark"] .theme-toggle:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+html[data-theme="dark"] .mobile-developer-credits {
+  border-color: #2b3a50;
+  color: #a8b6ca;
+}
+
+html[data-theme="dark"] .mobile-developer-credits button {
+  color: #a8b6ca;
+}
