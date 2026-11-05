@@ -7,10 +7,25 @@ import AlumnosProfesoresTabs from "@/components/AlumnosProfesoresTabs";
 
 const VACIO = { codigoAlumno: "", dni: "", nombres: "", apellidos: "", nivelEducativo: "SECUNDARIA", grado: "", seccion: "", telefono: "", correo: "", estado: "ACTIVO" };
 
+type Alumno = {
+  id: number;
+  codigoAlumno: string;
+  dni: string | null;
+  nombres: string;
+  apellidos: string;
+  nivelEducativo: string | null;
+  grado: number | null;
+  seccion: string | null;
+  telefono: string | null;
+  correo: string | null;
+  estado: string;
+  fechaRegistro: string;
+};
+
 export default function Alumnos() {
   const [qtxt, setQ] = useState("");
   const [pagina, setPagina] = useState(1);
-  const [data, setData] = useState<Paged<any> | null>(null);
+  const [data, setData] = useState<Paged<Alumno> | null>(null);
   const [f, setF] = useState(VACIO);
   const [abrir, setAbrir] = useState(false);
   const [editarId, setEditarId] = useState<number | null>(null);
@@ -22,7 +37,7 @@ export default function Alumnos() {
   const cargar = useCallback(() => {
     const params = new URLSearchParams({ page: String(pagina), pageSize: "10" });
     if (dq) params.set("q", dq);
-    api<Paged<any>>(`/alumnos?${params}`).then(setData).catch((e) => setMsg({ t: "error", m: e.message }));
+    api<Paged<Alumno>>(`/alumnos?${params}`).then(setData).catch((e) => setMsg({ t: "error", m: e.message }));
   }, [dq, pagina]);
   useEffect(() => { cargar(); }, [cargar]);
   useEffect(() => {
@@ -117,7 +132,22 @@ export default function Alumnos() {
           <tbody className="divide-y divide-[#eef2f7]">
             {data?.items.map((a) => (
               <tr key={a.id}><td className="td font-mono" data-label="Código">{a.codigoAlumno}</td><td className="td" data-label="DNI">{a.dni ?? "—"}</td><td className="td font-medium" data-label="Alumno">
-                  <button type="button" className="text-left hover:text-brand-700 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600" onClick={() => setHistorialDe({ id: a.id, tipo: "alumno", nombre: `${a.apellidos}, ${a.nombres}` })}>
+                  <button type="button" className="text-left hover:text-brand-700 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600" onClick={() => setHistorialDe({
+                    id: a.id,
+                    tipo: "alumno",
+                    nombre: `${a.apellidos}, ${a.nombres}`,
+                    codigoAlumno: a.codigoAlumno,
+                    dni: a.dni,
+                    nombres: a.nombres,
+                    apellidos: a.apellidos,
+                    nivelEducativo: a.nivelEducativo,
+                    grado: a.grado,
+                    seccion: a.seccion,
+                    telefono: a.telefono,
+                    correo: a.correo,
+                    estado: a.estado,
+                    fechaRegistro: a.fechaRegistro,
+                  })}>
                     {a.apellidos}, {a.nombres}
                   </button>
                 </td>

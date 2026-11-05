@@ -4,10 +4,35 @@ import { useEffect, useRef, useState } from "react";
 import { api, fecha, Paged } from "@/lib/client";
 import { Badge, Msg } from "@/components/ui";
 
-export type PrestatarioSeleccionado = {
+type DatosComunes = {
   id: number;
-  tipo: "alumno" | "profesor";
   nombre: string;
+  nombres: string;
+  apellidos: string;
+  dni: string | null;
+  telefono: string | null;
+  correo: string | null;
+  estado: string;
+};
+
+export type PrestatarioSeleccionado =
+  | (DatosComunes & {
+      tipo: "alumno";
+      codigoAlumno: string;
+      nivelEducativo: string | null;
+      grado: number | null;
+      seccion: string | null;
+      fechaRegistro: string;
+    })
+  | (DatosComunes & {
+      tipo: "profesor";
+      area: string | null;
+      createdAt: string;
+    });
+
+type DatoPersonal = {
+  etiqueta: string;
+  valor: string | number | null;
 };
 
 type PrestamoHistorial = {
@@ -60,6 +85,32 @@ export function HistorialPrestatarioDialog({
   }, [pagina, prestatario]);
 
   const paginas = historial ? Math.max(1, Math.ceil(historial.total / historial.pageSize)) : 1;
+  const datosPersonales: DatoPersonal[] = prestatario
+    ? prestatario.tipo === "alumno"
+      ? [
+          { etiqueta: "Código", valor: prestatario.codigoAlumno },
+          { etiqueta: "DNI", valor: prestatario.dni },
+          { etiqueta: "Nombres", valor: prestatario.nombres },
+          { etiqueta: "Apellidos", valor: prestatario.apellidos },
+          { etiqueta: "Nivel educativo", valor: prestatario.nivelEducativo },
+          { etiqueta: "Grado", valor: prestatario.grado },
+          { etiqueta: "Sección", valor: prestatario.seccion },
+          { etiqueta: "Teléfono", valor: prestatario.telefono },
+          { etiqueta: "Correo", valor: prestatario.correo },
+          { etiqueta: "Estado", valor: prestatario.estado },
+          { etiqueta: "Fecha de registro", valor: fecha(prestatario.fechaRegistro) },
+        ]
+      : [
+          { etiqueta: "DNI", valor: prestatario.dni },
+          { etiqueta: "Nombres", valor: prestatario.nombres },
+          { etiqueta: "Apellidos", valor: prestatario.apellidos },
+          { etiqueta: "Área", valor: prestatario.area },
+          { etiqueta: "Teléfono", valor: prestatario.telefono },
+          { etiqueta: "Correo", valor: prestatario.correo },
+          { etiqueta: "Estado", valor: prestatario.estado },
+          { etiqueta: "Fecha de registro", valor: fecha(prestatario.createdAt) },
+        ]
+    : [];
 
   return (
     <dialog
@@ -78,6 +129,20 @@ export function HistorialPrestatarioDialog({
             <button type="button" className="rounded-lg px-2 py-1 text-xl leading-none text-[#718096] hover:bg-[#f1f5fb] hover:text-[#172b4d]" aria-label="Cerrar ventana" onClick={onClose}>×</button>
           </div>
           <div className="p-5 sm:p-6">
+            <section aria-labelledby="datos-prestatario-title" className="mb-6">
+              <h3 id="datos-prestatario-title" className="mb-3 text-sm font-semibold text-[#172b4d]">
+                Datos completos de {prestatario.tipo === "alumno" ? "estudiante" : "profesor"}
+              </h3>
+              <dl className="grid gap-3 rounded-xl border border-[#e6ecf4] bg-[#f7f9fc] p-4 sm:grid-cols-2 lg:grid-cols-3">
+                {datosPersonales.map(({ etiqueta, valor }) => (
+                  <div key={etiqueta} className="min-w-0">
+                    <dt className="text-xs font-medium uppercase tracking-wide text-[#718096]">{etiqueta}</dt>
+                    <dd className="mt-1 break-words text-sm text-[#334155]">{valor ?? "—"}</dd>
+                  </div>
+                ))}
+              </dl>
+            </section>
+            <h3 className="mb-3 text-sm font-semibold text-[#172b4d]">Historial de préstamos</h3>
             {historial && <p className="mb-3 text-sm text-slate-500">{historial.total} préstamo(s)</p>}
             {error && <Msg type="error">{error}</Msg>}
             {cargando && <p className="py-6 text-center text-sm text-slate-500">Cargando historial…</p>}

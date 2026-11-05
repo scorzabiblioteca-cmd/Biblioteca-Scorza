@@ -16,6 +16,7 @@ type Profesor = {
   telefono: string | null;
   area: string | null;
   estado: string;
+  createdAt: string;
 };
 
 export default function Profesores() {
@@ -124,7 +125,19 @@ export default function Profesores() {
               <tr key={profesor.id}>
                 <td className="td" data-label="DNI">{profesor.dni ?? "—"}</td>
                 <td className="td font-medium" data-label="Profesor">
-                  <button type="button" className="text-left hover:text-brand-700 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600" onClick={() => setHistorialDe({ id: profesor.id, tipo: "profesor", nombre: `${profesor.apellidos}, ${profesor.nombres}` })}>
+                  <button type="button" className="text-left hover:text-brand-700 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600" onClick={() => setHistorialDe({
+                    id: profesor.id,
+                    tipo: "profesor",
+                    nombre: `${profesor.apellidos}, ${profesor.nombres}`,
+                    dni: profesor.dni,
+                    nombres: profesor.nombres,
+                    apellidos: profesor.apellidos,
+                    area: profesor.area,
+                    telefono: profesor.telefono,
+                    correo: profesor.correo,
+                    estado: profesor.estado,
+                    createdAt: profesor.createdAt,
+                  })}>
                     {profesor.apellidos}, {profesor.nombres}
                   </button>
                 </td>
