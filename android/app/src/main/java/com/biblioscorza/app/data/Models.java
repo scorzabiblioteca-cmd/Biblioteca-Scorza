@@ -1,5 +1,7 @@
 package com.biblioscorza.app.data;
 
+import com.google.gson.annotations.SerializedName;
+
 import java.util.List;
 
 /** Modelos JSON (Gson). Los nombres coinciden con la API (camelCase). */
@@ -17,6 +19,25 @@ public final class Models {
 
     public static class User { public long id; public String username, nombreCompleto; public List<String> roles; }
     public static class LoginData { public String token; public User user; }
+    public static class Perfil {
+        public long id;
+        public String username, email;
+        @SerializedName("nombre_completo") public String nombreCompleto;
+        public List<String> roles;
+    }
+    public static class Notificaciones {
+        public List<Notificacion> items;
+        public int total, noLeidas;
+    }
+    public static class Notificacion {
+        public long id;
+        public String tipo, titulo, mensaje, enlace;
+        @SerializedName("leida_en") public String leidaEn;
+        @SerializedName("created_at") public String creadaEn;
+    }
+    public static class NotificacionLeida { public String leidaEn; }
+    public static class NotificacionesLeidas { public int actualizadas; }
+    public static class NotificacionLeidaReq { public boolean leida = true; }
     public static class LoginReq {
         public String username, password;
         public LoginReq(String u, String p) { username = u; password = p; }

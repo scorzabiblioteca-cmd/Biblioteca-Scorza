@@ -12,6 +12,13 @@ import retrofit2.http.*;
 
 public interface ApiService {
     @POST("auth/login") Call<ApiResponse<LoginData>> login(@Body LoginReq body);
+    @GET("auth/me") Call<ApiResponse<Perfil>> perfil();
+
+    @GET("notificaciones") Call<ApiResponse<Notificaciones>> notificaciones(
+            @Query("page") int page, @Query("pageSize") int pageSize);
+    @PATCH("notificaciones/{id}") Call<ApiResponse<NotificacionLeida>> marcarNotificacionLeida(
+            @Path("id") long id, @Body NotificacionLeidaReq body);
+    @POST("notificaciones/leer-todas") Call<ApiResponse<NotificacionesLeidas>> marcarTodasNotificacionesLeidas();
 
     @GET("libros/isbn/{isbn}") Call<ApiResponse<ConsultaIsbn>> libroPorIsbn(@Path("isbn") String isbn);
     @GET("libros") Call<ApiResponse<Paged<Libro>>> buscarLibros(

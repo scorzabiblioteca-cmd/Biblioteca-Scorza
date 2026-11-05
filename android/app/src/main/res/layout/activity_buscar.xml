@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent" android:layout_height="match_parent"
-    android:orientation="vertical" android:padding="16dp">
-<include layout="@layout/view_back_button" />
-<include layout="@layout/header_brand" />
+    android:orientation="vertical">
+    <include layout="@layout/view_top_bar" />
+    <LinearLayout android:layout_width="match_parent" android:layout_height="0dp"
+        android:layout_weight="1" android:orientation="vertical" android:padding="16dp">
     <EditText android:id="@+id/etBuscar" style="@style/BsInput"
         android:hint="Título, autor, ISBN, editorial, categoría o ejemplar" android:inputType="text" />
     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
@@ -32,23 +33,10 @@
             android:contentDescription="Filtrar por disponibilidad" android:paddingStart="10dp"
             android:paddingEnd="36dp" android:spinnerMode="dropdown" />
     </LinearLayout>
-    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-        android:layout_marginTop="8dp" android:orientation="horizontal">
-        <Spinner android:id="@+id/spTipoControl" android:layout_width="0dp" android:layout_height="52dp"
-            android:layout_marginEnd="4dp" android:layout_weight="1" android:background="@drawable/bg_filter_spinner"
-            android:contentDescription="Filtrar por tipo de control" android:paddingStart="10dp"
-            android:paddingEnd="36dp" android:spinnerMode="dropdown" />
-        <Spinner android:id="@+id/spUbicacion" android:layout_width="0dp" android:layout_height="52dp"
-            android:layout_marginStart="4dp" android:layout_weight="1" android:background="@drawable/bg_filter_spinner"
-            android:contentDescription="Filtrar por ubicación" android:paddingStart="10dp"
-            android:paddingEnd="36dp" android:spinnerMode="dropdown" />
-    </LinearLayout>
-    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-        android:layout_marginTop="8dp" android:orientation="horizontal">
-        <Spinner android:id="@+id/spEstado" android:layout_width="match_parent" android:layout_height="52dp"
-            android:background="@drawable/bg_filter_spinner" android:contentDescription="Filtrar por estado del libro"
-            android:paddingStart="12dp" android:paddingEnd="40dp" android:spinnerMode="dropdown" />
-    </LinearLayout>
+    <Spinner android:id="@+id/spEstado" android:layout_width="match_parent" android:layout_height="52dp"
+        android:layout_marginTop="8dp" android:background="@drawable/bg_filter_spinner"
+        android:contentDescription="Filtrar por estado del libro"
+        android:paddingStart="12dp" android:paddingEnd="40dp" android:spinnerMode="dropdown" />
     <ProgressBar android:id="@+id/progreso" android:layout_width="wrap_content"
         android:layout_height="wrap_content" android:layout_gravity="center_horizontal"
         android:visibility="gone" />
@@ -59,4 +47,5 @@
         android:dividerHeight="8dp" />
     <Button android:id="@+id/btnMas" android:layout_width="match_parent"
         android:layout_height="48dp" android:text="Cargar más" android:visibility="gone" />
+    </LinearLayout>
 </LinearLayout>

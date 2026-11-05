@@ -92,6 +92,7 @@ public class ScannerActivity extends AppCompatActivity {
     @Override protected void onCreate(Bundle b) {
         super.onCreate(b);
         setContentView(R.layout.activity_scanner);
+        TopBarController.bind(this);
         preview = findViewById(R.id.preview);
         marcoEscaneo = findViewById(R.id.marcoEscaneo);
         tvGuia = findViewById(R.id.tvGuia);
@@ -110,6 +111,7 @@ public class ScannerActivity extends AppCompatActivity {
                 .setBarcodeFormats(Barcode.FORMAT_EAN_13, Barcode.FORMAT_EAN_8,
                         Barcode.FORMAT_QR_CODE, Barcode.FORMAT_CODE_128)
                 .build());
+        findViewById(R.id.btnVolver).setVisibility(View.VISIBLE);
         findViewById(R.id.btnVolver).setOnClickListener(v -> getOnBackPressedDispatcher().onBackPressed());
         btnLinterna.setOnClickListener(v -> alternarLinterna());
         btnReintentar.setOnClickListener(v -> reintentarCamara());

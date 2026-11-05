@@ -96,6 +96,8 @@ public class LibroFormActivity extends AppCompatActivity {
     @Override protected void onCreate(Bundle b) {
         super.onCreate(b);
         setContentView(R.layout.activity_libro_form);
+        TopBarController.bind(this);
+        findViewById(R.id.btnVolver).setVisibility(android.view.View.VISIBLE);
         etIsbn = findViewById(R.id.etIsbn); etTitulo = findViewById(R.id.etTitulo); etSubtitulo = findViewById(R.id.etSubtitulo);
         etAutor = findViewById(R.id.etAutor); etEditorial = findViewById(R.id.etEditorial);
         spCategoria = findViewById(R.id.etCategoria);

@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent" android:layout_height="match_parent">
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:orientation="vertical">
+    <include layout="@layout/view_top_bar" />
+    <ScrollView android:layout_width="match_parent" android:layout_height="0dp"
+        android:layout_weight="1">
     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
         android:orientation="vertical" android:padding="20dp">
-        <include layout="@layout/view_back_button" />
-        <include layout="@layout/header_brand" />
         <TextView android:id="@+id/tvTituloFormulario" style="@style/BsTitle" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Registrar libro" />
         <EditText android:id="@+id/etIsbn" style="@style/BsInput" android:hint="ISBN" android:inputType="textCapCharacters" />
         <Button android:id="@+id/btnScanIsbn" style="@style/BsButtonOutline" android:text="Escanear ISBN" />
@@ -38,4 +40,5 @@
         <TextView android:id="@+id/tvError" style="@style/BsText" android:textColor="#B91C1C" />
         <Button android:id="@+id/btnGuardar" style="@style/BsButton" android:text="Guardar libro" />
     </LinearLayout>
-</ScrollView>
+    </ScrollView>
+</LinearLayout>

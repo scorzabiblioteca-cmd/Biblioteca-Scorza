@@ -66,6 +66,8 @@ public class PrestamoActivity extends AppCompatActivity {
     @Override protected void onCreate(Bundle b) {
         super.onCreate(b);
         setContentView(R.layout.activity_prestamo);
+        TopBarController.bind(this);
+        findViewById(R.id.btnVolver).setVisibility(View.VISIBLE);
         findViewById(R.id.btnVolver).setOnClickListener(v -> getOnBackPressedDispatcher().onBackPressed());
         etAlumno = findViewById(R.id.etAlumno);
         tvAlumno = findViewById(R.id.tvAlumno);
@@ -228,9 +230,16 @@ public class PrestamoActivity extends AppCompatActivity {
             return;
         }
         alumno = seleccionado;
+        String nombre = seleccionado.nombreCompleto();
+        textoDeEscaner = true;
+        etAlumno.setText(nombre, false);
+        etAlumno.setSelection(etAlumno.length());
+        textoDeEscaner = false;
+        consultaEscrita = nombre;
         tvAlumno.setText(seleccionado.nombreCompleto()
                 + (seleccionado.grado != null ? " — " + seleccionado.grado + "° " + (seleccionado.seccion == null ? "" : seleccionado.seccion) : "")
-                + "\nCódigo: " + seleccionado.codigoAlumno);
+                + "\nCódigo: " + seleccionado.codigoAlumno
+                + "\nID: " + seleccionado.id);
         tvMsg.setText("");
         actualizar();
     }
@@ -261,7 +270,7 @@ public class PrestamoActivity extends AppCompatActivity {
                     PrestamoReq.Item it = new PrestamoReq.Item();
                     it.codigoEjemplar = e.codigoInterno;
                     items.add(it);
-                    lineas.add(e.codigoInterno + " — " + e.titulo);
+                    lineas.add(e.titulo);
                     actualizar();
                 }
                 @Override public void error(String msg, int h, String c) { tvMsg.setText(msg); }
@@ -327,7 +336,7 @@ public class PrestamoActivity extends AppCompatActivity {
                             return;
                         }
                         it.cantidad++;
-                        lineas.set(i, libro.titulo + " × " + it.cantidad);
+                        lineas.set(i, libro.titulo);
                         actualizar();
                         return;
                     }
@@ -336,7 +345,7 @@ public class PrestamoActivity extends AppCompatActivity {
                 it.libroId = libro.id;
                 it.cantidad = 1;
                 items.add(it);
-                lineas.add(libro.titulo + " × 1");
+                lineas.add(libro.titulo);
                 actualizar();
             }
             @Override public void error(String msg, int http, String code) {
@@ -409,8 +418,7 @@ public class PrestamoActivity extends AppCompatActivity {
                     : convertView;
             Alumno item = getItem(position);
             ((TextView) row.findViewById(R.id.tvNombreAlumno)).setText(item.nombreCompleto());
-            ((TextView) row.findViewById(R.id.tvIdentificadorAlumno)).setText(
-                    "Código: " + item.codigoAlumno + " · ID: " + item.id);
+            row.findViewById(R.id.tvIdentificadorAlumno).setVisibility(View.GONE);
             return row;
         }
     }

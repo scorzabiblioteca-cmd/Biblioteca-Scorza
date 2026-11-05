@@ -26,6 +26,8 @@ public class EjemplarActivity extends AppCompatActivity {
     @Override protected void onCreate(Bundle b) {
         super.onCreate(b);
         setContentView(R.layout.activity_ejemplar);
+        TopBarController.bind(this);
+        findViewById(R.id.btnVolver).setVisibility(android.view.View.VISIBLE);
         findViewById(R.id.btnVolver).setOnClickListener(v -> getOnBackPressedDispatcher().onBackPressed());
         tvError = findViewById(R.id.tvError);
         codigo = getIntent().getStringExtra("codigo");

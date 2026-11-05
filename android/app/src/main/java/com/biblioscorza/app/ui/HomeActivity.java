@@ -25,6 +25,7 @@ public class HomeActivity extends AppCompatActivity {
     @Override protected void onCreate(Bundle b) {
         super.onCreate(b);
         setContentView(R.layout.activity_home);
+        TopBarController.bind(this);
         ((TextView) findViewById(R.id.tvUsuario)).setText("Sesión: " + TokenStore.usuario(this));
         findViewById(R.id.btnRegistrar).setOnClickListener(v -> startActivity(new Intent(this, LibroFormActivity.class)));
         findViewById(R.id.btnEscanearIsbn).setOnClickListener(v ->

@@ -36,6 +36,8 @@ public class DevolucionActivity extends AppCompatActivity {
     @Override protected void onCreate(Bundle b) {
         super.onCreate(b);
         setContentView(R.layout.activity_devolucion);
+        TopBarController.bind(this);
+        findViewById(R.id.btnVolver).setVisibility(android.view.View.VISIBLE);
         findViewById(R.id.btnVolver).setOnClickListener(v -> getOnBackPressedDispatcher().onBackPressed());
         tvDatos = findViewById(R.id.tvDatos); tvMsg = findViewById(R.id.tvMsg);
         spResultado = findViewById(R.id.spResultado); etObs = findViewById(R.id.etObs); btnConfirmar = findViewById(R.id.btnConfirmar);

@@ -20,7 +20,6 @@ import com.biblioscorza.app.data.ApiClient;
 import com.biblioscorza.app.data.Models.Categoria;
 import com.biblioscorza.app.data.Models.Libro;
 import com.biblioscorza.app.data.Models.Paged;
-import com.biblioscorza.app.data.Models.Ubicacion;
 import com.biblioscorza.app.util.Api;
 //wazaaaaaaaa
 import java.util.ArrayList;
@@ -34,7 +33,7 @@ public class BuscarActivity extends AppCompatActivity {
     private EditText etBuscar;
     private TextView tvMsg, tvFiltros;
     private ProgressBar progreso;
-    private Spinner spCategoria, spNivel, spDisponibilidad, spTipoControl, spUbicacion, spEstado;
+    private Spinner spCategoria, spNivel, spDisponibilidad, spEstado;
     private Button btnMas;
     private LibroBusquedaAdapter adapter;
     private int busquedaActual;
@@ -51,6 +50,8 @@ public class BuscarActivity extends AppCompatActivity {
     @Override protected void onCreate(Bundle b) {
         super.onCreate(b);
         setContentView(R.layout.activity_buscar);
+        TopBarController.bind(this);
+        findViewById(R.id.btnVolver).setVisibility(android.view.View.VISIBLE);
         findViewById(R.id.btnVolver).setOnClickListener(v -> getOnBackPressedDispatcher().onBackPressed());
         etBuscar = findViewById(R.id.etBuscar);
         tvMsg = findViewById(R.id.tvMsg);
@@ -59,8 +60,6 @@ public class BuscarActivity extends AppCompatActivity {
         spCategoria = findViewById(R.id.spCategoria);
         spNivel = findViewById(R.id.spNivel);
         spDisponibilidad = findViewById(R.id.spDisponibilidad);
-        spTipoControl = findViewById(R.id.spTipoControl);
-        spUbicacion = findViewById(R.id.spUbicacion);
         spEstado = findViewById(R.id.spEstado);
 
         ListView lista = findViewById(R.id.lista);
@@ -78,17 +77,14 @@ public class BuscarActivity extends AppCompatActivity {
         configurar(spDisponibilidad, opciones(
                 "Disponibilidad · Todas", "", "Disponibles", "disponibles",
                 "Sin ejemplares disponibles", "sin_disponibles"));
-        configurar(spTipoControl, opciones(
-                "Control · Todos", "", "Por cantidad", "CANTIDAD", "Individual", "INDIVIDUAL"));
         configurar(spEstado, opciones(
                 "Estado · Activos", "ACTIVO", "Archivados", "ARCHIVADO", "Todos", "todos"));
         configurar(spCategoria, opciones("Todas las categorías", ""));
-        configurar(spUbicacion, opciones("Ubicación · Todas", ""));
         cargarCatalogos();
     }
 
     private void cargarCatalogos() {
-        catalogosPendientes = 2;
+        catalogosPendientes = 1;
         Api.call(ApiClient.api().categorias(), new Api.Result<List<Categoria>>() {
             @Override public void ok(List<Categoria> data, String message) {
                 List<FilterOption> values = opciones("Todas las categorías", "");
@@ -104,24 +100,6 @@ public class BuscarActivity extends AppCompatActivity {
             }
             @Override public void error(String msg, int http, String code) {
                 erroresCatalogos.add("No se pudieron cargar las categorías: " + msg);
-                catalogoListo();
-            }
-        });
-        Api.call(ApiClient.api().ubicaciones(), new Api.Result<List<Ubicacion>>() {
-            @Override public void ok(List<Ubicacion> data, String message) {
-                List<FilterOption> values = opciones("Ubicación · Todas", "");
-                if (data == null) {
-                    erroresCatalogos.add("El servidor devolvió ubicaciones incompletas.");
-                } else {
-                    for (Ubicacion ubicacion : data) {
-                        values.add(new FilterOption(ubicacion.toString(), String.valueOf(ubicacion.id)));
-                    }
-                }
-                configurar(spUbicacion, values);
-                catalogoListo();
-            }
-            @Override public void error(String msg, int http, String code) {
-                erroresCatalogos.add("No se pudieron cargar las ubicaciones: " + msg);
                 catalogoListo();
             }
         });
@@ -158,7 +136,7 @@ public class BuscarActivity extends AppCompatActivity {
         tvMsg.setText("");
         Api.call(ApiClient.api().buscarLibros(
                 texto, paginaSolicitada, 30, valor(spEstado), valorLong(spCategoria), valor(spNivel),
-                valor(spDisponibilidad), valor(spTipoControl), valorLong(spUbicacion)),
+                valor(spDisponibilidad), "", null),
                 new Api.Result<Paged<Libro>>() {
                     @Override public void ok(Paged<Libro> data, String message) {
                         if (solicitud != busquedaActual) return;
@@ -210,8 +188,6 @@ public class BuscarActivity extends AppCompatActivity {
         spCategoria.setSelection(0);
         spNivel.setSelection(0);
         spDisponibilidad.setSelection(0);
-        spTipoControl.setSelection(0);
-        spUbicacion.setSelection(0);
         spEstado.setSelection(2);
         buscar();
     }
