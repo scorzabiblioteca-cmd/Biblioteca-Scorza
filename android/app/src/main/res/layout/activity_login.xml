@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fillViewport="true"
-    android:background="#F3F7FA"
+    android:background="@drawable/bg_library_canvas"
     android:clipToPadding="false">
 
     <LinearLayout
