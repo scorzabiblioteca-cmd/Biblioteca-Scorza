@@ -8,6 +8,21 @@
     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
         android:orientation="vertical" android:padding="20dp">
         <TextView style="@style/BsTitle" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Nuevo préstamo" />
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginTop="12dp" android:text="¿A quién se presta?"
+            android:textColor="#475569" android:textSize="14sp" android:textStyle="bold" />
+        <RadioGroup android:id="@+id/rgTipoPrestatario"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginTop="4dp" android:orientation="horizontal">
+            <RadioButton android:id="@+id/rbAlumno"
+                android:layout_width="0dp" android:layout_height="48dp"
+                android:layout_weight="1" android:checked="true"
+                android:text="Alumno" android:textColor="#17324D" />
+            <RadioButton android:id="@+id/rbProfesor"
+                android:layout_width="0dp" android:layout_height="48dp"
+                android:layout_weight="1" android:text="Profesor"
+                android:textColor="#17324D" />
+        </RadioGroup>
         <AutoCompleteTextView android:id="@+id/etAlumno" style="@style/BsInput"
             android:hint="Nombre, apellido o código del alumno" android:inputType="text"
             android:completionThreshold="2" android:singleLine="true" android:imeOptions="actionSearch" />

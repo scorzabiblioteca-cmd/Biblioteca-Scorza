@@ -24,6 +24,7 @@
         <activity android:name=".ui.PrestamoActivity" />
         <activity android:name=".ui.DevolucionActivity" />
         <activity android:name=".ui.BuscarActivity" />
+        <activity android:name=".ui.NotificacionesActivity" />
 
         <provider
             android:name="androidx.core.content.FileProvider"

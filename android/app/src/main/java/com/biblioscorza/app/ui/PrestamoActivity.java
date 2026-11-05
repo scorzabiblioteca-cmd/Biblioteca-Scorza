@@ -15,6 +15,7 @@ import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.Filter;
 import android.widget.Filterable;
+import android.widget.RadioGroup;
 import android.widget.TextView;
 
 import androidx.activity.result.ActivityResultLauncher;
@@ -29,6 +30,7 @@ import com.biblioscorza.app.data.Models.ConsultaIsbn;
 import com.biblioscorza.app.data.Models.Ejemplar;
 import com.biblioscorza.app.data.Models.Paged;
 import com.biblioscorza.app.data.Models.PrestamoReq;
+import com.biblioscorza.app.data.Models.Profesor;
 import com.biblioscorza.app.util.Api;
 
 import java.util.ArrayList;
@@ -39,13 +41,17 @@ public class PrestamoActivity extends AppCompatActivity {
     private static final String TAG = "PrestamoActivity";
     private final Handler main = new Handler(Looper.getMainLooper());
     private final List<Alumno> sugerencias = new ArrayList<>();
+    private final List<Profesor> sugerenciasProfesores = new ArrayList<>();
     private final List<PrestamoReq.Item> items = new ArrayList<>();
     private final List<String> lineas = new ArrayList<>();
     private AutoCompleteTextView etAlumno;
     private TextView tvAlumno, tvItems, tvMsg;
     private Button btnScanLibro, btnConfirmar;
     private AlumnoSugerenciaAdapter alumnosAdapter;
+    private ProfesorSugerenciaAdapter profesoresAdapter;
+    private boolean buscandoProfesor;
     private Alumno alumno;
+    private Profesor profesor;
     private Runnable busquedaPendiente, cambioTextoPendiente;
     private int solicitudBusqueda;
     private boolean textoDeEscaner, seleccionSugerenciaPendiente;
@@ -75,22 +81,43 @@ public class PrestamoActivity extends AppCompatActivity {
         tvMsg = findViewById(R.id.tvMsg);
         btnScanLibro = findViewById(R.id.btnScanLibro);
         btnConfirmar = findViewById(R.id.btnConfirmar);
+        RadioGroup rgTipoPrestatario = findViewById(R.id.rgTipoPrestatario);
         alumnosAdapter = new AlumnoSugerenciaAdapter();
+        profesoresAdapter = new ProfesorSugerenciaAdapter();
         etAlumno.setAdapter(alumnosAdapter);
         etAlumno.setThreshold(2);
+        rgTipoPrestatario.setOnCheckedChangeListener((group, checkedId) -> {
+            buscandoProfesor = checkedId == R.id.rbProfesor;
+            if (busquedaPendiente != null) main.removeCallbacks(busquedaPendiente);
+            solicitudBusqueda++;
+            invalidarSeleccion();
+            sugerencias.clear();
+            sugerenciasProfesores.clear();
+            alumnosAdapter.notifyDataSetChanged();
+            profesoresAdapter.notifyDataSetChanged();
+            textoDeEscaner = true;
+            etAlumno.setText("");
+            textoDeEscaner = false;
+            consultaEscrita = "";
+            etAlumno.setHint(buscandoProfesor
+                    ? "Nombre, apellido o DNI del profesor"
+                    : "Nombre, apellido o código del alumno");
+            etAlumno.setAdapter(buscandoProfesor ? profesoresAdapter : alumnosAdapter);
+            findViewById(R.id.btnBuscarAlumno).setContentDescription(
+                    buscandoProfesor ? "Buscar profesores" : "Buscar alumnos");
+            ((Button) findViewById(R.id.btnBuscarAlumno)).setText(
+                    buscandoProfesor ? "Buscar profesores" : "Buscar coincidencias");
+            findViewById(R.id.btnScanAlumno).setVisibility(
+                    buscandoProfesor ? View.GONE : View.VISIBLE);
+            tvMsg.setText("");
+        });
         etAlumno.addTextChangedListener(new TextWatcher() {
             @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
             @Override public void onTextChanged(CharSequence s, int start, int before, int count) { }
             @Override public void afterTextChanged(Editable text) {
                 if (textoDeEscaner) return;
                 String textoActual = text.toString().trim();
-                boolean completandoSugerencia = false;
-                for (Alumno sugerencia : sugerencias) {
-                    if (sugerencia.toString().equals(textoActual)) {
-                        completandoSugerencia = true;
-                        break;
-                    }
-                }
+                boolean completandoSugerencia = esNombreDeSugerencia(textoActual);
                 if (!completandoSugerencia) {
                     consultaEscrita = textoActual;
                     invalidarSeleccion();
@@ -105,11 +132,10 @@ public class PrestamoActivity extends AppCompatActivity {
                         return;
                     }
                     invalidarSeleccion();
-                    sugerencias.clear();
-                    alumnosAdapter.notifyDataSetChanged();
+                    limpiarSugerencias();
                     tvMsg.setText("");
                     if (consulta.length() < 2) return;
-                    busquedaPendiente = () -> buscarCoincidencias(consulta, solicitud);
+                    busquedaPendiente = () -> buscarPrestatarios(consulta, solicitud);
                     main.postDelayed(busquedaPendiente, 300);
                 };
                 main.post(cambioTextoPendiente);
@@ -119,7 +145,14 @@ public class PrestamoActivity extends AppCompatActivity {
             seleccionSugerenciaPendiente = true;
             if (busquedaPendiente != null) main.removeCallbacks(busquedaPendiente);
             solicitudBusqueda++;
-            if (position >= 0 && position < alumnosAdapter.getCount()) {
+            if (buscandoProfesor && position >= 0 && position < profesoresAdapter.getCount()) {
+                Profesor candidato = profesoresAdapter.getItem(position);
+                if (coincide(candidato, consultaEscrita)) {
+                    seleccionarProfesor(candidato);
+                } else {
+                    tvMsg.setText("Espera a que se actualicen las sugerencias para esa búsqueda.");
+                }
+            } else if (!buscandoProfesor && position >= 0 && position < alumnosAdapter.getCount()) {
                 Alumno candidato = alumnosAdapter.getItem(position);
                 if (coincide(candidato, consultaEscrita)) {
                     seleccionarAlumno(candidato);
@@ -130,7 +163,7 @@ public class PrestamoActivity extends AppCompatActivity {
         });
         findViewById(R.id.btnBuscarAlumno).setOnClickListener(v -> {
             if (busquedaPendiente != null) main.removeCallbacks(busquedaPendiente);
-            buscarCoincidencias(etAlumno.getText().toString().trim(), ++solicitudBusqueda);
+            buscarPrestatarios(etAlumno.getText().toString().trim(), ++solicitudBusqueda);
         });
         findViewById(R.id.btnScanAlumno).setOnClickListener(v -> escanearAlumno.launch(
                 new Intent(this, ScannerActivity.class).putExtra(ScannerActivity.EXTRA_GUIA, "Escanea el QR del alumno")));
@@ -142,17 +175,68 @@ public class PrestamoActivity extends AppCompatActivity {
         actualizar();
     }
 
+    private void buscarPrestatarios(String consulta, int solicitud) {
+        if (buscandoProfesor) buscarCoincidenciasProfesor(consulta, solicitud);
+        else buscarCoincidencias(consulta, solicitud);
+    }
+
+    private void buscarCoincidenciasProfesor(String consulta, int solicitud) {
+        if (consulta.isEmpty()) {
+            tvMsg.setText("Escribe el nombre, apellido o DNI del profesor.");
+            return;
+        }
+        sugerenciasProfesores.clear();
+        profesoresAdapter.notifyDataSetChanged();
+        tvMsg.setText("Buscando profesores...");
+        Api.call(ApiClient.api().buscarProfesores(consulta, "ACTIVO", 1, 15),
+                new Api.Result<Paged<Profesor>>() {
+                    @Override public void ok(Paged<Profesor> data, String message) {
+                        if (solicitud != solicitudBusqueda
+                                || !consulta.equals(etAlumno.getText().toString().trim())
+                                || !buscandoProfesor) return;
+                        sugerenciasProfesores.clear();
+                        if (data == null || data.items == null) {
+                            profesoresAdapter.notifyDataSetChanged();
+                            tvMsg.setText("El servidor devolvió una lista de profesores incompleta.");
+                            return;
+                        }
+                        java.util.Set<Long> ids = new java.util.HashSet<>();
+                        for (Profesor item : data.items) {
+                            if (item != null && ids.add(item.id)) sugerenciasProfesores.add(item);
+                        }
+                        profesoresAdapter.notifyDataSetChanged();
+                        if (sugerenciasProfesores.isEmpty()) {
+                            tvMsg.setText("No se encontraron profesores activos con ese dato.");
+                        } else {
+                            tvMsg.setText("Selecciona al profesor correcto. Se muestran "
+                                    + sugerenciasProfesores.size() + " coincidencia(s).");
+                            if (etAlumno.hasFocus() && !isFinishing() && !isDestroyed()) {
+                                etAlumno.showDropDown();
+                            }
+                        }
+                    }
+
+                    @Override public void error(String msg, int http, String code) {
+                        if (solicitud != solicitudBusqueda || !buscandoProfesor) return;
+                        sugerenciasProfesores.clear();
+                        profesoresAdapter.notifyDataSetChanged();
+                        Log.w(TAG, "Teacher lookup failed (HTTP " + http + ", code " + code + "): " + msg);
+                        tvMsg.setText("No se pudo buscar al profesor: " + msg + ". Puedes reintentar.");
+                    }
+                });
+    }
+
     private void buscarCoincidencias(String consulta, int solicitud) {
         if (consulta.isEmpty()) {
             tvMsg.setText("Escribe el nombre, apellido o código del alumno.");
             return;
         }
-        sugerencias.clear();
-        alumnosAdapter.notifyDataSetChanged();
+        limpiarSugerencias();
         tvMsg.setText("Buscando alumnos...");
         Api.call(ApiClient.api().buscarAlumnos(consulta, "ACTIVO", 15), new Api.Result<Paged<Alumno>>() {
             @Override public void ok(Paged<Alumno> data, String message) {
-                if (solicitud != solicitudBusqueda || !consulta.equals(etAlumno.getText().toString().trim())) return;
+                if (solicitud != solicitudBusqueda || buscandoProfesor
+                        || !consulta.equals(etAlumno.getText().toString().trim())) return;
                 sugerencias.clear();
                 if (data == null || data.items == null) {
                     alumnosAdapter.notifyDataSetChanged();
@@ -193,6 +277,40 @@ public class PrestamoActivity extends AppCompatActivity {
                 || (alumno.dni != null && alumno.dni.contains(q));
     }
 
+    private static boolean coincide(Profesor profesor, String consulta) {
+        if (profesor == null || consulta.isEmpty()) return false;
+        String q = consulta.toLowerCase(java.util.Locale.ROOT);
+        String nombres = ((profesor.nombres == null ? "" : profesor.nombres)
+                + " " + (profesor.apellidos == null ? "" : profesor.apellidos))
+                .toLowerCase(java.util.Locale.ROOT);
+        String apellidos = ((profesor.apellidos == null ? "" : profesor.apellidos)
+                + " " + (profesor.nombres == null ? "" : profesor.nombres))
+                .toLowerCase(java.util.Locale.ROOT);
+        return nombres.contains(q) || apellidos.contains(q)
+                || String.valueOf(profesor.id).contains(q)
+                || (profesor.dni != null && profesor.dni.toLowerCase(java.util.Locale.ROOT).contains(q));
+    }
+
+    private boolean esNombreDeSugerencia(String consulta) {
+        if (buscandoProfesor) {
+            for (Profesor sugerencia : sugerenciasProfesores) {
+                if (sugerencia.nombreCompleto().equals(consulta)) return true;
+            }
+        } else {
+            for (Alumno sugerencia : sugerencias) {
+                if (sugerencia.nombreCompleto().equals(consulta)) return true;
+            }
+        }
+        return false;
+    }
+
+    private void limpiarSugerencias() {
+        sugerencias.clear();
+        sugerenciasProfesores.clear();
+        alumnosAdapter.notifyDataSetChanged();
+        profesoresAdapter.notifyDataSetChanged();
+    }
+
     private void buscarAlumnoEscaneado(String valor) {
         if (valor == null || valor.trim().isEmpty()) {
             tvMsg.setText("El escáner no devolvió un identificador de alumno.");
@@ -230,6 +348,7 @@ public class PrestamoActivity extends AppCompatActivity {
             return;
         }
         alumno = seleccionado;
+        profesor = null;
         String nombre = seleccionado.nombreCompleto();
         textoDeEscaner = true;
         etAlumno.setText(nombre, false);
@@ -244,8 +363,34 @@ public class PrestamoActivity extends AppCompatActivity {
         actualizar();
     }
 
+    private void seleccionarProfesor(Profesor seleccionado) {
+        if (seleccionado == null || !"ACTIVO".equals(seleccionado.estado)) {
+            invalidarSeleccion();
+            tvMsg.setText("El profesor no existe o no está activo.");
+            return;
+        }
+        profesor = seleccionado;
+        alumno = null;
+        String nombre = seleccionado.nombreCompleto();
+        textoDeEscaner = true;
+        etAlumno.setText(nombre, false);
+        etAlumno.setSelection(etAlumno.length());
+        textoDeEscaner = false;
+        consultaEscrita = nombre;
+        StringBuilder detalle = new StringBuilder(nombre)
+                .append("\nDNI: ").append(seleccionado.dni == null ? "No registrado" : seleccionado.dni)
+                .append("\nID: ").append(seleccionado.id);
+        if (seleccionado.area != null && !seleccionado.area.trim().isEmpty()) {
+            detalle.append("\nÁrea: ").append(seleccionado.area);
+        }
+        tvAlumno.setText(detalle);
+        tvMsg.setText("");
+        actualizar();
+    }
+
     private void invalidarSeleccion() {
         alumno = null;
+        profesor = null;
         tvAlumno.setText("");
         actualizar();
     }
@@ -356,13 +501,16 @@ public class PrestamoActivity extends AppCompatActivity {
 
     private void actualizar() {
         tvItems.setText(lineas.isEmpty() ? "" : "Libros a prestar:\n• " + String.join("\n• ", lineas));
-        btnScanLibro.setEnabled(alumno != null);
-        btnConfirmar.setEnabled(alumno != null && !items.isEmpty());
+        boolean prestatarioSeleccionado = alumno != null || profesor != null;
+        btnScanLibro.setEnabled(prestatarioSeleccionado);
+        btnConfirmar.setEnabled(prestatarioSeleccionado && !items.isEmpty());
     }
 
     private void confirmar() {
-        if (alumno == null) {
-            tvMsg.setText("Selecciona un alumno activo antes de confirmar el préstamo.");
+        if (alumno == null && profesor == null) {
+            tvMsg.setText(buscandoProfesor
+                    ? "Selecciona un profesor activo antes de confirmar el préstamo."
+                    : "Selecciona un alumno activo antes de confirmar el préstamo.");
             return;
         }
         if (items.isEmpty()) {
@@ -370,7 +518,8 @@ public class PrestamoActivity extends AppCompatActivity {
             return;
         }
         PrestamoReq solicitud = new PrestamoReq();
-        solicitud.alumnoId = alumno.id;
+        if (profesor != null) solicitud.profesorId = profesor.id;
+        else solicitud.alumnoId = alumno.id;
         solicitud.items = items;
         btnConfirmar.setEnabled(false);
         Api.call(ApiClient.api().prestar(solicitud), new Api.Result<Object>() {
@@ -419,6 +568,41 @@ public class PrestamoActivity extends AppCompatActivity {
             Alumno item = getItem(position);
             ((TextView) row.findViewById(R.id.tvNombreAlumno)).setText(item.nombreCompleto());
             row.findViewById(R.id.tvIdentificadorAlumno).setVisibility(View.GONE);
+            return row;
+        }
+    }
+
+    private final class ProfesorSugerenciaAdapter extends BaseAdapter implements Filterable {
+        private final Filter filtroSinRecorte = new Filter() {
+            @Override protected FilterResults performFiltering(CharSequence constraint) {
+                FilterResults results = new FilterResults();
+                results.count = getCount();
+                return results;
+            }
+
+            @Override protected void publishResults(CharSequence constraint, FilterResults results) {
+                notifyDataSetChanged();
+            }
+        };
+
+        @Override public int getCount() { return sugerenciasProfesores.size(); }
+        @Override public Profesor getItem(int position) { return sugerenciasProfesores.get(position); }
+        @Override public long getItemId(int position) { return getItem(position).id; }
+        @Override public Filter getFilter() { return filtroSinRecorte; }
+
+        @Override public View getView(int position, View convertView, ViewGroup parent) {
+            View row = convertView == null
+                    ? LayoutInflater.from(PrestamoActivity.this)
+                    .inflate(R.layout.row_alumno_sugerencia, parent, false)
+                    : convertView;
+            Profesor item = getItem(position);
+            ((TextView) row.findViewById(R.id.tvNombreAlumno)).setText(item.nombreCompleto());
+            TextView detalles = row.findViewById(R.id.tvIdentificadorAlumno);
+            StringBuilder info = new StringBuilder("DNI: ")
+                    .append(item.dni == null || item.dni.trim().isEmpty() ? "No registrado" : item.dni);
+            if (item.area != null && !item.area.trim().isEmpty()) info.append(" · Área: ").append(item.area);
+            detalles.setText(info);
+            detalles.setVisibility(View.VISIBLE);
             return row;
         }
     }

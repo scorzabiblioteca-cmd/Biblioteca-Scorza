@@ -35,7 +35,9 @@ public final class Models {
         @SerializedName("leida_en") public String leidaEn;
         @SerializedName("created_at") public String creadaEn;
     }
-    public static class NotificacionLeida { public String leidaEn; }
+    public static class NotificacionLeida {
+        @SerializedName("leida_en") public String leidaEn;
+    }
     public static class NotificacionesLeidas { public int actualizadas; }
     public static class NotificacionLeidaReq { public boolean leida = true; }
     public static class LoginReq {
@@ -122,8 +124,15 @@ public final class Models {
         @Override public String toString() { return nombreCompleto() + " · Código: " + codigoAlumno + " · ID: " + id; }
     }
 
+    public static class Profesor {
+        public long id;
+        public String dni, nombres, apellidos, correo, telefono, area, estado;
+        public String nombreCompleto() { return apellidos + ", " + nombres; }
+    }
+
     public static class PrestamoReq {
         public Long alumnoId;
+        public Long profesorId;
         public String alumnoDni, alumnoCodigo;
         public List<Item> items;
         public static class Item {

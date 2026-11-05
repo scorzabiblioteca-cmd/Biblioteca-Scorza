@@ -41,6 +41,9 @@ public interface ApiService {
     @GET("alumnos/codigo/{codigo}") Call<ApiResponse<Alumno>> alumnoPorCodigo(@Path("codigo") String codigo);
     @GET("alumnos") Call<ApiResponse<Paged<Alumno>>> buscarAlumnos(
             @Query("q") String q, @Query("estado") String estado, @Query("pageSize") int size);
+    @GET("profesores") Call<ApiResponse<Paged<Profesor>>> buscarProfesores(
+            @Query("q") String q, @Query("estado") String estado,
+            @Query("page") int page, @Query("pageSize") int size);
 
     @POST("prestamos") Call<ApiResponse<Object>> prestar(@Body PrestamoReq body);
     @GET("prestamos/activo/ejemplar/{codigo}") Call<ApiResponse<PrestamoActivo>> prestamoActivo(@Path("codigo") String codigo);
