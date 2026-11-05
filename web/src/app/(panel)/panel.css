@@ -259,3 +259,17 @@ html[data-theme="dark"] .mobile-developer-credits {
 html[data-theme="dark"] .mobile-developer-credits button {
   color: #a8b6ca;
 }
+
+html[data-theme="dark"] .cover-upload {
+  border-color: #465a74;
+  background: #111c2b;
+}
+
+html[data-theme="dark"] .cover-preview {
+  border-color: #465a74;
+  background: #0c1421;
+}
+
+html[data-theme="dark"] .cover-remove:hover {
+  background: #3c2029;
+}

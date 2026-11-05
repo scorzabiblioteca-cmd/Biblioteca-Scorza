@@ -50,6 +50,7 @@ type DatosFormularioLibro = typeof VACIO;
 
 export default function NuevoLibro() {
   const router = useRouter();
+  const portadaInput = useRef<HTMLInputElement>(null);
   const [f, setF] = useState<DatosFormularioLibro>(VACIO);
   const isbnActual = useRef("");
   const consultasEnCurso = useRef(new Set<string>());
@@ -212,10 +213,68 @@ export default function NuevoLibro() {
         <Field label="Observaciones" className="sm:col-span-2"><textarea className="input" rows={2} value={f.observaciones} onChange={set("observaciones")} /></Field>
         <div className="sm:col-span-2">
           <span className="label">Fotografía de portada</span>
-          <div className="flex items-center gap-3">
-            {f.imagenUrl && <img src={f.imagenUrl} alt="Portada" className="h-20 w-14 rounded object-cover" />}
-            <input type="file" accept="image/*" capture="environment" disabled={subiendo} onChange={(e) => e.target.files?.[0] && subirFoto(e.target.files[0])} className="text-sm" />
-            {subiendo && <span className="text-sm text-slate-500">Subiendo…</span>}
+          <div className="cover-upload flex flex-col gap-4 rounded-2xl border border-dashed border-[#cbd5e1] bg-[#f8fafc] p-4 sm:flex-row sm:items-center sm:p-5">
+            <div className="cover-preview grid h-36 w-28 shrink-0 place-items-center overflow-hidden rounded-xl border border-[#e2e8f0] bg-white">
+              {f.imagenUrl ? (
+                <img src={f.imagenUrl} alt="Vista previa de la portada" className="h-full w-full object-cover" />
+              ) : (
+                <div className="flex flex-col items-center gap-2 px-2 text-center text-slate-400">
+                  <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="h-9 w-9">
+                    <path d="M4 3.5h11l5 5v12H4z" />
+                    <path d="M14 3.5v5h5M8 14l2.2-2.2 2.3 2.3 1.5-1.5L18 16.5M8 18h8" />
+                  </svg>
+                  <span className="text-xs">Sin portada</span>
+                </div>
+              )}
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="font-semibold text-[#172b4d]">
+                {f.imagenUrl ? "La portada está lista" : "Añade una portada al libro"}
+              </p>
+              <p className="mt-1 text-sm text-slate-500">
+                Elige una imagen de tu dispositivo o toma una fotografía. Se mostrará en el catálogo.
+              </p>
+              <input
+                ref={portadaInput}
+                type="file"
+                accept="image/*"
+                capture="environment"
+                disabled={subiendo}
+                onChange={async (e) => {
+                  const archivo = e.target.files?.[0];
+                  if (archivo) await subirFoto(archivo);
+                  e.target.value = "";
+                }}
+                className="sr-only"
+                aria-label="Seleccionar imagen de portada"
+              />
+              <div className="mt-4 flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  className="btn-ghost"
+                  disabled={subiendo}
+                  onClick={() => portadaInput.current?.click()}
+                >
+                  <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
+                    <path d="M4 7h3l2-2h6l2 2h3v12H4z" />
+                    <circle cx="12" cy="13" r="3" />
+                  </svg>
+                  {f.imagenUrl ? "Cambiar portada" : "Seleccionar imagen"}
+                </button>
+                {f.imagenUrl && (
+                  <button type="button" className="cover-remove rounded-lg px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-50" onClick={() => setF((actual) => ({ ...actual, imagenUrl: "" }))}>
+                    Quitar portada
+                  </button>
+                )}
+                {subiendo && (
+                  <span role="status" className="inline-flex items-center gap-2 text-sm text-slate-500">
+                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-brand-200 border-t-brand-600" />
+                    Subiendo portada…
+                  </span>
+                )}
+              </div>
+              <p className="mt-2 text-xs text-slate-500">Formatos de imagen compatibles. La carga puede tardar unos segundos.</p>
+            </div>
           </div>
         </div>
         <div className="space-y-3 sm:col-span-2">

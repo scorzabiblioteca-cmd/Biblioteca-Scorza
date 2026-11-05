@@ -511,3 +511,50 @@ html[data-theme="dark"] ::selection {
     min-height: 2.5rem;
   }
 }
+
+html[data-theme="dark"] .label,
+html[data-theme="dark"] legend.label,
+html[data-theme="dark"] form label,
+html[data-theme="dark"] form legend,
+html[data-theme="dark"] dialog,
+html[data-theme="dark"] dialog label,
+html[data-theme="dark"] dialog p,
+html[data-theme="dark"] dialog h2,
+html[data-theme="dark"] dialog h3 {
+  color: #f1f5fb !important;
+}
+
+html[data-theme="dark"] form input:not([type="checkbox"]):not([type="radio"]),
+html[data-theme="dark"] form select,
+html[data-theme="dark"] form textarea,
+html[data-theme="dark"] dialog input:not([type="checkbox"]):not([type="radio"]),
+html[data-theme="dark"] dialog select,
+html[data-theme="dark"] dialog textarea {
+  border-color: #526782 !important;
+  background-color: #111c2b !important;
+  color: #f8fafc !important;
+  -webkit-text-fill-color: #f8fafc;
+  color-scheme: dark;
+}
+
+html[data-theme="dark"] form input::placeholder,
+html[data-theme="dark"] form textarea::placeholder,
+html[data-theme="dark"] dialog input::placeholder,
+html[data-theme="dark"] dialog textarea::placeholder {
+  color: #bdc9d8 !important;
+  opacity: 1 !important;
+  -webkit-text-fill-color: #bdc9d8;
+}
+
+html[data-theme="dark"] form select option,
+html[data-theme="dark"] dialog select option {
+  background-color: #111c2b;
+  color: #f8fafc;
+}
+
+html[data-theme="dark"] form input[type="checkbox"],
+html[data-theme="dark"] form input[type="radio"],
+html[data-theme="dark"] dialog input[type="checkbox"],
+html[data-theme="dark"] dialog input[type="radio"] {
+  accent-color: #75a7ff;
+}
