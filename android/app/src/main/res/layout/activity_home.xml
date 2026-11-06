@@ -107,13 +107,13 @@
                 app:iconSize="40dp" />
 
             <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnEscanearIsbn"
+                android:id="@+id/btnEscaneoOpciones"
                 style="@style/BsHomeTile"
                 android:layout_width="0dp"
                 android:layout_weight="1"
                 android:layout_marginStart="6dp"
                 android:gravity="center"
-                android:text="Escanear ISBN&#10;(registro rápido)"
+                android:text="Escanear / buscar&#10;ISBN o ejemplar"
                 android:textAlignment="center"
                 android:maxLines="2"
                 app:icon="@drawable/ic_home_isbn"
@@ -129,57 +129,19 @@
             android:orientation="horizontal">
 
             <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnEscanearEjemplar"
+                android:id="@+id/btnCirculacionOpciones"
                 style="@style/BsHomeTile"
                 android:layout_width="0dp"
                 android:layout_weight="1"
                 android:layout_marginEnd="6dp"
                 android:gravity="center"
-                android:text="Escanear ejemplar"
-                android:textAlignment="center"
-                android:maxLines="2"
-                app:icon="@drawable/ic_home_qr"
-                app:iconGravity="textTop"
-                app:iconPadding="10dp"
-                app:iconSize="40dp" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnPrestamo"
-                style="@style/BsHomeTile"
-                android:layout_width="0dp"
-                android:layout_weight="1"
-                android:layout_marginStart="6dp"
-                android:gravity="center"
-                android:text="Préstamo"
+                android:text="Préstamos /&#10;devoluciones"
                 android:textAlignment="center"
                 android:maxLines="2"
                 app:icon="@drawable/ic_home_loan"
                 app:iconGravity="textTop"
                 app:iconPadding="10dp"
                 app:iconSize="40dp" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:orientation="horizontal">
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnDevolucion"
-                style="@style/BsHomeTile"
-                android:layout_width="0dp"
-                android:layout_weight="1"
-                android:layout_marginEnd="6dp"
-                android:gravity="center"
-                android:text="Devolución"
-                android:textAlignment="center"
-                android:maxLines="2"
-                app:icon="@drawable/ic_home_return"
-                app:iconGravity="textTop"
-                app:iconPadding="10dp"
-                app:iconSize="40dp" />
-
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnBuscar"
                 style="@style/BsHomeTile"

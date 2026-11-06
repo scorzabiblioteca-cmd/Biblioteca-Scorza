@@ -18,6 +18,8 @@
             </intent-filter>
         </activity>
         <activity android:name=".ui.HomeActivity" />
+        <activity android:name=".ui.EscaneoOpcionesActivity" />
+        <activity android:name=".ui.CirculacionOpcionesActivity" />
         <activity android:name=".ui.ScannerActivity" />
         <activity android:name=".ui.LibroFormActivity" android:windowSoftInputMode="adjustResize" />
         <activity android:name=".ui.CapturePhotoActivity" android:screenOrientation="portrait" />

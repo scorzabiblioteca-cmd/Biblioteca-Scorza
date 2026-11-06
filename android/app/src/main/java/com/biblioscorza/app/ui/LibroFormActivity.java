@@ -33,6 +33,7 @@ import com.biblioscorza.app.data.Models.LibroReq;
 import com.biblioscorza.app.data.Models.Ubicacion;
 import com.biblioscorza.app.util.Api;
 import com.biblioscorza.app.util.ImageUploader;
+import com.biblioscorza.app.util.ScannedCode;
 import com.biblioscorza.app.data.Models.ConsultaIsbn;
 import com.biblioscorza.app.data.Models.LibroDatos;
 import com.biblioscorza.app.data.Models.LibroRegistrado;
@@ -73,8 +74,14 @@ public class LibroFormActivity extends AppCompatActivity {
     private final ActivityResultLauncher<Intent> escanear = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(), r -> {
                 if (r.getResultCode() == RESULT_OK && r.getData() != null) {
-                    etIsbn.setText(r.getData().getStringExtra(ScannerActivity.EXTRA_VALOR));
-                    verificarIsbn();
+                    String valor = r.getData().getStringExtra(ScannerActivity.EXTRA_VALOR);
+                    String tipo = r.getData().getStringExtra(ScannerActivity.EXTRA_TIPO);
+                    if (ScannedCode.TYPE_ISBN.equals(tipo)) {
+                        etIsbn.setText(valor);
+                        verificarIsbn();
+                    } else {
+                        tvError.setText("El código leído no es un ISBN válido.");
+                    }
                 }
             });
 
@@ -164,8 +171,8 @@ public class LibroFormActivity extends AppCompatActivity {
 
         cargarCategorias();
         cargarUbicaciones();
-        findViewById(R.id.btnScanIsbn).setOnClickListener(v -> escanear.launch(new Intent(this, ScannerActivity.class)
-                .putExtra(ScannerActivity.EXTRA_GUIA, "Escanea el código de barras (ISBN) del libro")));
+        findViewById(R.id.btnScanIsbn).setOnClickListener(v -> escanear.launch(ScannerActivity.crearIntent(this,
+                ScannerActivity.CONTEXTO_REGISTRO_LIBRO, "Escanea el código de barras ISBN del libro")));
         findViewById(R.id.btnFoto).setOnClickListener(v -> elegirOrigenFoto());
         btnGuardar.setOnClickListener(v -> guardar());
         observarCambiosSinGuardar(etIsbn, etTitulo, etSubtitulo, etAutor, etEditorial,
@@ -191,6 +198,10 @@ public class LibroFormActivity extends AppCompatActivity {
                         .show();
             }
         });
+        if (!editando && getIntent().getBooleanExtra("consultarIsbn", false)
+                && isbn != null && !isbn.trim().isEmpty()) {
+            verificarIsbn();
+        }
     }
 
     private void observarCambiosSinGuardar(EditText... campos) {

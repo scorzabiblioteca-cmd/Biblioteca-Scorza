@@ -24,6 +24,8 @@
             android:layout_height="wrap_content" android:layout_marginBottom="4dp" android:background="#CC17324D"
             android:gravity="center" android:padding="14dp" android:textColor="#FFFFFF"
             android:textSize="15sp" />
+            <Button android:id="@+id/btnCerrar" android:layout_width="match_parent"
+            android:layout_height="48dp" android:layout_marginTop="8dp" android:text="Cerrar escáner" />
             <Button android:id="@+id/btnReintentar" android:layout_width="match_parent"
             android:layout_height="48dp" android:layout_marginTop="8dp"
             android:text="Reintentar cámara" android:visibility="gone" />

@@ -18,6 +18,7 @@ import com.biblioscorza.app.data.ApiClient;
 import com.biblioscorza.app.data.Models.DevolucionReq;
 import com.biblioscorza.app.data.Models.PrestamoActivo;
 import com.biblioscorza.app.util.Api;
+import com.biblioscorza.app.util.ScannedCode;
 
 public class DevolucionActivity extends AppCompatActivity {
     private static final String[] ETIQ = {"Buena condición", "Deteriorado", "Dañado", "Perdido"};
@@ -30,7 +31,15 @@ public class DevolucionActivity extends AppCompatActivity {
 
     private final ActivityResultLauncher<Intent> escanear = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(), r -> {
-                if (r.getResultCode() == RESULT_OK && r.getData() != null) buscar(r.getData().getStringExtra(ScannerActivity.EXTRA_VALOR));
+                if (r.getResultCode() == RESULT_OK && r.getData() != null) {
+                    String tipo = r.getData().getStringExtra(ScannerActivity.EXTRA_TIPO);
+                    String valor = r.getData().getStringExtra(ScannerActivity.EXTRA_VALOR);
+                    if (ScannedCode.TYPE_EJEMPLAR.equals(tipo) && ScannedCode.esCodigoEjemplar(valor)) {
+                        buscar(valor);
+                    } else {
+                        tvMsg.setText("Escanea el QR o código interno de un ejemplar para consultar su préstamo activo.");
+                    }
+                }
             });
 
     @Override protected void onCreate(Bundle b) {
@@ -43,7 +52,8 @@ public class DevolucionActivity extends AppCompatActivity {
         spResultado = findViewById(R.id.spResultado); etObs = findViewById(R.id.etObs); btnConfirmar = findViewById(R.id.btnConfirmar);
         spResultado.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, ETIQ));
         findViewById(R.id.btnScan).setOnClickListener(v -> escanear.launch(
-                new Intent(this, ScannerActivity.class).putExtra(ScannerActivity.EXTRA_GUIA, "Escanea el QR del ejemplar que devuelven")));
+                ScannerActivity.crearIntent(this, ScannerActivity.CONTEXTO_DEVOLUCION,
+                        "Escanea el QR o código interno del ejemplar que devuelven")));
         btnConfirmar.setOnClickListener(v -> confirmar());
         String pre = getIntent().getStringExtra("codigo");
         if (pre != null) buscar(pre);

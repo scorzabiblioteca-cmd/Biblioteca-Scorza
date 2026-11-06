@@ -16,6 +16,9 @@
             android:layout_width="0dp" android:layout_height="48dp" android:layout_weight="1"
             android:text="Limpiar filtros" />
     </LinearLayout>
+    <Button android:id="@+id/btnScanCodigo" style="@style/BsButtonOutline"
+        android:layout_width="match_parent" android:layout_height="48dp"
+        android:layout_marginTop="8dp" android:text="Escanear ISBN o ejemplar" />
     <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
         android:layout_marginTop="12dp" android:layout_marginBottom="6dp"
         android:text="Categoría" android:textColor="#475569" android:textSize="14sp"

@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/bg_library_canvas"
+    android:orientation="vertical">
+
+    <include layout="@layout/view_top_bar" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="20dp">
+
+            <TextView
+                style="@style/BsTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Préstamos y devoluciones" />
+
+            <TextView
+                style="@style/BsText"
+                android:layout_marginTop="4dp"
+                android:text="Selecciona la operación. Cada opción conserva su flujo y sus validaciones actuales." />
+
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                app:cardBackgroundColor="#FFFFFF"
+                app:cardCornerRadius="18dp"
+                app:cardElevation="1dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="18dp">
+
+                    <TextView
+                        style="@style/BsTitle"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Préstamo" />
+
+                    <TextView
+                        style="@style/BsText"
+                        android:text="Selecciona al alumno o profesor, escanea los libros y confirma el préstamo." />
+
+                    <Button
+                        android:id="@+id/btnAbrirPrestamo"
+                        style="@style/BsButton"
+                        android:text="Iniciar préstamo" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                app:cardBackgroundColor="#FFFFFF"
+                app:cardCornerRadius="18dp"
+                app:cardElevation="1dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="18dp">
+
+                    <TextView
+                        style="@style/BsTitle"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Devolución" />
+
+                    <TextView
+                        style="@style/BsText"
+                        android:text="Escanea un ejemplar con préstamo activo para revisar y confirmar la devolución." />
+
+                    <Button
+                        android:id="@+id/btnAbrirDevolucion"
+                        style="@style/BsButton"
+                        android:text="Iniciar devolución" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

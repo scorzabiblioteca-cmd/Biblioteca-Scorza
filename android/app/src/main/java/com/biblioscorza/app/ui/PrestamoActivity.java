@@ -32,6 +32,7 @@ import com.biblioscorza.app.data.Models.Paged;
 import com.biblioscorza.app.data.Models.PrestamoReq;
 import com.biblioscorza.app.data.Models.Profesor;
 import com.biblioscorza.app.util.Api;
+import com.biblioscorza.app.util.ScannedCode;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -66,7 +67,8 @@ public class PrestamoActivity extends AppCompatActivity {
     private final ActivityResultLauncher<Intent> escanearLibro = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(), r -> {
                 if (r.getResultCode() == RESULT_OK && r.getData() != null)
-                    procesarLibro(r.getData().getStringExtra(ScannerActivity.EXTRA_VALOR));
+                    procesarLibro(r.getData().getStringExtra(ScannerActivity.EXTRA_VALOR),
+                            r.getData().getStringExtra(ScannerActivity.EXTRA_TIPO));
             });
 
     @Override protected void onCreate(Bundle b) {
@@ -167,12 +169,13 @@ public class PrestamoActivity extends AppCompatActivity {
             buscarPrestatarios(etAlumno.getText().toString().trim(), ++solicitudBusqueda);
         });
         findViewById(R.id.btnScanAlumno).setOnClickListener(v -> escanearAlumno.launch(
-                new Intent(this, ScannerActivity.class).putExtra(ScannerActivity.EXTRA_GUIA, "Escanea el QR del alumno")));
+                ScannerActivity.crearIntent(this, ScannerActivity.CONTEXTO_PRESTAMO, "Escanea el QR del alumno")));
         btnScanLibro.setOnClickListener(v -> escanearLibro.launch(
-                new Intent(this, ScannerActivity.class).putExtra(ScannerActivity.EXTRA_GUIA, "Escanea el QR del ejemplar o el ISBN")));
+                ScannerActivity.crearIntent(this, ScannerActivity.CONTEXTO_PRESTAMO,
+                        "Escanea el QR del ejemplar o el código de barras ISBN")));
         btnConfirmar.setOnClickListener(v -> confirmar());
         String pre = getIntent().getStringExtra("codigo");
-        if (pre != null) procesarLibro(pre);
+        if (pre != null) procesarLibro(pre, ScannedCode.TYPE_EJEMPLAR);
         actualizar();
     }
 
@@ -422,10 +425,10 @@ public class PrestamoActivity extends AppCompatActivity {
         actualizar();
     }
 
-    private void procesarLibro(String valor) {
+    private void procesarLibro(String valor, String tipo) {
         tvMsg.setText("");
         if (valor == null) return;
-        if (valor.toUpperCase().matches("^(LIB|ESP)-\\d+$")) {
+        if (ScannedCode.TYPE_EJEMPLAR.equals(tipo) && ScannedCode.esCodigoEjemplar(valor)) {
             String codigo = valor.toUpperCase();
             for (PrestamoReq.Item it : items) {
                 if (codigo.equals(it.codigoEjemplar)) {
@@ -447,13 +450,15 @@ public class PrestamoActivity extends AppCompatActivity {
                 }
                 @Override public void error(String msg, int h, String c) { tvMsg.setText(msg); }
             });
-        } else {
+        } else if (ScannedCode.TYPE_ISBN.equals(tipo) && ScannedCode.esIsbn(valor)) {
             consultarFichaIsbn(valor.replaceAll("[\\s-]", ""));
+        } else {
+            tvMsg.setText("El código no es un ISBN válido ni un código registrado de ejemplar.");
         }
     }
 
     private void consultarFichaIsbn(String isbn) {
-        if (isbn == null || !isbn.matches("\\d{10,13}")) {
+        if (!ScannedCode.esIsbn(isbn)) {
             tvMsg.setText("El código escaneado no es un ISBN válido ni un código de ejemplar.");
             return;
         }

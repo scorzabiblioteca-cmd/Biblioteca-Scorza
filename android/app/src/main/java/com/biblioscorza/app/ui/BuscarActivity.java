@@ -21,6 +21,7 @@ import com.biblioscorza.app.data.Models.Categoria;
 import com.biblioscorza.app.data.Models.Libro;
 import com.biblioscorza.app.data.Models.Paged;
 import com.biblioscorza.app.util.Api;
+import com.biblioscorza.app.util.ScannedCode;
 //wazaaaaaaaa
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -46,6 +47,20 @@ public class BuscarActivity extends AppCompatActivity {
             new ActivityResultContracts.StartActivityForResult(), resultado -> {
                 if (resultado.getResultCode() == RESULT_OK) buscar();
             });
+    private final ActivityResultLauncher<Intent> escanearCodigo = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(), resultado -> {
+                if (resultado.getResultCode() != RESULT_OK || resultado.getData() == null) return;
+                String valor = resultado.getData().getStringExtra(ScannerActivity.EXTRA_VALOR);
+                String tipo = resultado.getData().getStringExtra(ScannerActivity.EXTRA_TIPO);
+                if (ScannedCode.TYPE_EJEMPLAR.equals(tipo)) {
+                    startActivity(new Intent(this, EjemplarActivity.class).putExtra("codigo", valor));
+                } else if (ScannedCode.TYPE_ISBN.equals(tipo)) {
+                    etBuscar.setText(valor);
+                    buscar();
+                } else {
+                    tvMsg.setText("El código no corresponde a un ISBN ni a un ejemplar.");
+                }
+            });
 
     @Override protected void onCreate(Bundle b) {
         super.onCreate(b);
@@ -54,6 +69,8 @@ public class BuscarActivity extends AppCompatActivity {
         findViewById(R.id.btnVolver).setVisibility(android.view.View.VISIBLE);
         findViewById(R.id.btnVolver).setOnClickListener(v -> getOnBackPressedDispatcher().onBackPressed());
         etBuscar = findViewById(R.id.etBuscar);
+        String consultaInicial = getIntent().getStringExtra("q");
+        if (consultaInicial != null) etBuscar.setText(consultaInicial);
         tvMsg = findViewById(R.id.tvMsg);
         tvFiltros = findViewById(R.id.tvFiltros);
         progreso = findViewById(R.id.progreso);
@@ -68,6 +85,9 @@ public class BuscarActivity extends AppCompatActivity {
         lista.setOnItemClickListener((p, v, pos, id) -> detalle(libros.get(pos)));
         findViewById(R.id.btnBuscar).setOnClickListener(v -> buscar());
         findViewById(R.id.btnLimpiar).setOnClickListener(v -> limpiarFiltros());
+        findViewById(R.id.btnScanCodigo).setOnClickListener(v -> escanearCodigo.launch(
+                ScannerActivity.crearIntent(this, ScannerActivity.CONTEXTO_BUSQUEDA_LIBRO,
+                        "Escanea el ISBN o QR del ejemplar")));
         btnMas = findViewById(R.id.btnMas);
         btnMas.setOnClickListener(v -> buscarMas());
 

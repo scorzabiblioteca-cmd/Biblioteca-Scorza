@@ -1,6 +1,7 @@
 package com.biblioscorza.app.ui;
 
 import android.Manifest;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
@@ -17,7 +18,6 @@ import android.widget.Toast;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.OptIn;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.camera.core.Camera;
 import androidx.camera.core.CameraSelector;
@@ -32,13 +32,7 @@ import androidx.camera.view.PreviewView;
 import androidx.core.content.ContextCompat;
 
 import com.biblioscorza.app.R;
-import com.biblioscorza.app.data.ApiClient;
-import com.biblioscorza.app.data.Models.Agregado;
-import com.biblioscorza.app.data.Models.AgregarReq;
-import com.biblioscorza.app.data.Models.ConsultaIsbn;
-import com.biblioscorza.app.data.Models.LibroDatos;
-import com.biblioscorza.app.data.Models.LibroRegistrado;
-import com.biblioscorza.app.util.Api;
+import com.biblioscorza.app.util.ScannedCode;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.mlkit.vision.barcode.BarcodeScanner;
 import com.google.mlkit.vision.barcode.BarcodeScannerOptions;
@@ -56,14 +50,17 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
- * Escáner CameraX + ML Kit.
- * MODO_RAW devuelve el código a quien lo llamó; MODO_RAPIDO conserva el registro de ISBN.
+ * Escáner compartido CameraX + ML Kit. Las operaciones corresponden a la actividad invocadora.
  */
 @OptIn(markerClass = ExperimentalGetImage.class)
 public class ScannerActivity extends AppCompatActivity {
     private static final String TAG = "ScannerActivity";
-    public static final String EXTRA_MODO = "modo", EXTRA_GUIA = "guia", EXTRA_VALOR = "valor";
-    public static final String MODO_RAW = "RAW", MODO_RAPIDO = "RAPIDO";
+    public static final String EXTRA_CONTEXTO = "contexto", EXTRA_GUIA = "guia";
+    public static final String EXTRA_VALOR = "valor", EXTRA_TIPO = "tipo";
+    public static final String CONTEXTO_REGISTRO_LIBRO = "REGISTRO_LIBRO";
+    public static final String CONTEXTO_BUSQUEDA_LIBRO = "BUSQUEDA_LIBRO";
+    public static final String CONTEXTO_PRESTAMO = "PRESTAMO";
+    public static final String CONTEXTO_DEVOLUCION = "DEVOLUCION";
 
     private final AtomicBoolean ocupado = new AtomicBoolean(false);
     private final AtomicReference<String> codigoEnfocado = new AtomicReference<>();
@@ -71,7 +68,7 @@ public class ScannerActivity extends AppCompatActivity {
     private final Handler main = new Handler(Looper.getMainLooper());
     private ExecutorService executor;
     private BarcodeScanner scanner;
-    private String modo, textoGuia;
+    private String contexto, textoGuia;
     private PreviewView preview;
     private View marcoEscaneo;
     private TextView tvGuia;
@@ -79,7 +76,6 @@ public class ScannerActivity extends AppCompatActivity {
     private ProcessCameraProvider cameraProvider;
     private Camera camera;
     private boolean camaraIniciada, iniciandoCamara, linternaEncendida;
-    private final AtomicBoolean agregandoUnidades = new AtomicBoolean();
 
     private final ActivityResultLauncher<String> pedirPermiso =
             registerForActivityResult(new ActivityResultContracts.RequestPermission(), concedido -> {
@@ -87,8 +83,11 @@ public class ScannerActivity extends AppCompatActivity {
                 else mostrarErrorCamara("Se necesita permiso de cámara. Puedes concederlo e intentarlo de nuevo.");
             });
 
-    private final ActivityResultLauncher<Intent> formulario =
-            registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), r -> liberarEscaner());
+    public static Intent crearIntent(Context context, String contexto, String guia) {
+        return new Intent(context, ScannerActivity.class)
+                .putExtra(EXTRA_CONTEXTO, contexto)
+                .putExtra(EXTRA_GUIA, guia);
+    }
 
     @Override protected void onCreate(Bundle b) {
         super.onCreate(b);
@@ -99,18 +98,17 @@ public class ScannerActivity extends AppCompatActivity {
         tvGuia = findViewById(R.id.tvGuia);
         btnLinterna = findViewById(R.id.btnLinterna);
         btnReintentar = findViewById(R.id.btnReintentar);
-        modo = getIntent().getStringExtra(EXTRA_MODO);
-        if (modo == null) modo = MODO_RAW;
+        findViewById(R.id.btnCerrar).setOnClickListener(v -> finish());
+        contexto = getIntent().getStringExtra(EXTRA_CONTEXTO);
+        if (contexto == null) contexto = CONTEXTO_BUSQUEDA_LIBRO;
         String guia = getIntent().getStringExtra(EXTRA_GUIA);
-        textoGuia = guia != null ? guia
-                : MODO_RAPIDO.equals(modo) ? "Registro rápido: escanea el código de barras (ISBN) de cada libro"
-                : "Apunta al código para escanearlo";
+        textoGuia = guia != null ? guia : "Apunta al código para escanearlo";
         tvGuia.setText(textoGuia);
 
         executor = Executors.newSingleThreadExecutor();
         scanner = BarcodeScanning.getClient(new BarcodeScannerOptions.Builder()
                 .setBarcodeFormats(Barcode.FORMAT_EAN_13, Barcode.FORMAT_EAN_8,
-                        Barcode.FORMAT_QR_CODE, Barcode.FORMAT_CODE_128)
+                        Barcode.FORMAT_QR_CODE, Barcode.FORMAT_CODE_128, Barcode.FORMAT_UPC_A)
                 .build());
         findViewById(R.id.btnVolver).setVisibility(View.VISIBLE);
         findViewById(R.id.btnVolver).setOnClickListener(v -> getOnBackPressedDispatcher().onBackPressed());
@@ -185,29 +183,31 @@ public class ScannerActivity extends AppCompatActivity {
 
     private void procesarCodigos(List<Barcode> codigos) {
         if (isFinishing() || isDestroyed()) return;
-        String valor = null;
+        Barcode detectado = null;
         for (Barcode barcode : codigos) {
             String raw = barcode.getRawValue();
             if (raw != null && !raw.trim().isEmpty()) {
-                valor = raw.trim();
+                detectado = barcode;
                 break;
             }
         }
         long ahora = SystemClock.elapsedRealtime();
-        if (valor == null) {
+        if (detectado == null) {
             if (ahora - ultimaDeteccion.get() > 900) codigoEnfocado.set(null);
             return;
         }
+        String valor = detectado.getRawValue().trim();
         String anterior = codigoEnfocado.getAndSet(valor);
-        long vistoAntes = ultimaDeteccion.getAndSet(ahora);
-        boolean nuevoCodigo = !valor.equals(anterior) || ahora - vistoAntes > 900;
+        ultimaDeteccion.set(ahora);
+        boolean nuevoCodigo = !valor.equals(anterior);
         if (nuevoCodigo && ocupado.compareAndSet(false, true)) {
             String leido = valor;
+            int formato = detectado.getFormat();
             main.post(() -> {
                 if (isFinishing() || isDestroyed()) return;
                 marcoEscaneo.setBackgroundResource(R.drawable.scanner_frame_detected);
                 tvGuia.setText("Código detectado. Procesando…");
-                alLeer(leido);
+                alLeer(leido, formato);
             });
         }
     }
@@ -286,117 +286,17 @@ public class ScannerActivity extends AppCompatActivity {
         actualizarControlLinterna();
     }
 
-    private void liberarEscaner() {
-        ocupado.set(false);
-        if (!isFinishing() && !isDestroyed()) {
-            marcoEscaneo.setBackgroundResource(R.drawable.scanner_frame);
-            tvGuia.setText(textoGuia);
-        }
-    }
-
-    private void alLeer(String valor) {
-        if (MODO_RAW.equals(modo)) {
-            setResult(RESULT_OK, new Intent().putExtra(EXTRA_VALOR, valor));
+    private void alLeer(String valor, int formato) {
+        String tipo = ScannedCode.clasificar(formato, valor);
+        tvGuia.setText("Lectura exitosa: " + tipo);
+        main.postDelayed(() -> {
+            if (isFinishing() || isDestroyed()) return;
+            setResult(RESULT_OK, new Intent()
+                    .putExtra(EXTRA_VALOR, valor)
+                    .putExtra(EXTRA_TIPO, tipo)
+                    .putExtra(EXTRA_CONTEXTO, contexto));
             finish();
-            return;
-        }
-        String isbn = valor.replaceAll("[\\s-]", "");
-        if (!isbn.matches("\\d{10,13}")) {
-            Toast.makeText(this, "Eso no parece un ISBN. Escanea el código de barras del libro.", Toast.LENGTH_SHORT).show();
-            main.postDelayed(this::liberarEscaner, 1500);
-            return;
-        }
-        Api.call(ApiClient.api().libroPorIsbn(isbn), new Api.Result<ConsultaIsbn>() {
-            @Override public void ok(ConsultaIsbn consulta, String message) {
-                if (isFinishing() || isDestroyed()) return;
-                if (consulta == null) {
-                    mostrarErrorConsulta(isbn, "El servidor devolvió una respuesta incompleta.");
-                } else if (consulta.existente != null) {
-                    libroExistente(consulta.existente);
-                } else {
-                    libroNoRegistrado(isbn, consulta.libro, consulta.estadoConsulta);
-                }
-            }
-            @Override public void error(String msg, int http, String code) {
-                if (isFinishing() || isDestroyed()) return;
-                mostrarErrorConsulta(isbn, http == 0
-                        ? "No hay conexión con el servidor. Revisa tu internet."
-                        : "No se pudo consultar el ISBN. " + msg);
-            }
-        });
-    }
-
-    private void mostrarErrorConsulta(String isbn, String mensaje) {
-        new AlertDialog.Builder(this)
-                .setTitle("No se pudo consultar")
-                .setMessage(mensaje)
-                .setPositiveButton("Reintentar", (d, w) -> alLeer(isbn))
-                .setNegativeButton("Cerrar", (d, w) -> liberarEscaner())
-                .setOnCancelListener(d -> liberarEscaner())
-                .show();
-    }
-
-    private void libroNoRegistrado(String isbn, LibroDatos datos, String estadoConsulta) {
-        String mensaje = "Este ISBN todavía no está registrado en la biblioteca.";
-        if (datos != null) mensaje += "\n\nSe encontraron datos bibliográficos que puedes revisar antes de guardarlo.";
-        else if ("no-disponible".equals(estadoConsulta)) {
-            mensaje += "\nEl servicio de datos bibliográficos no está disponible; podrás completar el formulario manualmente.";
-        }
-        new AlertDialog.Builder(this)
-                .setTitle("ISBN no registrado")
-                .setMessage(mensaje)
-                .setPositiveButton("Continuar al registro", (d, w) -> abrirFormulario(isbn, datos))
-                .setNegativeButton("Seguir escaneando", (d, w) -> liberarEscaner())
-                .setOnCancelListener(d -> liberarEscaner())
-                .show();
-    }
-
-    private void abrirFormulario(String isbn, LibroDatos datos) {
-        Intent intent = new Intent(this, LibroFormActivity.class)
-                .putExtra("isbn", isbn)
-                .putExtra("rapido", true);
-        if (datos != null) {
-            if (datos.titulo != null) intent.putExtra("titulo", datos.titulo);
-            if (datos.subtitulo != null) intent.putExtra("subtitulo", datos.subtitulo);
-            if (datos.autor != null) intent.putExtra("autor", datos.autor);
-            if (datos.editorial != null) intent.putExtra("editorial", datos.editorial);
-            if (datos.categoria != null) intent.putExtra("categoria", datos.categoria);
-            if (datos.anioPublicacion != null) intent.putExtra("anioPublicacion", datos.anioPublicacion);
-            if (datos.edicion != null) intent.putExtra("edicion", datos.edicion);
-            if (datos.descripcion != null) intent.putExtra("descripcion", datos.descripcion);
-            if (datos.imagenUrl != null) intent.putExtra("imagenUrl", datos.imagenUrl);
-        }
-        formulario.launch(intent);
-    }
-
-    private void libroExistente(LibroRegistrado libro) {
-        AlertDialog dialog = AgregarEjemplaresDialog.mostrar(this, libro, (cantidad, dialogActual) -> {
-            if (!agregandoUnidades.compareAndSet(false, true)) return;
-            AgregarReq solicitud = new AgregarReq();
-            solicitud.cantidad = cantidad;
-            dialogActual.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(false);
-            dialogActual.setCancelable(false);
-            Api.call(ApiClient.api().agregarEjemplares(libro.id, solicitud), new Api.Result<Agregado>() {
-                @Override public void ok(Agregado agregado, String message) {
-                    agregandoUnidades.set(false);
-                    if (isFinishing() || isDestroyed()) return;
-                    String texto = cantidad + (cantidad == 1 ? " ejemplar agregado" : " ejemplares agregados");
-                    if (agregado != null && agregado.libro != null && agregado.libro.total != null) {
-                        texto += ". Total actualizado: " + agregado.libro.total;
-                    }
-                    dialogActual.dismiss();
-                    Toast.makeText(ScannerActivity.this, texto, Toast.LENGTH_LONG).show();
-                }
-                @Override public void error(String msg, int http, String code) {
-                    agregandoUnidades.set(false);
-                    if (isFinishing() || isDestroyed()) return;
-                    dialogActual.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(true);
-                    dialogActual.setCancelable(true);
-                    Toast.makeText(ScannerActivity.this, msg, Toast.LENGTH_LONG).show();
-                }
-            });
-        });
-        dialog.setOnDismissListener(d -> liberarEscaner());
+        }, 450);
     }
 
     @Override protected void onDestroy() {

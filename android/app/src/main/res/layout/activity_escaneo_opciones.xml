@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/bg_library_canvas"
+    android:orientation="vertical">
+
+    <include layout="@layout/view_top_bar" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="20dp">
+
+            <TextView
+                style="@style/BsTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Escanear y buscar" />
+
+            <TextView
+                style="@style/BsText"
+                android:layout_marginTop="4dp"
+                android:text="El mismo escáner reconoce ISBN y códigos de ejemplar. Elige qué operación realizar." />
+
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                app:cardBackgroundColor="#FFFFFF"
+                app:cardCornerRadius="18dp"
+                app:cardElevation="1dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="18dp">
+
+                    <TextView
+                        style="@style/BsTitle"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Registro de libro" />
+
+                    <TextView
+                        style="@style/BsText"
+                        android:text="Escanea el ISBN para consultar sus datos y continuar con el registro." />
+
+                    <Button
+                        android:id="@+id/btnEscanearRegistro"
+                        style="@style/BsButton"
+                        android:text="Escanear ISBN para registrar" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                app:cardBackgroundColor="#FFFFFF"
+                app:cardCornerRadius="18dp"
+                app:cardElevation="1dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="18dp">
+
+                    <TextView
+                        style="@style/BsTitle"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Buscar libro o ejemplar" />
+
+                    <TextView
+                        style="@style/BsText"
+                        android:text="Escanea un ISBN para buscar el libro o el QR/código interno para consultar el ejemplar." />
+
+                    <Button
+                        android:id="@+id/btnEscanearBusqueda"
+                        style="@style/BsButton"
+                        android:text="Escanear ISBN o ejemplar" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>
