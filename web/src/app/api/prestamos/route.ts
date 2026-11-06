@@ -31,18 +31,23 @@ export const GET = withAuth(R, async (req) => {
   }
   const termino = sp.get("q")?.trim();
   if (termino) {
-    where.push(`(
-      concat_ws(' ', al.nombres, al.apellidos, al.dni, al.codigo_alumno,
-        pr.nombres, pr.apellidos, pr.dni) ILIKE '%' || ${add(termino)} || '%'
-      OR EXISTS (
+    const camposPrestatario = `concat_ws(' ', al.nombres, al.apellidos, al.dni, al.codigo_alumno,
+      pr.nombres, pr.apellidos, pr.dni)`;
+    const coincidencias = [...new Set(termino.split(/\s+/).filter(Boolean))].map((palabra) => {
+      const patron = add(`%${palabra.replace(/[\\%_]/g, "\\$&")}%`);
+      return `(f_unaccent(lower(${camposPrestatario})) LIKE f_unaccent(lower(${patron})) ESCAPE '\\'
+        OR EXISTS (
         SELECT 1 FROM prestamo_detalles pd
         LEFT JOIN ejemplares e ON e.id = pd.ejemplar_id
         LEFT JOIN libros le ON le.id = e.libro_id
         LEFT JOIN existencias x ON x.id = pd.existencia_id
         LEFT JOIN libros lx ON lx.id = x.libro_id
-        WHERE pd.prestamo_id = p.id AND concat_ws(' ', e.codigo_interno, le.titulo, lx.titulo) ILIKE '%' || $${params.length} || '%'
-      )
-    )`);
+        WHERE pd.prestamo_id = p.id
+          AND f_unaccent(lower(concat_ws(' ', e.codigo_interno, le.titulo, lx.titulo)))
+            LIKE f_unaccent(lower(${patron})) ESCAPE '\\'
+      ))`;
+    });
+    where.push(`(${coincidencias.join(" AND ")})`);
   }
   const alumnoId = sp.get("alumnoId");
   const profesorId = sp.get("profesorId");
@@ -68,7 +73,11 @@ export const GET = withAuth(R, async (req) => {
   if (venceDesde) where.push(`p.fecha_prevista_devolucion >= ${add(venceDesde)}::date`);
   if (venceHasta) where.push(`p.fecha_prevista_devolucion < ${add(venceHasta)}::date + 1`);
   const W = where.length ? "WHERE " + where.join(" AND ") : "";
-  const total = (await q1<{ n: number }>(pool, `SELECT count(*)::int AS n FROM prestamos p ${W}`, params))!.n;
+  const total = (await q1<{ n: number }>(pool,
+    `SELECT count(*)::int AS n FROM prestamos p
+     LEFT JOIN alumnos al ON al.id = p.alumno_id LEFT JOIN profesores pr ON pr.id = p.profesor_id
+     ${W}`,
+    params))!.n;
   const items = await q(
     pool,
     `SELECT p.id, p.estado, p.tipo_prestatario, p.fecha_prestamo, p.fecha_prevista_devolucion, p.fecha_cierre,

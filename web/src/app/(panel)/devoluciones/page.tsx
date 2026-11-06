@@ -13,10 +13,24 @@ type DevolucionHistorial = {
   prestatario: string;
 };
 
+type PrestamoBusqueda = {
+  detalleId: number;
+  estadoDetalle: string;
+  activo: boolean;
+  codigoInterno: string | null;
+  titulo: string;
+  fechaPrestamo: string;
+  fechaPrevistaDevolucion: string;
+  vencido: boolean;
+  prestatario: string;
+  dni: string | null;
+  codigoAlumno: string | null;
+};
+
 export default function Devoluciones() {
   const [busqueda, setBusqueda] = useState("");
-  const [resultados, setResultados] = useState<any[]>([]);
-  const [p, setP] = useState<any>(null);
+  const [resultados, setResultados] = useState<PrestamoBusqueda[]>([]);
+  const [p, setP] = useState<PrestamoBusqueda | null>(null);
   const [buscando, setBuscando] = useState(false);
   const [res, setRes] = useState("BUENO");
   const [obs, setObs] = useState("");
@@ -43,18 +57,20 @@ export default function Devoluciones() {
   async function buscar(e: React.FormEvent) {
     e.preventDefault(); setMsg(null); setP(null); setBuscando(true);
     try {
-      const params = new URLSearchParams({ q: busqueda.trim() });
-      const data = await api<{ items: any[] }>(`/prestamos/activo?${params}`);
+      const params = new URLSearchParams({ q: busqueda.trim(), incluirInactivos: "true" });
+      const data = await api<{ items: PrestamoBusqueda[] }>(`/prestamos/activo?${params}`);
       setResultados(data.items);
-      if (data.items.length === 0) setMsg({ t: "error", m: "No se encontraron préstamos activos." });
+      if (data.items.length === 0) setMsg({ t: "error", m: "No se encontraron préstamos activos ni inactivos." });
     } catch (x) { setMsg({ t: "error", m: (x as Error).message }); }
     finally { setBuscando(false); }
   }
   async function confirmar() {
+    const seleccionada = p;
+    if (!seleccionada) return;
     try {
-      await api("/devoluciones", { json: { prestamoDetalleId: p.detalleId, resultado: res, observaciones: obs } });
+      await api("/devoluciones", { json: { prestamoDetalleId: seleccionada.detalleId, resultado: res, observaciones: obs } });
       setMsg({ t: "ok", m: "Devolución registrada correctamente" });
-      setP(null); setResultados((items) => items.filter((item) => item.detalleId !== p.detalleId));
+      setP(null); setResultados((items) => items.filter((item) => item.detalleId !== seleccionada.detalleId));
       setBusqueda(""); setObs(""); setRes("BUENO");
       await cargarHistorial();
     } catch (x) { setMsg({ t: "error", m: (x as Error).message }); }
@@ -63,7 +79,7 @@ export default function Devoluciones() {
     <>
       <PageTitle>Devoluciones</PageTitle>
       <form onSubmit={buscar} className="card mb-4 flex max-w-2xl flex-wrap items-end gap-3">
-        <label className="flex-1"><span className="label">Buscar préstamo activo</span>
+        <label className="flex-1"><span className="label">Buscar préstamos activos e inactivos</span>
           <input className="input" autoFocus placeholder="Nombre, DNI, título o código" value={busqueda} onChange={(e) => setBusqueda(e.target.value)} /></label>
         <button className="btn" disabled={buscando}>{buscando ? "Buscando…" : "Buscar"}</button>
       </form>
@@ -71,7 +87,7 @@ export default function Devoluciones() {
       {resultados.length > 0 && !p && (
         <div className="card responsive-table-shell mt-4 max-w-3xl overflow-x-auto p-0">
           <table className="responsive-table w-full min-w-[600px]"><thead className="border-b border-[#e6ecf4] bg-[#f7f9fc]"><tr>
-            {["Libro", "Código", "Prestatario", "DNI / código", "Vence", ""].map((h) => <th key={h} className="th">{h}</th>)}
+            {["Libro", "Código", "Prestatario", "DNI / código", "Vence", "Estado", ""].map((h) => <th key={h} className="th">{h}</th>)}
           </tr></thead><tbody className="divide-y divide-[#eef2f7]">
             {resultados.map((item) => <tr key={item.detalleId}>
               <td className="td font-medium" data-label="Libro">{item.titulo}</td>
@@ -79,7 +95,10 @@ export default function Devoluciones() {
               <td className="td" data-label="Prestatario">{item.prestatario}</td>
               <td className="td" data-label="DNI / código">{item.dni ?? "—"}{item.codigoAlumno ? ` / ${item.codigoAlumno}` : ""}</td>
               <td className={`td whitespace-nowrap ${item.vencido ? "font-medium text-red-700" : ""}`} data-label="Vence">{fecha(item.fechaPrevistaDevolucion)}{item.vencido ? " (vencido)" : ""}</td>
-              <td className="td" data-label="Acción"><button type="button" className="btn" onClick={() => setP(item)}>Seleccionar</button></td>
+              <td className="td" data-label="Estado">{item.activo ? "Activo" : item.estadoDetalle === "PERDIDO" ? "Perdido" : "Inactivo"}</td>
+              <td className="td" data-label="Acción">{item.activo
+                ? <button type="button" className="btn" onClick={() => setP(item)}>Seleccionar</button>
+                : <span className="text-sm text-slate-500">No admite devolución</span>}</td>
             </tr>)}
           </tbody></table>
         </div>

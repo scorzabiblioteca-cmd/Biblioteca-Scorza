@@ -29,6 +29,7 @@ export default function Prestamos() {
   const [data, setData] = useState<Paged<any> | null>(null);
   const [filtro, setFiltro] = useState("");
   const [busquedaListado, setBusquedaListado] = useState("");
+  const busquedaAplicada = useRef("");
   const [tipoListado, setTipoListado] = useState("");
   const [desdePrestamo, setDesdePrestamo] = useState("");
   const [hastaPrestamo, setHastaPrestamo] = useState("");
@@ -44,27 +45,34 @@ export default function Prestamos() {
   const [msg, setMsg] = useState<{ t: "ok" | "error"; m: string } | null>(null);
   const [top, setTop] = useState<LibroTop[]>([]);
   const [diasTop, setDiasTop] = useState(30);
-  const [mostrarTop, setMostrarTop] = useState(true);
+  const [mostrarTop, setMostrarTop] = useState(false);
   const dialogRef = useRef<HTMLDialogElement>(null);
 
   const cargar = useCallback(() => {
     const p = new URLSearchParams({ pageSize: "30" });
     if (filtro === "vencidos") p.set("vencidos", "true"); else if (filtro) p.set("estado", filtro);
-    if (busquedaListado.trim()) p.set("q", busquedaListado.trim());
+    if (busquedaAplicada.current) p.set("q", busquedaAplicada.current);
     if (tipoListado) p.set("tipoPrestatario", tipoListado);
     if (desdePrestamo) p.set("desde", desdePrestamo);
     if (hastaPrestamo) p.set("hasta", hastaPrestamo);
     if (venceDesde) p.set("venceDesde", venceDesde);
     if (venceHasta) p.set("venceHasta", venceHasta);
     api<Paged<any>>(`/prestamos?${p}`).then(setData).catch((e) => setMsg({ t: "error", m: e.message }));
-  }, [filtro, busquedaListado, tipoListado, desdePrestamo, hastaPrestamo, venceDesde, venceHasta]);
+  }, [filtro, tipoListado, desdePrestamo, hastaPrestamo, venceDesde, venceHasta]);
   useEffect(() => { cargar(); }, [cargar]);
 
+  function buscarListado(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    busquedaAplicada.current = busquedaListado.trim();
+    cargar();
+  }
+
   useEffect(() => {
+    if (!mostrarTop) return;
     api<{ dias: number; masPrestados: LibroTop[] }>(`/prestamos/mas-prestados?dias=${diasTop}`)
       .then((r) => setTop(r.masPrestados))
-      .catch(() => setTop([]));
-  }, [diasTop]);
+      .catch((e: Error) => setMsg({ t: "error", m: e.message }));
+  }, [diasTop, mostrarTop]);
 
   async function crear(e: React.FormEvent) {
     e.preventDefault(); setMsg(null);
@@ -174,7 +182,7 @@ export default function Prestamos() {
               aria-controls="libros-mas-prestados-content"
               onClick={() => setMostrarTop((mostrar) => !mostrar)}
             >
-              {mostrarTop ? "Ocultar" : "Mostrar"}
+              {mostrarTop ? "Ocultar" : "Buscar"}
             </button>
           </div>
         </div>
@@ -212,8 +220,11 @@ export default function Prestamos() {
         )}
       </section>
       <section className="card mb-3 flex flex-wrap items-end gap-3">
-        <label className="w-full sm:w-auto sm:min-w-64"><span className="label">Buscar préstamo</span>
-          <input className="input" type="search" placeholder="Prestatario, libro o código" value={busquedaListado} onChange={(e) => setBusquedaListado(e.target.value)} /></label>
+        <form className="flex w-full items-end gap-2 sm:w-auto" onSubmit={buscarListado}>
+          <label className="min-w-0 flex-1 sm:min-w-64"><span className="label">Buscar préstamo</span>
+            <input className="input" type="search" placeholder="Prestatario, libro o código" value={busquedaListado} onChange={(e) => setBusquedaListado(e.target.value)} /></label>
+          <button type="submit" className="btn">Buscar</button>
+        </form>
         <label><span className="label">Estado</span><select className="input" value={filtro} onChange={(e) => setFiltro(e.target.value)}>
           <option value="">Todos los estados</option><option value="ACTIVO">Activos</option><option value="vencidos">Vencidos</option><option value="CERRADO">Cerrados</option><option value="ANULADO">Anulados</option>
         </select></label>
