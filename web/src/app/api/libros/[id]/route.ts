@@ -2,11 +2,12 @@ import { withAuth, ok, body, HttpError } from "@/lib/http";
 import { q, q1, tx, pool } from "@/lib/db";
 import { libroSchema } from "@/lib/validators";
 import { normalizarIsbn } from "@/lib/isbn";
-import { LIBRO_SELECT, getOrCreate, setAutores } from "@/lib/libros";
+import { LIBRO_SELECT, getOrCreate, setAutores, agregarUnidades } from "@/lib/libros";
 import { audit } from "@/lib/audit";
 import { notificar } from "@/lib/notificaciones";
 import { UBIC_TXT } from "@/lib/sql";
 import { z } from "zod";
+import type { PoolClient } from "pg";
 
 const R = ["BIBLIOTECARIO"];
 
@@ -50,7 +51,118 @@ const ubicacionEdicionSchema = z.preprocess(
   z.number().int().positive().nullable().optional()
 );
 const editSchema = libroSchema.omit({ cantidad: true, ubicacionId: true, condicion: true, tipoControl: true, prefijoCodigo: true })
-  .extend({ ubicacionId: ubicacionEdicionSchema });
+  .extend({
+    ubicacionId: ubicacionEdicionSchema,
+    cantidad: z.preprocess(
+      (value) => value === "" || value === null || value === undefined ? undefined : Number(value),
+      z.number().int().min(1).max(100000).optional()
+    ),
+  });
+
+async function ajustarCantidad(
+  c: PoolClient,
+  libro: { id: number; tipoControl: string; prefijoCodigo: string },
+  anterior: number,
+  objetivo: number,
+  ubicacionId: number | null | undefined,
+  usuarioId: number
+) {
+  const diferencia = objetivo - anterior;
+  if (diferencia === 0) return;
+  if (diferencia > 0) {
+    if (libro.tipoControl === "INDIVIDUAL" && diferencia > 500) {
+      throw new HttpError(400, "Se pueden agregar hasta 500 ejemplares individuales por operación");
+    }
+    let ubicacion = ubicacionId;
+    if (ubicacion === undefined) {
+      const tabla = libro.tipoControl === "INDIVIDUAL" ? "ejemplares" : "existencias";
+      const existente = await q1<{ ubicacionId: number | null }>(
+        c,
+        `SELECT ubicacion_id AS "ubicacionId" FROM ${tabla} WHERE libro_id = $1 ORDER BY id LIMIT 1`,
+        [libro.id]
+      );
+      ubicacion = existente?.ubicacionId ?? null;
+    }
+    await agregarUnidades(c, libro, diferencia, ubicacion, "BUENO", usuarioId);
+    return;
+  }
+
+  const reducir = -diferencia;
+  if (libro.tipoControl === "INDIVIDUAL") {
+    const ejemplares = await q<{ id: number; ubicacionId: number | null }>(
+      c,
+      `SELECT id, ubicacion_id AS "ubicacionId" FROM ejemplares
+       WHERE libro_id = $1 AND estado = 'DISPONIBLE'
+       ORDER BY id DESC LIMIT $2 FOR UPDATE`,
+      [libro.id, reducir]
+    );
+    if (ejemplares.length !== reducir) {
+      throw new HttpError(409, "El inventario cambió mientras se editaba. Actualiza el libro e inténtalo otra vez.",
+        "INVENTARIO_CAMBIADO");
+    }
+    const ids = ejemplares.map((item) => item.id);
+    await c.query(
+      "UPDATE ejemplares SET estado = 'BAJA', fecha_baja = CURRENT_DATE, updated_at = now() WHERE id = ANY($1::bigint[])",
+      [ids]
+    );
+    await c.query(
+      `INSERT INTO historial_ejemplares
+         (ejemplar_id, tipo_evento, estado_anterior, estado_nuevo, ubicacion_anterior_id, usuario_id, detalle)
+       SELECT movido.id, 'BAJA', 'DISPONIBLE', 'BAJA', movido.ubicacion_id, $2,
+              'Retiro por ajuste de cantidad desde edición del libro'
+       FROM unnest($1::bigint[], $3::bigint[]) AS movido(id, ubicacion_id)`,
+      [ids, usuarioId, ejemplares.map((item) => item.ubicacionId)]
+    );
+    return;
+  }
+
+  const existencias = await q<{
+    id: number; total: number; danadas: number; perdidas: number; bajas: number;
+  }>(
+    c,
+    `SELECT id, cantidad_total AS total, cantidad_danada AS danadas,
+            cantidad_perdida AS perdidas, cantidad_baja AS bajas
+     FROM existencias WHERE libro_id = $1 ORDER BY id FOR UPDATE`,
+    [libro.id]
+  );
+  const prestadas = await q<{ existenciaId: number; cantidad: number }>(
+    c,
+    `SELECT existencia_id AS "existenciaId", count(*)::int AS cantidad
+     FROM prestamo_detalles
+     WHERE estado = 'PRESTADO' AND existencia_id = ANY($1::bigint[])
+     GROUP BY existencia_id`,
+    [existencias.map((existencia) => existencia.id)]
+  );
+  const prestamosPorExistencia = new Map(prestadas.map((item) => [item.existenciaId, item.cantidad]));
+  const disponiblesActuales = existencias.reduce((total, existencia) => total
+    + existencia.total - existencia.danadas - existencia.perdidas - existencia.bajas
+    - (prestamosPorExistencia.get(existencia.id) ?? 0), 0);
+  if (reducir > disponiblesActuales) {
+    throw new HttpError(409,
+      `No se puede reducir a ${objetivo}: solo hay ${disponiblesActuales} ejemplar(es) disponible(s) para retirar`,
+      "CANTIDAD_INSUFICIENTE");
+  }
+  let restante = reducir;
+  for (const existencia of existencias) {
+    const disponible = existencia.total - existencia.danadas - existencia.perdidas
+      - existencia.bajas - (prestamosPorExistencia.get(existencia.id) ?? 0);
+    const retirar = Math.min(restante, Math.max(0, disponible));
+    if (!retirar) continue;
+    await c.query("UPDATE existencias SET cantidad_total = cantidad_total - $2, updated_at = now() WHERE id = $1",
+      [existencia.id, retirar]);
+    await c.query(
+      `INSERT INTO movimientos_existencias (existencia_id, tipo_movimiento, cantidad, usuario_id, detalle)
+       VALUES ($1, 'BAJA', $2, $3, 'Retiro por ajuste de cantidad desde edición del libro')`,
+      [existencia.id, retirar, usuarioId]
+    );
+    restante -= retirar;
+    if (restante === 0) break;
+  }
+  if (restante > 0) {
+    throw new HttpError(409, "No hay suficientes unidades disponibles para aplicar la reducción",
+      "CANTIDAD_INSUFICIENTE");
+  }
+}
 
 export const PUT = withAuth(R, async (req, { params, session }) => {
   const id = Number(params.id);
@@ -65,6 +177,15 @@ export const PUT = withAuth(R, async (req, { params, session }) => {
     if (dup) throw new HttpError(409, "El ISBN ya se encuentra registrado", "ISBN_DUPLICADO");
   }
   await tx(async (c) => {
+    const libroInventario = await q1<{
+      id: number; tipoControl: string; prefijoCodigo: string;
+    }>(
+      c,
+      `SELECT id, tipo_control AS "tipoControl", prefijo_codigo AS "prefijoCodigo"
+       FROM libros WHERE id = $1 FOR UPDATE`,
+      [id]
+    );
+    if (!libroInventario) throw new HttpError(404, "Libro no encontrado");
     if (d.ubicacionId !== undefined) {
       if (d.ubicacionId !== null) {
         const ubicacion = await q1<{ id: number }>(c, "SELECT id FROM ubicaciones WHERE id = $1 AND activo", [d.ubicacionId]);
@@ -81,7 +202,7 @@ export const PUT = withAuth(R, async (req, { params, session }) => {
          ) ubicaciones`,
         [id]
       );
-      if (!distribucion?.tieneInventario) {
+      if (!distribucion?.tieneInventario && (d.cantidad === undefined || d.cantidad <= 0)) {
         throw new HttpError(409, "No hay inventario registrado al que asignar una ubicación", "SIN_INVENTARIO");
       }
       if (distribucion?.ubicacionesMultiples) {
@@ -131,6 +252,24 @@ export const PUT = withAuth(R, async (req, { params, session }) => {
           tipo: "INVENTARIO",
           titulo: "Ubicación del inventario actualizada",
           mensaje: `Se actualizó la ubicación del inventario de "${d.titulo}".`,
+          enlace: `/libros/${id}`,
+        });
+      }
+    }
+    if (d.cantidad !== undefined) {
+      const stock = await q1<{ total: number }>(
+        c,
+        "SELECT total FROM v_stock_libro WHERE libro_id = $1",
+        [id]
+      );
+      if (!stock) throw new HttpError(404, "No se encontró el inventario del libro");
+      await ajustarCantidad(c, libroInventario, stock.total, d.cantidad,
+        d.ubicacionId, session.id);
+      if (d.cantidad !== stock.total) {
+        await notificar(c, {
+          tipo: "INVENTARIO",
+          titulo: "Cantidad del inventario actualizada",
+          mensaje: `El inventario de "${d.titulo}" pasó de ${stock.total} a ${d.cantidad} ejemplar(es).`,
           enlace: `/libros/${id}`,
         });
       }

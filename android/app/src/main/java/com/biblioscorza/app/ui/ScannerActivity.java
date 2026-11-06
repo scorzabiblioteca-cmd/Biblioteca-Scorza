@@ -79,6 +79,7 @@ public class ScannerActivity extends AppCompatActivity {
     private ProcessCameraProvider cameraProvider;
     private Camera camera;
     private boolean camaraIniciada, iniciandoCamara, linternaEncendida;
+    private final AtomicBoolean agregandoUnidades = new AtomicBoolean();
 
     private final ActivityResultLauncher<String> pedirPermiso =
             registerForActivityResult(new ActivityResultContracts.RequestPermission(), concedido -> {
@@ -369,35 +370,33 @@ public class ScannerActivity extends AppCompatActivity {
     }
 
     private void libroExistente(LibroRegistrado libro) {
-        View contenido = LibroDetalleDialog.contenido(this, libro);
-        new AlertDialog.Builder(this)
-                .setTitle("Ficha del libro")
-                .setView(contenido)
-                .setPositiveButton("Agregar ejemplar", (d, w) -> {
-                    AgregarReq solicitud = new AgregarReq();
-                    Api.call(ApiClient.api().agregarEjemplares(libro.id, solicitud), new Api.Result<Agregado>() {
-                        @Override public void ok(Agregado agregado, String message) {
-                            if (isFinishing() || isDestroyed()) return;
-                            String texto = "Ejemplar agregado";
-                            if (agregado != null && agregado.libro != null && agregado.libro.total != null) {
-                                texto += ". Total: " + agregado.libro.total;
-                            }
-                            if (agregado != null && agregado.codigos != null && !agregado.codigos.isEmpty()) {
-                                texto += " (" + agregado.codigos.get(0) + ")";
-                            }
-                            Toast.makeText(ScannerActivity.this, texto, Toast.LENGTH_LONG).show();
-                            liberarEscaner();
-                        }
-                        @Override public void error(String msg, int http, String code) {
-                            if (isFinishing() || isDestroyed()) return;
-                            Toast.makeText(ScannerActivity.this, msg, Toast.LENGTH_LONG).show();
-                            liberarEscaner();
-                        }
-                    });
-                })
-                .setNegativeButton("Cerrar", (d, w) -> liberarEscaner())
-                .setOnCancelListener(d -> liberarEscaner())
-                .show();
+        AlertDialog dialog = AgregarEjemplaresDialog.mostrar(this, libro, (cantidad, dialogActual) -> {
+            if (!agregandoUnidades.compareAndSet(false, true)) return;
+            AgregarReq solicitud = new AgregarReq();
+            solicitud.cantidad = cantidad;
+            dialogActual.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(false);
+            dialogActual.setCancelable(false);
+            Api.call(ApiClient.api().agregarEjemplares(libro.id, solicitud), new Api.Result<Agregado>() {
+                @Override public void ok(Agregado agregado, String message) {
+                    agregandoUnidades.set(false);
+                    if (isFinishing() || isDestroyed()) return;
+                    String texto = cantidad + (cantidad == 1 ? " ejemplar agregado" : " ejemplares agregados");
+                    if (agregado != null && agregado.libro != null && agregado.libro.total != null) {
+                        texto += ". Total actualizado: " + agregado.libro.total;
+                    }
+                    dialogActual.dismiss();
+                    Toast.makeText(ScannerActivity.this, texto, Toast.LENGTH_LONG).show();
+                }
+                @Override public void error(String msg, int http, String code) {
+                    agregandoUnidades.set(false);
+                    if (isFinishing() || isDestroyed()) return;
+                    dialogActual.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(true);
+                    dialogActual.setCancelable(true);
+                    Toast.makeText(ScannerActivity.this, msg, Toast.LENGTH_LONG).show();
+                }
+            });
+        });
+        dialog.setOnDismissListener(d -> liberarEscaner());
     }
 
     @Override protected void onDestroy() {

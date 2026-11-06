@@ -15,12 +15,17 @@ const schema = z.object({
 export const POST = withAuth(["BIBLIOTECARIO"], async (req, { params, session }) => {
   const id = Number(params.id);
   const d = await body(req, schema);
-  const libro = await q1<{ id: number; tipoControl: string; prefijoCodigo: string; estado: string; titulo: string }>(
-    pool, "SELECT id, tipo_control, prefijo_codigo, estado, titulo FROM libros WHERE id = $1", [id]
-  );
-  if (!libro) throw new HttpError(404, "Libro no encontrado");
-  if (libro.estado === "ARCHIVADO") throw new HttpError(409, "El libro está archivado");
   const r = await tx(async (c) => {
+    const libro = await q1<{
+      id: number; tipoControl: string; prefijoCodigo: string; estado: string; titulo: string;
+    }>(
+      c,
+      `SELECT id, tipo_control AS "tipoControl", prefijo_codigo AS "prefijoCodigo", estado, titulo
+       FROM libros WHERE id = $1 FOR UPDATE`,
+      [id]
+    );
+    if (!libro) throw new HttpError(404, "Libro no encontrado");
+    if (libro.estado === "ARCHIVADO") throw new HttpError(409, "El libro está archivado");
     const res = await agregarUnidades(c, libro, d.cantidad, d.ubicacionId ?? null, d.condicion, session.id);
     await audit(c, session, "AGREGAR_UNIDADES", "libros", id, null, { cantidad: d.cantidad, codigos: res.codigos }, req);
     await notificar(c, {
@@ -29,9 +34,9 @@ export const POST = withAuth(["BIBLIOTECARIO"], async (req, { params, session })
       mensaje: `Se agregaron ${d.cantidad} unidad(es) a "${libro.titulo}".`,
       enlace: `/libros/${id}`,
     });
-    return res;
+    return { ...res, tipoControl: libro.tipoControl };
   });
   const actualizado = await q1(pool, `${LIBRO_SELECT} WHERE l.id = $1`, [id]);
   return created({ libro: actualizado, codigos: r.codigos },
-    libro.tipoControl === "INDIVIDUAL" ? "Ejemplar(es) agregado(s) correctamente" : "Stock actualizado correctamente");
+    r.tipoControl === "INDIVIDUAL" ? "Ejemplar(es) agregado(s) correctamente" : "Stock actualizado correctamente");
 });

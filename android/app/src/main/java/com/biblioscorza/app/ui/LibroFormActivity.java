@@ -66,6 +66,9 @@ public class LibroFormActivity extends AppCompatActivity {
     private File imagenPendiente;
     private boolean tieneInventario;
     private boolean trackingChanges, hasUnsavedChanges;
+    private int cantidadActual;
+    private final java.util.concurrent.atomic.AtomicBoolean agregandoUnidades =
+            new java.util.concurrent.atomic.AtomicBoolean();
 
     private final ActivityResultLauncher<Intent> escanear = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(), r -> {
@@ -75,13 +78,17 @@ public class LibroFormActivity extends AppCompatActivity {
                 }
             });
 
-    private final ActivityResultLauncher<Intent> escanearPortada = registerForActivityResult(
-            new ActivityResultContracts.StartActivityForResult(), result -> {
+    private final ActivityResultLauncher<Intent> tomarFoto =
+            registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
                 if (result.getResultCode() == RESULT_OK && result.getData() != null) {
-                    String path = result.getData().getStringExtra(CoverScannerActivity.EXTRA_COVER_PATH);
-                    File portada = path == null ? null : new File(path);
-                    if (imagenValida(portada)) reemplazarImagenPendiente(portada, "image/jpeg");
-                    else tvError.setText("El escáner no devolvió una portada válida.");
+                    String path = result.getData().getStringExtra(CapturePhotoActivity.EXTRA_PHOTO_PATH);
+                    File foto = path == null ? null : new File(path);
+                    if (imagenValida(foto)) {
+                        reemplazarImagenPendiente(foto, "image/jpeg");
+                    } else {
+                        if (foto != null) foto.delete();
+                        tvError.setText("La cámara no devolvió una imagen válida.");
+                    }
                 }
             });
     private final ActivityResultLauncher<String> elegirFoto = registerForActivityResult(
@@ -134,7 +141,6 @@ public class LibroFormActivity extends AppCompatActivity {
             btnGuardar.setText("Guardar cambios");
             findViewById(R.id.spTipo).setVisibility(View.GONE);
             findViewById(R.id.spPrefijo).setVisibility(View.GONE);
-            findViewById(R.id.etCantidad).setVisibility(View.GONE);
             findViewById(R.id.btnScanIsbn).setVisibility(View.GONE);
             btnGuardar.setEnabled(false);
             cargarLibroParaEditar();
@@ -242,6 +248,9 @@ public class LibroFormActivity extends AppCompatActivity {
                 ubicacionActual = libro.ubicacionInventario;
                 ubicacionesMultiples = libro.ubicacionesMultiples;
                 tieneInventario = libro.tieneInventario;
+                cantidadActual = libro.total == null ? 0 : libro.total;
+                etCantidad.setText(String.valueOf(cantidadActual));
+                etCantidad.setHint("Cantidad total");
                 if (ubicacionesMultiples) {
                     tvUbicacionInfo.setText("Este libro está repartido en varias ubicaciones; la edición de ubicación se bloquea para proteger su inventario.");
                 } else if (!tieneInventario) {
@@ -352,12 +361,16 @@ public class LibroFormActivity extends AppCompatActivity {
 
     private void configurarUbicaciones() {
         if (!editando || !ubicacionesCargadas || !datosEdicionCargados) return;
-        if (ubicacionesMultiples || !tieneInventario) {
+        if (ubicacionesMultiples) {
             spUbicacion.setSelection(0);
             spUbicacion.setEnabled(false);
             return;
         }
         spUbicacion.setEnabled(true);
+        if (!tieneInventario) {
+            spUbicacion.setSelection(Math.min(1, spUbicacion.getCount() - 1));
+            return;
+        }
         if (ubicacionActual == null) {
             spUbicacion.setSelection(0);
             return;
@@ -398,45 +411,33 @@ private void verificarIsbn() {
                         return;
                     }
 
-                    new AlertDialog.Builder(LibroFormActivity.this)
-                        .setTitle("Libro existente")
-                        .setView(LibroDetalleDialog.contenido(LibroFormActivity.this, existente))
-                        .setPositiveButton("Agregar otro ejemplar", (d, w) -> {
-                            AgregarReq req = new AgregarReq();
-                            req.cantidad = 1;
-
-                            Api.call(
-                                ApiClient.api().agregarEjemplares(
-                                    existente.id, req
-                                ),
+                    AgregarEjemplaresDialog.mostrar(LibroFormActivity.this, existente, (cantidad, dialog) -> {
+                        if (!agregandoUnidades.compareAndSet(false, true)) return;
+                        AgregarReq req = new AgregarReq();
+                        req.cantidad = cantidad;
+                        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(false);
+                        dialog.setCancelable(false);
+                        Api.call(ApiClient.api().agregarEjemplares(existente.id, req),
                                 new Api.Result<Agregado>() {
-                                    @Override
-                                    public void ok(Agregado a, String mm) {
-                                        String mensaje = "Ejemplar agregado";
-                                        if (a != null && a.libro != null) {
-                                            mensaje += ". Total: " + a.libro.total;
-                                        }
-
-                                        Toast.makeText(
-                                            LibroFormActivity.this,
-                                            mensaje,
-                                            Toast.LENGTH_LONG
-                                        ).show();
-
+                                    @Override public void ok(Agregado agregado, String mensaje) {
+                                        agregandoUnidades.set(false);
+                                        dialog.dismiss();
+                                        Toast.makeText(LibroFormActivity.this,
+                                                cantidad + (cantidad == 1 ? " ejemplar agregado" : " ejemplares agregados")
+                                                        + (agregado != null && agregado.libro != null
+                                                        ? ". Total actualizado: " + agregado.libro.total : ""),
+                                                Toast.LENGTH_LONG).show();
                                         finish();
                                     }
 
-                                    @Override
-                                    public void error(
-                                        String msg, int http, String code
-                                    ) {
+                                    @Override public void error(String msg, int http, String code) {
+                                        agregandoUnidades.set(false);
+                                        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(true);
+                                        dialog.setCancelable(true);
                                         tvError.setText(msg);
                                     }
-                                }
-                            );
-                        })
-                        .setNegativeButton("Cerrar", null)
-                        .show();
+                                });
+                    });
 
                     return;
                 }
@@ -522,7 +523,7 @@ private void verificarIsbn() {
     }
 
     private void abrirCamaraFoto() {
-        escanearPortada.launch(new Intent(this, CoverScannerActivity.class));
+        tomarFoto.launch(new Intent(this, CapturePhotoActivity.class));
     }
 
     private void copiarFotoSeleccionada(Uri uri) {
@@ -628,8 +629,17 @@ private void verificarIsbn() {
         int nv = spNivel.getSelectedItemPosition();
         r.nivelEducativo = nv == 0 ? null : NIVELES[nv];
         if (editando) {
+            Integer cantidad = n(etCantidad);
+            if (cantidad == null || cantidad < 0 || cantidad > 100000
+                    || (cantidad == 0 && cantidadActual > 0)) {
+                etCantidad.setError("Ingresa una cantidad entera entre 1 y 100000");
+                return;
+            }
+            if (cantidad > 0) r.cantidad = cantidad;
             int posicion = spUbicacion.getSelectedItemPosition();
-            if (!ubicacionesMultiples && posicion == 1) r.ubicacionId = 0L;
+            if (!ubicacionesMultiples && posicion == 1 && (tieneInventario || r.cantidad != null)) {
+                r.ubicacionId = 0L;
+            }
             else if (!ubicacionesMultiples && posicion >= 2) r.ubicacionId = ubicaciones.get(posicion - 2).id;
         } else {
             r.cantidad = n(etCantidad) == null ? 1 : n(etCantidad);
