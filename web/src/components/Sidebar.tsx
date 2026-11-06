@@ -15,7 +15,7 @@ const MOBILE_MORE_LINKS = [
   ["/alumnos", "Alumnos y Profesores", "students"], ["/reportes", "Reportes", "reports"],
 ] as const;
 
-type MobileIconName = (typeof MOBILE_LINKS)[number][2] | (typeof MOBILE_MORE_LINKS)[number][2] | "more" | "logout";
+type MobileIconName = (typeof MOBILE_LINKS)[number][2] | (typeof MOBILE_MORE_LINKS)[number][2] | "more" | "logout" | "download";
 
 function isSectionActive(href: string, path: string, isPeoplePath: boolean) {
   if (href === "/alumnos") return isPeoplePath;
@@ -32,6 +32,7 @@ function MobileIcon({ name }: { name: MobileIconName }) {
     reports: <><path d="M5 3h10l4 4v14H5z" /><path d="M14 3v5h5M8 16v-3M12 16v-5M16 16v-2" /></>,
     more: <><rect x="3.5" y="3.5" width="6" height="6" rx="1" /><rect x="14.5" y="3.5" width="6" height="6" rx="1" /><rect x="3.5" y="14.5" width="6" height="6" rx="1" /><rect x="14.5" y="14.5" width="6" height="6" rx="1" /></>,
     logout: <><path d="M10 17l5-5-5-5M15 12H3" /><path d="M12 3h6a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-6" /></>,
+    download: <><path d="M12 3v12M7 10l5 5 5-5M5 21h14" /></>,
   };
 
   return (
@@ -96,6 +97,12 @@ export default function Sidebar() {
                 {isSectionActive(href, path, isPeoplePath) && <span aria-hidden="true" className="h-2 w-2 rounded-full bg-brand-600" />}
               </Link>
             ))}
+            <a href="/descargas/BiblioScorza.apk" download onClick={() => setOpen(false)}
+              className="flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm text-[#35445b] transition-colors hover:bg-[#f7faff] focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-600">
+              <MobileIcon name="download" />
+              <span className="flex-1">Descargar app Android</span>
+              <span className="rounded-full bg-brand-50 px-2 py-0.5 text-[0.62rem] font-bold uppercase tracking-wide text-brand-700 ring-1 ring-inset ring-brand-200">APK</span>
+            </a>
             <div className="my-1 border-t border-[#e6ecf4]" />
             <button onClick={salir} className="flex min-h-11 items-center gap-3 rounded-xl px-3 text-left text-sm text-[#718096] transition-colors hover:bg-[#f7faff] hover:text-[#172b4d] focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-600">
               <MobileIcon name="logout" />
