@@ -30,6 +30,63 @@ export type PrestatarioSeleccionado =
       createdAt: string;
     });
 
+export type RegistroPrestatario = {
+  tipoPrestatario: "ALUMNO" | "PROFESOR";
+  alumnoId: number | null;
+  profesorId: number | null;
+  prestatario: string;
+  nombres: string;
+  apellidos: string;
+  dni: string | null;
+  telefono: string | null;
+  correo: string | null;
+  estadoPrestatario: string;
+  codigoAlumno: string | null;
+  nivelEducativo: string | null;
+  grado: number | null;
+  seccion: string | null;
+  fechaRegistro: string | null;
+  area: string | null;
+  createdAt: string | null;
+};
+
+export function seleccionarPrestatario(registro: RegistroPrestatario): PrestatarioSeleccionado | null {
+  if (registro.tipoPrestatario === "ALUMNO" && registro.alumnoId !== null) {
+    return {
+      id: registro.alumnoId,
+      tipo: "alumno",
+      nombre: registro.prestatario,
+      codigoAlumno: registro.codigoAlumno ?? "",
+      dni: registro.dni,
+      nombres: registro.nombres,
+      apellidos: registro.apellidos,
+      nivelEducativo: registro.nivelEducativo,
+      grado: registro.grado,
+      seccion: registro.seccion,
+      telefono: registro.telefono,
+      correo: registro.correo,
+      estado: registro.estadoPrestatario,
+      fechaRegistro: registro.fechaRegistro ?? "",
+    };
+  }
+  if (registro.tipoPrestatario === "PROFESOR" && registro.profesorId !== null) {
+    return {
+      id: registro.profesorId,
+      tipo: "profesor",
+      nombre: registro.prestatario,
+      dni: registro.dni,
+      nombres: registro.nombres,
+      apellidos: registro.apellidos,
+      area: registro.area,
+      telefono: registro.telefono,
+      correo: registro.correo,
+      estado: registro.estadoPrestatario,
+      createdAt: registro.createdAt ?? "",
+    };
+  }
+  return null;
+}
+
 type DatoPersonal = {
   etiqueta: string;
   valor: string | number | null;

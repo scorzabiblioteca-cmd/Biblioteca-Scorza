@@ -51,7 +51,13 @@ export const GET = withAuth(["BIBLIOTECARIO"], async (req) => {
     pool,
     `SELECT pd.id, pd.fecha_devolucion AS "fechaDevolucion", pd.resultado_devolucion AS resultado,
        pd.observaciones_devolucion AS observaciones, l.titulo, e.codigo_interno AS "codigoInterno",
-       COALESCE(al.nombres || ' ' || al.apellidos, pr.nombres || ' ' || pr.apellidos) AS prestatario
+       p.tipo_prestatario AS "tipoPrestatario", p.alumno_id AS "alumnoId", p.profesor_id AS "profesorId",
+       COALESCE(al.nombres || ' ' || al.apellidos, pr.nombres || ' ' || pr.apellidos) AS prestatario,
+       COALESCE(al.nombres, pr.nombres) AS nombres, COALESCE(al.apellidos, pr.apellidos) AS apellidos,
+       COALESCE(al.dni, pr.dni) AS dni, COALESCE(al.telefono, pr.telefono) AS telefono,
+       COALESCE(al.correo, pr.correo) AS correo, COALESCE(al.estado, pr.estado) AS "estadoPrestatario",
+       al.codigo_alumno AS "codigoAlumno", al.nivel_educativo AS "nivelEducativo", al.grado, al.seccion,
+       al.fecha_registro AS "fechaRegistro", pr.area, pr.created_at AS "createdAt"
      ${HISTORIAL_FROM} ${where}
      ORDER BY pd.fecha_devolucion DESC, pd.id DESC LIMIT ${pageSize} OFFSET ${offset}`,
     params

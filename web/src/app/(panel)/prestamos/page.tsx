@@ -7,6 +7,7 @@ import { AlumnoAutocomplete, type Alumno } from "@/components/AlumnoAutocomplete
 import { ProfesorAutocomplete, type Profesor } from "@/components/ProfesorAutocomplete";
 import { EjemplarAutocomplete, type LibroCantidad } from "@/components/EjemplarAutocomplete";
 import PrestamosDevolucionesTabs from "@/components/PrestamosDevolucionesTabs";
+import { HistorialPrestatarioDialog, seleccionarPrestatario, type PrestatarioSeleccionado } from "@/components/HistorialPrestatarioDialog";
 
 type LibroTop = { titulo: string; vecesPrestado: number; categoria: string };
 
@@ -47,6 +48,7 @@ export default function Prestamos() {
   const [top, setTop] = useState<LibroTop[]>([]);
   const [diasTop, setDiasTop] = useState(30);
   const [mostrarTop, setMostrarTop] = useState(false);
+  const [historialDe, setHistorialDe] = useState<PrestatarioSeleccionado | null>(null);
   const dialogRef = useRef<HTMLDialogElement>(null);
 
   const cargar = useCallback(() => {
@@ -110,6 +112,11 @@ export default function Prestamos() {
         </button>
       }>Préstamos</PageTitle>
       {msg?.t === "ok" && <Msg type="ok">{msg.m}</Msg>}
+      <HistorialPrestatarioDialog
+        key={historialDe ? `${historialDe.tipo}-${historialDe.id}` : "cerrado"}
+        prestatario={historialDe}
+        onClose={() => setHistorialDe(null)}
+      />
       <dialog
         ref={dialogRef}
         aria-labelledby="prestamo-dialog-title"
@@ -242,7 +249,12 @@ export default function Prestamos() {
         <table className="responsive-table w-full min-w-[720px]"><thead className="border-b border-[#e6ecf4] bg-[#f7f9fc]"><tr>{["#", "Prestatario", "Libros", "Préstamo", "Devolver antes de", "Estado", "Registró"].map((h) => <th key={h} className="th">{h}</th>)}</tr></thead>
           <tbody className="divide-y divide-[#eef2f7]">
             {data?.items.map((p) => (
-              <tr key={p.id}><td className="td" data-label="#">{p.id}</td><td className="td font-medium" data-label="Prestatario">{p.prestatario}</td><td className="td" data-label="Libros">{p.items}</td>
+              <tr key={p.id}><td className="td" data-label="#">{p.id}</td><td className="td font-medium" data-label="Prestatario">
+                  <button type="button" className="text-left hover:text-brand-700 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
+                    onClick={() => { const prestatario = seleccionarPrestatario(p); if (prestatario) setHistorialDe(prestatario); }}>
+                    {p.prestatario}
+                  </button>
+                </td><td className="td" data-label="Libros">{p.items}</td>
                 <td className="td" data-label="Préstamo">{fecha(p.fechaPrestamo)}</td>
                 <td className={`td ${p.vencido ? "font-medium text-red-700" : ""}`} data-label="Devolver antes de">{fecha(p.fechaPrevistaDevolucion)}{p.vencido ? " (vencido)" : ""}</td>
                 <td className="td" data-label="Estado"><Badge v={p.estado} /><span className="sr-only">{p.estado}</span></td><td className="td" data-label="Registró">{p.registradoPor}</td></tr>))}

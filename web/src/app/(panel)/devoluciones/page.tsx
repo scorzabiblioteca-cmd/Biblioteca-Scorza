@@ -3,18 +3,18 @@ import { useCallback, useEffect, useState } from "react";
 import { api, fecha, fechaHora, Paged } from "@/lib/client";
 import { Msg, PageTitle } from "@/components/ui";
 import PrestamosDevolucionesTabs from "@/components/PrestamosDevolucionesTabs";
+import { HistorialPrestatarioDialog, seleccionarPrestatario, type PrestatarioSeleccionado, type RegistroPrestatario } from "@/components/HistorialPrestatarioDialog";
 
-type DevolucionHistorial = {
+type DevolucionHistorial = RegistroPrestatario & {
   id: number;
   fechaDevolucion: string;
   resultado: string;
   observaciones: string | null;
   titulo: string;
   codigoInterno: string | null;
-  prestatario: string;
 };
 
-type PrestamoBusqueda = {
+type PrestamoBusqueda = RegistroPrestatario & {
   detalleId: number;
   estadoDetalle: string;
   activo: boolean;
@@ -23,9 +23,6 @@ type PrestamoBusqueda = {
   fechaPrestamo: string;
   fechaPrevistaDevolucion: string;
   vencido: boolean;
-  prestatario: string;
-  dni: string | null;
-  codigoAlumno: string | null;
 };
 
 export default function Devoluciones() {
@@ -42,6 +39,7 @@ export default function Devoluciones() {
   const [resultadoHistorial, setResultadoHistorial] = useState("");
   const [desdeHistorial, setDesdeHistorial] = useState("");
   const [hastaHistorial, setHastaHistorial] = useState("");
+  const [historialDe, setHistorialDe] = useState<PrestatarioSeleccionado | null>(null);
 
   const cargarHistorial = useCallback(() => {
     const params = new URLSearchParams({ page: String(paginaHistorial), pageSize: "20" });
@@ -80,6 +78,11 @@ export default function Devoluciones() {
     <>
       <PrestamosDevolucionesTabs actual="devoluciones" />
       <PageTitle>Devoluciones</PageTitle>
+      <HistorialPrestatarioDialog
+        key={historialDe ? `${historialDe.tipo}-${historialDe.id}` : "cerrado"}
+        prestatario={historialDe}
+        onClose={() => setHistorialDe(null)}
+      />
       <form onSubmit={buscar} className="card mb-4 flex max-w-2xl flex-wrap items-end gap-3">
         <label className="flex-1"><span className="label">Buscar préstamos activos e inactivos</span>
           <input className="input" autoFocus placeholder="Nombre, DNI, título o código" value={busqueda} onChange={(e) => setBusqueda(e.target.value)} /></label>
@@ -94,7 +97,12 @@ export default function Devoluciones() {
             {resultados.map((item) => <tr key={item.detalleId}>
               <td className="td font-medium" data-label="Libro">{item.titulo}</td>
               <td className="td font-mono text-sm" data-label="Código">{item.codigoInterno ?? "Por cantidad"}</td>
-              <td className="td" data-label="Prestatario">{item.prestatario}</td>
+              <td className="td" data-label="Prestatario">
+                <button type="button" className="text-left hover:text-brand-700 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
+                  onClick={() => { const prestatario = seleccionarPrestatario(item); if (prestatario) setHistorialDe(prestatario); }}>
+                  {item.prestatario}
+                </button>
+              </td>
               <td className="td" data-label="DNI / código">{item.dni ?? "—"}{item.codigoAlumno ? ` / ${item.codigoAlumno}` : ""}</td>
               <td className={`td whitespace-nowrap ${item.vencido ? "font-medium text-red-700" : ""}`} data-label="Vence">{fecha(item.fechaPrevistaDevolucion)}{item.vencido ? " (vencido)" : ""}</td>
               <td className="td" data-label="Estado">{item.activo ? "Activo" : item.estadoDetalle === "PERDIDO" ? "Perdido" : "Inactivo"}</td>
@@ -108,7 +116,13 @@ export default function Devoluciones() {
       {p && (
         <div className="card mt-4 max-w-xl space-y-3">
           <div><p className="font-medium">{p.titulo}</p><p className="font-mono text-sm text-slate-500">{p.codigoInterno ?? "Préstamo por cantidad"}</p></div>
-          <p className="text-sm"><b>{p.prestatario}</b> · Prestado: {fecha(p.fechaPrestamo)} · Vence: {fecha(p.fechaPrevistaDevolucion)}{p.vencido ? " (vencido)" : ""}</p>
+          <p className="text-sm">
+            <button type="button" className="font-semibold hover:text-brand-700 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
+              onClick={() => { const prestatario = seleccionarPrestatario(p); if (prestatario) setHistorialDe(prestatario); }}>
+              {p.prestatario}
+            </button>
+            {" · "}Prestado: {fecha(p.fechaPrestamo)} · Vence: {fecha(p.fechaPrevistaDevolucion)}{p.vencido ? " (vencido)" : ""}
+          </p>
           <label className="block"><span className="label">Estado en que regresa</span>
             <select className="input" value={res} onChange={(e) => setRes(e.target.value)}>
               <option value="BUENO">Buena condición</option><option value="DETERIORADO">Deteriorado</option><option value="DANADO">Dañado</option><option value="PERDIDO">Perdido</option>
@@ -150,7 +164,12 @@ export default function Devoluciones() {
                   <td className="td whitespace-nowrap" data-label="Fecha">{fechaHora(item.fechaDevolucion)}</td>
                   <td className="td font-medium" data-label="Libro">{item.titulo}</td>
                   <td className="td font-mono text-sm" data-label="Código">{item.codigoInterno ?? "Por cantidad"}</td>
-                  <td className="td" data-label="Prestatario">{item.prestatario}</td>
+                  <td className="td" data-label="Prestatario">
+                    <button type="button" className="text-left hover:text-brand-700 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
+                      onClick={() => { const prestatario = seleccionarPrestatario(item); if (prestatario) setHistorialDe(prestatario); }}>
+                      {item.prestatario}
+                    </button>
+                  </td>
                   <td className="td" data-label="Resultado">{item.resultado === "BUENO" ? "Buena condición" : item.resultado === "DANADO" ? "Dañado" : item.resultado === "PERDIDO" ? "Perdido" : "Deteriorado"}</td>
                   <td className="td" data-label="Observaciones">{item.observaciones ?? "—"}</td>
                 </tr>
