@@ -35,6 +35,11 @@
             android:layout_marginTop="2dp" android:background="#F1F5F9"
             android:padding="12dp" android:textColor="#526A7D"
             android:textSize="13sp" android:visibility="gone" />
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginTop="14dp" android:text="Fecha de devolución"
+            android:textColor="#475569" android:textSize="14sp" android:textStyle="bold" />
+        <Button android:id="@+id/btnFechaDevolucion" style="@style/BsButtonOutline"
+            android:text="Usar plazo predeterminado" />
         <Button android:id="@+id/btnScanLibro" style="@style/BsButton" android:text="Escanear libro (QR o ISBN)" android:enabled="false" />
         <TextView android:id="@+id/tvItems" style="@style/BsText" />
         <TextView android:id="@+id/tvMsg" style="@style/BsText" />

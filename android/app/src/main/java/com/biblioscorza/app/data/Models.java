@@ -138,6 +138,7 @@ public final class Models {
         public Long alumnoId;
         public Long profesorId;
         public String alumnoDni, alumnoCodigo;
+        public String fechaPrevistaDevolucion;
         public List<Item> items;
         public static class Item {
             public String codigoEjemplar; public Long libroId; public Integer cantidad;

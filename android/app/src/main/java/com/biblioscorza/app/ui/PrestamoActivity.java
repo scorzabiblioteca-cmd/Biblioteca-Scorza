@@ -1,5 +1,6 @@
 package com.biblioscorza.app.ui;
 
+import android.app.DatePickerDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
@@ -14,6 +15,7 @@ import android.view.ViewGroup;
 import android.widget.AutoCompleteTextView;
 import android.widget.BaseAdapter;
 import android.widget.Button;
+import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.Filter;
 import android.widget.Filterable;
@@ -39,7 +41,9 @@ import com.biblioscorza.app.util.Api;
 import com.biblioscorza.app.util.ScannedCode;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
+import java.util.Locale;
 
 /** Flujo: identificar alumno -> escanear libro(s) -> confirmar. */
 public class PrestamoActivity extends AppCompatActivity {
@@ -52,6 +56,8 @@ public class PrestamoActivity extends AppCompatActivity {
     private AutoCompleteTextView etAlumno;
     private TextView tvAlumno, tvDatosPrestatario, tvItems, tvMsg;
     private Button btnScanLibro, btnConfirmar;
+    private Button btnFechaDevolucion;
+    private String fechaPrevistaDevolucion;
     private AlumnoSugerenciaAdapter alumnosAdapter;
     private ProfesorSugerenciaAdapter profesoresAdapter;
     private boolean buscandoProfesor;
@@ -88,6 +94,8 @@ public class PrestamoActivity extends AppCompatActivity {
         tvMsg = findViewById(R.id.tvMsg);
         btnScanLibro = findViewById(R.id.btnScanLibro);
         btnConfirmar = findViewById(R.id.btnConfirmar);
+        btnFechaDevolucion = findViewById(R.id.btnFechaDevolucion);
+        btnFechaDevolucion.setOnClickListener(v -> seleccionarFechaDevolucion());
         RadioGroup rgTipoPrestatario = findViewById(R.id.rgTipoPrestatario);
         alumnosAdapter = new AlumnoSugerenciaAdapter();
         profesoresAdapter = new ProfesorSugerenciaAdapter();
@@ -611,6 +619,54 @@ public class PrestamoActivity extends AppCompatActivity {
         btnConfirmar.setEnabled(prestatarioSeleccionado && !items.isEmpty());
     }
 
+    private void seleccionarFechaDevolucion() {
+        Calendar hoy = Calendar.getInstance();
+        hoy.set(Calendar.HOUR_OF_DAY, 0);
+        hoy.set(Calendar.MINUTE, 0);
+        hoy.set(Calendar.SECOND, 0);
+        hoy.set(Calendar.MILLISECOND, 0);
+        Calendar inicial = (Calendar) hoy.clone();
+        inicial.add(Calendar.DAY_OF_MONTH, 7);
+        if (fechaPrevistaDevolucion != null) {
+            String[] partes = fechaPrevistaDevolucion.split("-");
+            inicial.set(Integer.parseInt(partes[0]), Integer.parseInt(partes[1]) - 1,
+                    Integer.parseInt(partes[2]));
+        }
+        Calendar maximo = (Calendar) hoy.clone();
+        maximo.add(Calendar.DAY_OF_MONTH, 365);
+        maximo.set(Calendar.HOUR_OF_DAY, 23);
+        maximo.set(Calendar.MINUTE, 59);
+        maximo.set(Calendar.SECOND, 59);
+        maximo.set(Calendar.MILLISECOND, 999);
+        DatePickerDialog selector = new DatePickerDialog(this,
+                (DatePicker view, int year, int month, int dayOfMonth) -> {
+                    fechaPrevistaDevolucion = String.format(Locale.ROOT, "%04d-%02d-%02d",
+                            year, month + 1, dayOfMonth);
+                    actualizarTextoFechaDevolucion();
+                },
+                inicial.get(Calendar.YEAR),
+                inicial.get(Calendar.MONTH),
+                inicial.get(Calendar.DAY_OF_MONTH));
+        selector.getDatePicker().setMinDate(hoy.getTimeInMillis());
+        selector.getDatePicker().setMaxDate(maximo.getTimeInMillis());
+        selector.setButton(AlertDialog.BUTTON_NEUTRAL, "Plazo predeterminado",
+                (dialog, which) -> {
+                    fechaPrevistaDevolucion = null;
+                    actualizarTextoFechaDevolucion();
+                });
+        selector.show();
+    }
+
+    private void actualizarTextoFechaDevolucion() {
+        if (fechaPrevistaDevolucion == null) {
+            btnFechaDevolucion.setText("Usar plazo predeterminado");
+            return;
+        }
+        String[] partes = fechaPrevistaDevolucion.split("-");
+        btnFechaDevolucion.setText(String.format(Locale.getDefault(), "%s/%s/%s",
+                partes[2], partes[1], partes[0]));
+    }
+
     private void confirmar() {
         if (alumno == null && profesor == null) {
             tvMsg.setText(buscandoProfesor
@@ -625,6 +681,7 @@ public class PrestamoActivity extends AppCompatActivity {
         PrestamoReq solicitud = new PrestamoReq();
         if (profesor != null) solicitud.profesorId = profesor.id;
         else solicitud.alumnoId = alumno.id;
+        solicitud.fechaPrevistaDevolucion = fechaPrevistaDevolucion;
         solicitud.items = items;
         btnConfirmar.setEnabled(false);
         Api.call(ApiClient.api().prestar(solicitud), new Api.Result<Object>() {
