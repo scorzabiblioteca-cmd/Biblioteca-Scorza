@@ -1,5 +1,5 @@
 "use client";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { api, fecha, fechaHora, Paged } from "@/lib/client";
 import { Msg, PageTitle } from "@/components/ui";
 import PrestamosDevolucionesTabs from "@/components/PrestamosDevolucionesTabs";
@@ -15,6 +15,8 @@ type DevolucionHistorial = RegistroPrestatario & {
 };
 
 type PrestamoBusqueda = RegistroPrestatario & {
+  prestamoId: number;
+  libroId: number;
   detalleId: number;
   estadoDetalle: string;
   activo: boolean;
@@ -25,10 +27,30 @@ type PrestamoBusqueda = RegistroPrestatario & {
   vencido: boolean;
 };
 
+type LibroGrupoDevolucion = {
+  libroId: number;
+  titulo: string;
+  unidades: PrestamoBusqueda[];
+};
+
+type PrestamoGrupo = {
+  prestamoId: number;
+  prestatario: string;
+  dni: string | null;
+  codigoAlumno: string | null;
+  fechaPrestamo: string;
+  fechaPrevistaDevolucion: string;
+  vencido: boolean;
+  unidades: PrestamoBusqueda[];
+  libros: LibroGrupoDevolucion[];
+};
+
 export default function Devoluciones() {
   const [busqueda, setBusqueda] = useState("");
   const [resultados, setResultados] = useState<PrestamoBusqueda[]>([]);
-  const [p, setP] = useState<PrestamoBusqueda | null>(null);
+  const [seleccion, setSeleccion] = useState<PrestamoBusqueda[] | null>(null);
+  const [grupoAbiertoId, setGrupoAbiertoId] = useState<number | null>(null);
+  const grupoRef = useRef<HTMLDialogElement>(null);
   const [buscando, setBuscando] = useState(false);
   const [res, setRes] = useState("BUENO");
   const [obs, setObs] = useState("");
@@ -40,6 +62,48 @@ export default function Devoluciones() {
   const [desdeHistorial, setDesdeHistorial] = useState("");
   const [hastaHistorial, setHastaHistorial] = useState("");
   const [historialDe, setHistorialDe] = useState<PrestatarioSeleccionado | null>(null);
+
+  const grupos = useMemo(() => {
+    const porPrestamo = new Map<number, PrestamoGrupo>();
+    for (const item of resultados) {
+      let grupo = porPrestamo.get(item.prestamoId);
+      if (!grupo) {
+        grupo = {
+          prestamoId: item.prestamoId,
+          prestatario: item.prestatario,
+          dni: item.dni,
+          codigoAlumno: item.codigoAlumno,
+          fechaPrestamo: item.fechaPrestamo,
+          fechaPrevistaDevolucion: item.fechaPrevistaDevolucion,
+          vencido: item.vencido,
+          unidades: [],
+          libros: [],
+        };
+        porPrestamo.set(item.prestamoId, grupo);
+      }
+      grupo.unidades.push(item);
+      grupo.vencido = grupo.vencido || item.vencido;
+      let libro = grupo.libros.find((l) => l.libroId === item.libroId);
+      if (!libro) {
+        libro = { libroId: item.libroId, titulo: item.titulo, unidades: [] };
+        grupo.libros.push(libro);
+      }
+      libro.unidades.push(item);
+    }
+    return [...porPrestamo.values()];
+  }, [resultados]);
+
+  const grupoAbierto = useMemo(
+    () => grupos.find((grupo) => grupo.prestamoId === grupoAbiertoId) ?? null,
+    [grupos, grupoAbiertoId]
+  );
+
+  useEffect(() => {
+    const dialog = grupoRef.current;
+    if (!dialog) return;
+    if (grupoAbierto && !dialog.open) dialog.showModal();
+    else if (!grupoAbierto && dialog.open) dialog.close();
+  }, [grupoAbierto]);
 
   const cargarHistorial = useCallback(() => {
     const params = new URLSearchParams({ page: String(paginaHistorial), pageSize: "20" });
@@ -54,7 +118,7 @@ export default function Devoluciones() {
   useEffect(() => { cargarHistorial(); }, [cargarHistorial]);
 
   async function buscar(e: React.FormEvent) {
-    e.preventDefault(); setMsg(null); setP(null); setBuscando(true);
+    e.preventDefault(); setMsg(null); setSeleccion(null); setBuscando(true);
     try {
       const params = new URLSearchParams({ q: busqueda.trim(), incluirInactivos: "true" });
       const data = await api<{ items: PrestamoBusqueda[] }>(`/prestamos/activo?${params}`);
@@ -64,12 +128,21 @@ export default function Devoluciones() {
     finally { setBuscando(false); }
   }
   async function confirmar() {
-    const seleccionada = p;
-    if (!seleccionada) return;
+    if (!seleccion || seleccion.length === 0) return;
+    const ids = new Set(seleccion.map((unidad) => unidad.detalleId));
     try {
-      await api("/devoluciones", { json: { prestamoDetalleId: seleccionada.detalleId, resultado: res, observaciones: obs } });
-      setMsg({ t: "ok", m: "Devolución registrada correctamente" });
-      setP(null); setResultados((items) => items.filter((item) => item.detalleId !== seleccionada.detalleId));
+      const json = seleccion.length === 1
+        ? { prestamoDetalleId: seleccion[0].detalleId, resultado: res, observaciones: obs }
+        : { prestamoDetalleIds: [...ids], resultado: res, observaciones: obs };
+      await api("/devoluciones", { json });
+      setMsg({
+        t: "ok",
+        m: seleccion.length === 1
+          ? "Devolución registrada correctamente"
+          : `${seleccion.length} unidades devueltas correctamente`,
+      });
+      setSeleccion(null);
+      setResultados((items) => items.filter((item) => !ids.has(item.detalleId)));
       setBusqueda(""); setObs(""); setRes("BUENO");
       await cargarHistorial();
     } catch (x) { setMsg({ t: "error", m: (x as Error).message }); }
@@ -89,47 +162,169 @@ export default function Devoluciones() {
         <button className="btn" disabled={buscando}>{buscando ? "Buscando…" : "Buscar"}</button>
       </form>
       <Msg type={msg?.t ?? "ok"}>{msg?.m}</Msg>
-      {resultados.length > 0 && !p && (
-        <div className="card responsive-table-shell mt-4 max-w-3xl overflow-x-auto p-0">
-          <table className="responsive-table w-full min-w-[600px]"><thead className="border-b border-[#e6ecf4] bg-[#f7f9fc]"><tr>
-            {["Libro", "Código", "Prestatario", "DNI / código", "Vence", "Estado", ""].map((h) => <th key={h} className="th">{h}</th>)}
-          </tr></thead><tbody className="divide-y divide-[#eef2f7]">
-            {resultados.map((item) => <tr key={item.detalleId}>
-              <td className="td font-medium" data-label="Libro">{item.titulo}</td>
-              <td className="td font-mono text-sm" data-label="Código">{item.codigoInterno ?? "Por cantidad"}</td>
-              <td className="td" data-label="Prestatario">
-                <button type="button" className="text-left hover:text-brand-700 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
-                  onClick={() => { const prestatario = seleccionarPrestatario(item); if (prestatario) setHistorialDe(prestatario); }}>
-                  {item.prestatario}
-                </button>
-              </td>
-              <td className="td" data-label="DNI / código">{item.dni ?? "—"}{item.codigoAlumno ? ` / ${item.codigoAlumno}` : ""}</td>
-              <td className={`td whitespace-nowrap ${item.vencido ? "font-medium text-red-700" : ""}`} data-label="Vence">{fecha(item.fechaPrevistaDevolucion)}{item.vencido ? " (vencido)" : ""}</td>
-              <td className="td" data-label="Estado">{item.activo ? "Activo" : item.estadoDetalle === "PERDIDO" ? "Perdido" : "Inactivo"}</td>
-              <td className="td" data-label="Acción">{item.activo
-                ? <button type="button" className="btn" onClick={() => setP(item)}>Seleccionar</button>
-                : <span className="text-sm text-slate-500">No admite devolución</span>}</td>
-            </tr>)}
-          </tbody></table>
+      {grupos.length > 0 && (
+        <div className="card responsive-table-shell mt-4 overflow-x-auto p-0">
+          <table className="responsive-table w-full min-w-[820px]">
+            <thead className="border-b border-[#e6ecf4] bg-[#f7f9fc]"><tr>
+              {["#", "Prestatario", "Libros", "Unidades", "Prestado", "Vence", "Estado", ""].map((h) => <th key={h} className="th">{h}</th>)}
+            </tr></thead>
+            <tbody className="divide-y divide-[#eef2f7]">
+              {grupos.map((grupo) => {
+                const activas = grupo.unidades.filter((unidad) => unidad.activo);
+                return (
+                  <tr key={grupo.prestamoId}>
+                    <td className="td" data-label="#">#{grupo.prestamoId}</td>
+                    <td className="td" data-label="Prestatario">
+                      <button type="button" className="text-left font-medium hover:text-brand-700 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
+                        onClick={() => { const prestatario = seleccionarPrestatario(grupo.unidades[0]); if (prestatario) setHistorialDe(prestatario); }}>
+                        {grupo.prestatario}
+                      </button>
+                      <p className="text-xs text-slate-500">{grupo.dni ?? "—"}{grupo.codigoAlumno ? ` / ${grupo.codigoAlumno}` : ""}</p>
+                    </td>
+                    <td className="td" data-label="Libros">
+                      <span className="block max-w-[20rem] text-sm text-slate-600">
+                        {grupo.libros.map((libro) => libro.unidades.length > 1 ? `${libro.titulo} ×${libro.unidades.length}` : libro.titulo).join("; ")}
+                      </span>
+                    </td>
+                    <td className="td" data-label="Unidades">
+                      <span className="inline-flex min-w-8 items-center justify-center rounded-full bg-brand-50 px-2.5 py-0.5 text-sm font-bold text-brand-700 ring-1 ring-inset ring-brand-200">
+                        {grupo.unidades.length}
+                      </span>
+                    </td>
+                    <td className="td whitespace-nowrap" data-label="Prestado">{fecha(grupo.fechaPrestamo)}</td>
+                    <td className={`td whitespace-nowrap ${grupo.vencido ? "font-medium text-red-700" : ""}`} data-label="Vence">{fecha(grupo.fechaPrevistaDevolucion)}{grupo.vencido ? " (vencido)" : ""}</td>
+                    <td className="td" data-label="Estado">
+                      {activas.length > 0
+                        ? <span className="text-sm font-medium text-emerald-700">{activas.length} activa(s)</span>
+                        : <span className="text-sm text-slate-500">Sin activas</span>}
+                    </td>
+                    <td className="td" data-label="Acción">
+                      <button type="button" className="btn-ghost whitespace-nowrap" onClick={() => setGrupoAbiertoId(grupo.prestamoId)}>
+                        Ver unidades
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
         </div>
       )}
-      {p && (
+      <dialog
+        ref={grupoRef}
+        aria-labelledby="detalle-devolucion-title"
+        onClose={() => setGrupoAbiertoId(null)}
+        className="m-auto max-h-[90dvh] w-[min(46rem,calc(100%-2rem))] overflow-y-auto rounded-2xl border border-[#e6ecf4] bg-white p-0 text-[#334155] shadow-panel backdrop:bg-[#0b1b33]/55"
+      >
+        {grupoAbierto && (
+          <>
+            <div className="flex items-start justify-between gap-4 border-b border-[#e6ecf4] px-5 py-4 sm:px-6">
+              <div>
+                <p className="text-[0.7rem] font-bold uppercase tracking-[0.14em] text-brand-600">Préstamo #{grupoAbierto.prestamoId}</p>
+                <h2 id="detalle-devolucion-title" className="mt-1 text-lg font-semibold tracking-[-0.02em] text-[#172b4d]">{grupoAbierto.prestatario}</h2>
+                <p className="mt-1 text-sm text-[#718096]">{grupoAbierto.dni ?? "—"}{grupoAbierto.codigoAlumno ? ` / ${grupoAbierto.codigoAlumno}` : ""}</p>
+              </div>
+              <button
+                type="button"
+                className="rounded-lg px-2 py-1 text-xl leading-none text-[#718096] hover:bg-[#f1f5fb] hover:text-[#172b4d] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
+                aria-label="Cerrar ventana"
+                onClick={() => grupoRef.current?.close()}
+              >
+                ×
+              </button>
+            </div>
+            <div className="grid gap-5 p-5 sm:p-6">
+              <dl className="grid gap-3 rounded-xl border border-[#e6ecf4] bg-[#f7f9fc] p-4 sm:grid-cols-3">
+                <div>
+                  <dt className="text-xs font-medium uppercase tracking-wide text-[#718096]">Unidades</dt>
+                  <dd className="mt-1 text-sm font-bold text-[#172b4d]">{grupoAbierto.unidades.length}</dd>
+                </div>
+                <div>
+                  <dt className="text-xs font-medium uppercase tracking-wide text-[#718096]">Activas</dt>
+                  <dd className="mt-1 text-sm font-semibold text-emerald-700">{grupoAbierto.unidades.filter((unidad) => unidad.activo).length}</dd>
+                </div>
+                <div>
+                  <dt className="text-xs font-medium uppercase tracking-wide text-[#718096]">Prestado</dt>
+                  <dd className="mt-1 text-sm text-[#334155]">{fecha(grupoAbierto.fechaPrestamo)}</dd>
+                </div>
+                <div>
+                  <dt className="text-xs font-medium uppercase tracking-wide text-[#718096]">Vence</dt>
+                  <dd className={`mt-1 text-sm ${grupoAbierto.vencido ? "font-semibold text-red-700" : "text-[#334155]"}`}>
+                    {fecha(grupoAbierto.fechaPrevistaDevolucion)}{grupoAbierto.vencido ? " (vencido)" : ""}
+                  </dd>
+                </div>
+              </dl>
+              <section aria-labelledby="devolucion-libros-title">
+                <h3 id="devolucion-libros-title" className="mb-2 text-sm font-semibold text-[#172b4d]">Libros y unidades</h3>
+                <div className="grid gap-2">
+                  {grupoAbierto.libros.map((libro) => {
+                    const activasLibro = libro.unidades.filter((unidad) => unidad.activo);
+                    return (
+                      <div key={libro.libroId} className="overflow-hidden rounded-xl border border-[#e6ecf4] bg-[#f7f9fc]">
+                        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#e6ecf4] px-3 py-2">
+                          <span className="text-sm font-semibold text-[#172b4d]">
+                            {libro.titulo}
+                            {libro.unidades.length > 1 && <span className="ml-1 font-bold text-brand-700">×{libro.unidades.length}</span>}
+                          </span>
+                          {activasLibro.length > 1 && (
+                            <button
+                              type="button"
+                              className="btn-ghost"
+                              onClick={() => { setSeleccion(activasLibro); setGrupoAbiertoId(null); }}
+                            >
+                              Devolver todas ({activasLibro.length})
+                            </button>
+                          )}
+                        </div>
+                        <ul className="divide-y divide-[#eef2f7] bg-white">
+                          {libro.unidades.map((unidad) => (
+                            <li key={unidad.detalleId} className="flex flex-wrap items-center justify-between gap-2 px-3 py-2">
+                              <span className="font-mono text-xs text-slate-600">{unidad.codigoInterno ?? "Por cantidad"}</span>
+                              <span className={`text-xs font-medium ${unidad.activo ? "text-emerald-700" : "text-slate-500"}`}>
+                                {unidad.activo ? "Activa" : unidad.estadoDetalle === "PERDIDO" ? "Perdida" : "Devuelta"}
+                              </span>
+                              {unidad.activo
+                                ? <button type="button" className="btn-ghost" onClick={() => { setSeleccion([unidad]); setGrupoAbiertoId(null); }}>Seleccionar</button>
+                                : <span className="text-xs text-slate-400">No admite devolución</span>}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    );
+                  })}
+                </div>
+              </section>
+            </div>
+            <div className="flex justify-end border-t border-[#e6ecf4] px-5 py-4 sm:px-6">
+              <button type="button" className="btn-ghost" onClick={() => grupoRef.current?.close()}>Cerrar</button>
+            </div>
+          </>
+        )}
+      </dialog>
+      {seleccion && seleccion.length > 0 && (
         <div className="card mt-4 max-w-xl space-y-3">
-          <div><p className="font-medium">{p.titulo}</p><p className="font-mono text-sm text-slate-500">{p.codigoInterno ?? "Préstamo por cantidad"}</p></div>
-          <p className="text-sm">
-            <button type="button" className="font-semibold hover:text-brand-700 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
-              onClick={() => { const prestatario = seleccionarPrestatario(p); if (prestatario) setHistorialDe(prestatario); }}>
-              {p.prestatario}
-            </button>
-            {" · "}Prestado: {fecha(p.fechaPrestamo)} · Vence: {fecha(p.fechaPrevistaDevolucion)}{p.vencido ? " (vencido)" : ""}
-          </p>
+          <div>
+            <p className="font-medium">
+              {seleccion.length === 1 ? seleccion[0].titulo : `${seleccion.length} unidades seleccionadas`}
+            </p>
+            <p className="text-sm text-slate-500">
+              {seleccion[0].prestatario}{" · "}Prestado: {fecha(seleccion[0].fechaPrestamo)} · Vence: {fecha(seleccion[0].fechaPrevistaDevolucion)}{seleccion[0].vencido ? " (vencido)" : ""}
+            </p>
+            {seleccion.length > 1 && (
+              <ul className="mt-2 list-disc space-y-0.5 pl-5 text-sm text-slate-600">
+                {seleccion.map((unidad) => (
+                  <li key={unidad.detalleId}>{unidad.titulo} — {unidad.codigoInterno ?? "Por cantidad"}</li>
+                ))}
+              </ul>
+            )}
+          </div>
           <label className="block"><span className="label">Estado en que regresa</span>
             <select className="input" value={res} onChange={(e) => setRes(e.target.value)}>
               <option value="BUENO">Buena condición</option><option value="DETERIORADO">Deteriorado</option><option value="DANADO">Dañado</option><option value="PERDIDO">Perdido</option>
             </select></label>
           <label className="block"><span className="label">Observaciones</span><textarea className="input" rows={2} value={obs} onChange={(e) => setObs(e.target.value)} /></label>
-          <div className="flex gap-2"><button className="btn" onClick={confirmar}>Confirmar devolución</button>
-            <button type="button" className="btn-ghost" onClick={() => setP(null)}>Cancelar</button></div>
+          <div className="flex gap-2"><button className="btn" onClick={confirmar}>Confirmar devolución{seleccion.length > 1 ? ` (${seleccion.length})` : ""}</button>
+            <button type="button" className="btn-ghost" onClick={() => setSeleccion(null)}>Cancelar</button></div>
         </div>
       )}
       <section className="mt-6">

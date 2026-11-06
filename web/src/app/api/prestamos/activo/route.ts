@@ -9,6 +9,7 @@ export const GET = withAuth(["BIBLIOTECARIO"], async (req) => {
   const items = await q(
     pool,
     `SELECT pd.id AS "detalleId", pd.estado AS "estadoDetalle",
+            p.id AS "prestamoId", COALESCE(e.libro_id, x.libro_id) AS "libroId",
             p.tipo_prestatario AS "tipoPrestatario", p.alumno_id AS "alumnoId", p.profesor_id AS "profesorId",
             (pd.estado = 'PRESTADO' AND p.estado = 'ACTIVO') AS activo,
             e.codigo_interno AS "codigoInterno", l.titulo,

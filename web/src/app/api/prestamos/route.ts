@@ -78,6 +78,12 @@ export const GET = withAuth(R, async (req) => {
      LEFT JOIN alumnos al ON al.id = p.alumno_id LEFT JOIN profesores pr ON pr.id = p.profesor_id
      ${W}`,
     params))!.n;
+  const totalUnidades = (await q1<{ n: number }>(pool,
+    `SELECT count(*)::int AS n FROM prestamo_detalles pd
+     JOIN prestamos p ON p.id = pd.prestamo_id
+     LEFT JOIN alumnos al ON al.id = p.alumno_id LEFT JOIN profesores pr ON pr.id = p.profesor_id
+     ${W}`,
+    params))!.n;
   const items = await q(
     pool,
     `SELECT p.id, p.estado, p.tipo_prestatario AS "tipoPrestatario",
@@ -95,17 +101,38 @@ export const GET = withAuth(R, async (req) => {
             (p.estado = 'ACTIVO' AND p.fecha_prevista_devolucion < ${LIMA_HOY}) AS vencido,
             COALESCE(al.nombres || ' ' || al.apellidos, pr.nombres || ' ' || pr.apellidos) AS prestatario,
             us.username AS registrado_por,
-            (SELECT string_agg(COALESCE(e.codigo_interno, l2.titulo) || ' — ' || COALESCE(l.titulo, l2.titulo), '; ')
-               FROM prestamo_detalles pd
-               LEFT JOIN ejemplares e ON e.id = pd.ejemplar_id LEFT JOIN libros l ON l.id = e.libro_id
-               LEFT JOIN existencias x ON x.id = pd.existencia_id LEFT JOIN libros l2 ON l2.id = x.libro_id
-              WHERE pd.prestamo_id = p.id) AS items
+            (SELECT count(*)::int FROM prestamo_detalles pd WHERE pd.prestamo_id = p.id) AS unidades,
+            (SELECT COALESCE(json_agg(json_build_object(
+                      'titulo', t.titulo, 'cantidad', t.cantidad, 'codigos', t.codigos) ORDER BY t.titulo), '[]'::json)
+               FROM (
+                 SELECT COALESCE(l.titulo, l2.titulo) AS titulo, count(*)::int AS cantidad,
+                        string_agg(e.codigo_interno, ', ' ORDER BY e.codigo_interno)
+                          FILTER (WHERE e.codigo_interno IS NOT NULL) AS codigos
+                   FROM prestamo_detalles pd
+                   LEFT JOIN ejemplares e ON e.id = pd.ejemplar_id LEFT JOIN libros l ON l.id = e.libro_id
+                   LEFT JOIN existencias x ON x.id = pd.existencia_id LEFT JOIN libros l2 ON l2.id = x.libro_id
+                  WHERE pd.prestamo_id = p.id
+                  GROUP BY COALESCE(l.titulo, l2.titulo)
+               ) t) AS libros,
+            (SELECT string_agg(t.resumen, '; ' ORDER BY t.titulo)
+               FROM (
+                 SELECT COALESCE(l.titulo, l2.titulo) AS titulo,
+                        COALESCE(l.titulo, l2.titulo)
+                          || CASE WHEN count(*) > 1 THEN ' ×' || count(*) ELSE '' END
+                          || COALESCE(' (' || string_agg(e.codigo_interno, ', ' ORDER BY e.codigo_interno)
+                               FILTER (WHERE e.codigo_interno IS NOT NULL) || ')', '') AS resumen
+                   FROM prestamo_detalles pd
+                   LEFT JOIN ejemplares e ON e.id = pd.ejemplar_id LEFT JOIN libros l ON l.id = e.libro_id
+                   LEFT JOIN existencias x ON x.id = pd.existencia_id LEFT JOIN libros l2 ON l2.id = x.libro_id
+                  WHERE pd.prestamo_id = p.id
+                  GROUP BY COALESCE(l.titulo, l2.titulo)
+               ) t) AS items
      FROM prestamos p JOIN usuarios us ON us.id = p.usuario_id
      LEFT JOIN alumnos al ON al.id = p.alumno_id LEFT JOIN profesores pr ON pr.id = p.profesor_id
      ${W} ORDER BY p.id DESC LIMIT ${add(pageSize)} OFFSET ${add(offset)}`,
     params
   );
-  return ok({ items, page: p, pageSize, total });
+  return ok({ items, page: p, pageSize, total, totalUnidades });
 });
 
 export const POST = withAuth(R, async (req, { session }) => {

@@ -7,9 +7,26 @@ import { AlumnoAutocomplete, type Alumno } from "@/components/AlumnoAutocomplete
 import { ProfesorAutocomplete, type Profesor } from "@/components/ProfesorAutocomplete";
 import { EjemplarAutocomplete, type LibroCantidad } from "@/components/EjemplarAutocomplete";
 import PrestamosDevolucionesTabs from "@/components/PrestamosDevolucionesTabs";
-import { HistorialPrestatarioDialog, seleccionarPrestatario, type PrestatarioSeleccionado } from "@/components/HistorialPrestatarioDialog";
+import { HistorialPrestatarioDialog, seleccionarPrestatario, type PrestatarioSeleccionado, type RegistroPrestatario } from "@/components/HistorialPrestatarioDialog";
 
 type LibroTop = { titulo: string; vecesPrestado: number; categoria: string };
+
+type LibroPrestamo = { titulo: string; cantidad: number; codigos: string | null };
+type PrestamoFila = RegistroPrestatario & {
+  id: number;
+  estado: string;
+  fechaPrestamo: string;
+  fechaPrevistaDevolucion: string;
+  fechaCierre: string | null;
+  vencido: boolean;
+  prestatario: string;
+  registradoPor: string;
+  unidades: number;
+  libros: LibroPrestamo[];
+  items: string | null;
+};
+
+const COLUMNAS_PRESTAMOS = ["#", "Prestatario", "Libros", "Unidades", "Préstamo", "Devolver antes de", "Estado", "Registró", ""];
 
 const NUMBER_FORMAT = new Intl.NumberFormat("es-PE");
 const PERIODOS = [
@@ -28,7 +45,7 @@ function fechaDespuesDe(dias: number) {
 }
 
 export default function Prestamos() {
-  const [data, setData] = useState<Paged<any> | null>(null);
+  const [data, setData] = useState<Paged<PrestamoFila> | null>(null);
   const [filtro, setFiltro] = useState("");
   const [busquedaListado, setBusquedaListado] = useState("");
   const busquedaAplicada = useRef("");
@@ -49,7 +66,16 @@ export default function Prestamos() {
   const [diasTop, setDiasTop] = useState(30);
   const [mostrarTop, setMostrarTop] = useState(false);
   const [historialDe, setHistorialDe] = useState<PrestatarioSeleccionado | null>(null);
+  const [detalle, setDetalle] = useState<PrestamoFila | null>(null);
   const dialogRef = useRef<HTMLDialogElement>(null);
+  const detalleRef = useRef<HTMLDialogElement>(null);
+
+  useEffect(() => {
+    const dialog = detalleRef.current;
+    if (!dialog) return;
+    if (detalle && !dialog.open) dialog.showModal();
+    else if (!detalle && dialog.open) dialog.close();
+  }, [detalle]);
 
   const cargar = useCallback(() => {
     const p = new URLSearchParams({ pageSize: "30" });
@@ -60,7 +86,7 @@ export default function Prestamos() {
     if (hastaPrestamo) p.set("hasta", hastaPrestamo);
     if (venceDesde) p.set("venceDesde", venceDesde);
     if (venceHasta) p.set("venceHasta", venceHasta);
-    api<Paged<any>>(`/prestamos?${p}`).then(setData).catch((e) => setMsg({ t: "error", m: e.message }));
+    api<Paged<PrestamoFila>>(`/prestamos?${p}`).then(setData).catch((e) => setMsg({ t: "error", m: e.message }));
   }, [filtro, tipoListado, desdePrestamo, hastaPrestamo, venceDesde, venceHasta]);
   useEffect(() => { cargar(); }, [cargar]);
 
@@ -167,6 +193,88 @@ export default function Prestamos() {
           </div>
         </form>
       </dialog>
+      <dialog
+        ref={detalleRef}
+        aria-labelledby="detalle-prestamo-title"
+        onClose={() => setDetalle(null)}
+        className="m-auto max-h-[90dvh] w-[min(44rem,calc(100%-2rem))] overflow-y-auto rounded-2xl border border-[#e6ecf4] bg-white p-0 text-[#334155] shadow-panel backdrop:bg-[#0b1b33]/55"
+      >
+        {detalle && (
+          <>
+            <div className="flex items-start justify-between gap-4 border-b border-[#e6ecf4] px-5 py-4 sm:px-6">
+              <div>
+                <p className="text-[0.7rem] font-bold uppercase tracking-[0.14em] text-brand-600">Préstamo #{detalle.id}</p>
+                <h2 id="detalle-prestamo-title" className="mt-1 text-lg font-semibold tracking-[-0.02em] text-[#172b4d]">{detalle.prestatario}</h2>
+                <p className="mt-1 text-sm text-[#718096]">
+                  {detalle.tipoPrestatario === "ALUMNO" ? "Alumno" : "Profesor"}
+                  {detalle.dni ? ` · DNI ${detalle.dni}` : ""}
+                  {detalle.codigoAlumno ? ` · Código ${detalle.codigoAlumno}` : ""}
+                </p>
+              </div>
+              <button
+                type="button"
+                className="rounded-lg px-2 py-1 text-xl leading-none text-[#718096] hover:bg-[#f1f5fb] hover:text-[#172b4d] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
+                aria-label="Cerrar ventana"
+                onClick={() => detalleRef.current?.close()}
+              >
+                ×
+              </button>
+            </div>
+            <div className="grid gap-5 p-5 sm:p-6">
+              <dl className="grid gap-3 rounded-xl border border-[#e6ecf4] bg-[#f7f9fc] p-4 sm:grid-cols-3">
+                <div>
+                  <dt className="text-xs font-medium uppercase tracking-wide text-[#718096]">Estado</dt>
+                  <dd className="mt-1"><Badge v={detalle.estado} /></dd>
+                </div>
+                <div>
+                  <dt className="text-xs font-medium uppercase tracking-wide text-[#718096]">Unidades</dt>
+                  <dd className="mt-1 text-sm font-bold text-[#172b4d]">{detalle.unidades}</dd>
+                </div>
+                <div>
+                  <dt className="text-xs font-medium uppercase tracking-wide text-[#718096]">Registró</dt>
+                  <dd className="mt-1 text-sm text-[#334155]">{detalle.registradoPor}</dd>
+                </div>
+                <div>
+                  <dt className="text-xs font-medium uppercase tracking-wide text-[#718096]">Fecha de préstamo</dt>
+                  <dd className="mt-1 text-sm text-[#334155]">{fecha(detalle.fechaPrestamo)}</dd>
+                </div>
+                <div>
+                  <dt className="text-xs font-medium uppercase tracking-wide text-[#718096]">Devolver antes de</dt>
+                  <dd className={`mt-1 text-sm ${detalle.vencido ? "font-semibold text-red-700" : "text-[#334155]"}`}>
+                    {fecha(detalle.fechaPrevistaDevolucion)}{detalle.vencido ? " (vencido)" : ""}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-xs font-medium uppercase tracking-wide text-[#718096]">Devolución</dt>
+                  <dd className="mt-1 text-sm text-[#334155]">{detalle.fechaCierre ? fecha(detalle.fechaCierre) : "Pendiente"}</dd>
+                </div>
+              </dl>
+              <section aria-labelledby="detalle-libros-title">
+                <h3 id="detalle-libros-title" className="mb-2 text-sm font-semibold text-[#172b4d]">Libros prestados</h3>
+                <div className="grid gap-2">
+                  {detalle.libros?.map((libro) => (
+                    <div key={libro.titulo} className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-[#e6ecf4] bg-[#f7f9fc] px-3 py-2.5">
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium text-[#172b4d]">{libro.titulo}</p>
+                        {libro.codigos && <p className="mt-0.5 font-mono text-xs text-slate-500">{libro.codigos}</p>}
+                      </div>
+                      <span className="rounded-full bg-brand-50 px-2.5 py-0.5 text-sm font-bold text-brand-700 ring-1 ring-inset ring-brand-200">
+                        ×{libro.cantidad}
+                      </span>
+                    </div>
+                  ))}
+                  {(!detalle.libros || detalle.libros.length === 0) && (
+                    <p className="rounded-xl border border-dashed border-[#dbe3ee] px-4 py-6 text-center text-sm text-[#94a3b8]">Sin libros registrados.</p>
+                  )}
+                </div>
+              </section>
+            </div>
+            <div className="flex justify-end border-t border-[#e6ecf4] px-5 py-4 sm:px-6">
+              <button type="button" className="btn-ghost" onClick={() => detalleRef.current?.close()}>Cerrar</button>
+            </div>
+          </>
+        )}
+      </dialog>
       <section className="card mb-4 p-0">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#e6ecf4] px-4 py-3">
           <div>
@@ -246,20 +354,44 @@ export default function Prestamos() {
         <label><span className="label">Vence hasta</span><input type="date" className="input" value={venceHasta} onChange={(e) => setVenceHasta(e.target.value)} /></label>
       </section>
       <div className="card responsive-table-shell overflow-x-auto p-0">
-        <table className="responsive-table w-full min-w-[720px]"><thead className="border-b border-[#e6ecf4] bg-[#f7f9fc]"><tr>{["#", "Prestatario", "Libros", "Préstamo", "Devolver antes de", "Estado", "Registró"].map((h) => <th key={h} className="th">{h}</th>)}</tr></thead>
+        <table className="responsive-table w-full min-w-[860px]">
+          <thead className="border-b border-[#e6ecf4] bg-[#f7f9fc]"><tr>{COLUMNAS_PRESTAMOS.map((h, i) => <th key={`${h}-${i}`} className="th">{h}</th>)}</tr></thead>
           <tbody className="divide-y divide-[#eef2f7]">
             {data?.items.map((p) => (
-              <tr key={p.id}><td className="td" data-label="#">{p.id}</td><td className="td font-medium" data-label="Prestatario">
+              <tr key={p.id}>
+                <td className="td" data-label="#">{p.id}</td>
+                <td className="td font-medium" data-label="Prestatario">
                   <button type="button" className="text-left hover:text-brand-700 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
                     onClick={() => { const prestatario = seleccionarPrestatario(p); if (prestatario) setHistorialDe(prestatario); }}>
                     {p.prestatario}
                   </button>
-                </td><td className="td" data-label="Libros">{p.items}</td>
-                <td className="td" data-label="Préstamo">{fecha(p.fechaPrestamo)}</td>
-                <td className={`td ${p.vencido ? "font-medium text-red-700" : ""}`} data-label="Devolver antes de">{fecha(p.fechaPrevistaDevolucion)}{p.vencido ? " (vencido)" : ""}</td>
-                <td className="td" data-label="Estado"><Badge v={p.estado} /><span className="sr-only">{p.estado}</span></td><td className="td" data-label="Registró">{p.registradoPor}</td></tr>))}
-            {data && data.items.length === 0 && <tr><td className="td text-slate-500" colSpan={7}>No hay préstamos todavía.</td></tr>}
-          </tbody></table>
+                </td>
+                <td className="td" data-label="Libros">
+                  <span className="block max-w-[22rem] text-sm text-slate-600">
+                    {p.libros?.length
+                      ? p.libros.map((libro) => libro.cantidad > 1 ? `${libro.titulo} ×${libro.cantidad}` : libro.titulo).join("; ")
+                      : "—"}
+                  </span>
+                </td>
+                <td className="td" data-label="Unidades">
+                  <span className="inline-flex min-w-8 items-center justify-center rounded-full bg-brand-50 px-2.5 py-0.5 text-sm font-bold text-brand-700 ring-1 ring-inset ring-brand-200">
+                    {p.unidades}
+                  </span>
+                </td>
+                <td className="td whitespace-nowrap" data-label="Préstamo">{fecha(p.fechaPrestamo)}</td>
+                <td className={`td whitespace-nowrap ${p.vencido ? "font-medium text-red-700" : ""}`} data-label="Devolver antes de">{fecha(p.fechaPrevistaDevolucion)}{p.vencido ? " (vencido)" : ""}</td>
+                <td className="td" data-label="Estado"><Badge v={p.estado} /><span className="sr-only">{p.estado}</span></td>
+                <td className="td" data-label="Registró">{p.registradoPor}</td>
+                <td className="td" data-label="Detalle">
+                  <button type="button" className="btn-ghost whitespace-nowrap" onClick={() => setDetalle(p)}>
+                    Ver detalle
+                  </button>
+                </td>
+              </tr>
+            ))}
+            {data && data.items.length === 0 && <tr><td className="td text-slate-500" colSpan={COLUMNAS_PRESTAMOS.length}>No hay préstamos todavía.</td></tr>}
+          </tbody>
+        </table>
       </div>
     </>
   );

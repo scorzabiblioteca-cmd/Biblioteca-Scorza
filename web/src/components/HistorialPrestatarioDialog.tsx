@@ -92,15 +92,21 @@ type DatoPersonal = {
   valor: string | number | null;
 };
 
+type LibroHistorial = { titulo: string; cantidad: number; codigos: string | null };
+
 type PrestamoHistorial = {
   id: number;
   items: string | null;
+  libros: LibroHistorial[];
+  unidades: number;
   fechaPrestamo: string;
   fechaPrevistaDevolucion: string;
   fechaCierre: string | null;
   estado: string;
   vencido: boolean;
 };
+
+type HistorialPaginado = Paged<PrestamoHistorial> & { totalUnidades?: number };
 
 export function HistorialPrestatarioDialog({
   prestatario,
@@ -111,7 +117,7 @@ export function HistorialPrestatarioDialog({
 }) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [pagina, setPagina] = useState(1);
-  const [historial, setHistorial] = useState<Paged<PrestamoHistorial> | null>(null);
+  const [historial, setHistorial] = useState<HistorialPaginado | null>(null);
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -134,7 +140,7 @@ export function HistorialPrestatarioDialog({
     setCargando(true);
     setHistorial(null);
     setError(null);
-    api<Paged<PrestamoHistorial>>(`/prestamos?${params}`)
+    api<HistorialPaginado>(`/prestamos?${params}`)
       .then((resultado) => { if (vigente) setHistorial(resultado); })
       .catch((e: Error) => { if (vigente) setError(e.message); })
       .finally(() => { if (vigente) setCargando(false); });
@@ -200,21 +206,47 @@ export function HistorialPrestatarioDialog({
               </dl>
             </section>
             <h3 className="mb-3 text-sm font-semibold text-[#172b4d]">Historial de préstamos</h3>
-            {historial && <p className="mb-3 text-sm text-slate-500">{historial.total} préstamo(s)</p>}
+            {historial && (
+              <p className="mb-3 flex flex-wrap items-center gap-2 text-sm text-slate-500">
+                <span>{historial.total} préstamo(s)</span>
+                {historial.totalUnidades !== undefined && (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-brand-50 px-2.5 py-0.5 text-xs font-semibold text-brand-700 ring-1 ring-inset ring-brand-200">
+                    {historial.totalUnidades} unidad(es)
+                  </span>
+                )}
+              </p>
+            )}
             {error && <Msg type="error">{error}</Msg>}
             {cargando && <p className="py-6 text-center text-sm text-slate-500">Cargando historial…</p>}
             {historial && (
               <>
                 <div className="responsive-table-shell overflow-x-auto">
-                  <table className="responsive-table w-full min-w-[720px]">
+                  <table className="responsive-table w-full min-w-[760px]">
                     <thead className="border-b border-[#e6ecf4] bg-[#f7f9fc]"><tr>
-                      {["#", "Libros", "Préstamo", "Devolver antes de", "Devolución", "Estado"].map((titulo) => <th key={titulo} className="th">{titulo}</th>)}
+                      {["#", "Libros", "Unidades", "Préstamo", "Devolver antes de", "Devolución", "Estado"].map((titulo) => <th key={titulo} className="th">{titulo}</th>)}
                     </tr></thead>
                     <tbody className="divide-y divide-[#eef2f7]">
                       {historial.items.map((prestamo) => (
                         <tr key={prestamo.id}>
                           <td className="td" data-label="#">{prestamo.id}</td>
-                          <td className="td" data-label="Libros">{prestamo.items ?? "—"}</td>
+                          <td className="td" data-label="Libros">
+                            {prestamo.libros?.length ? (
+                              <ul className="space-y-0.5">
+                                {prestamo.libros.map((libro) => (
+                                  <li key={libro.titulo} className="text-sm text-[#334155]">
+                                    <span className="font-medium">{libro.titulo}</span>
+                                    {libro.cantidad > 1 && <span className="ml-1 font-semibold text-brand-700">×{libro.cantidad}</span>}
+                                    {libro.codigos && <span className="ml-1 font-mono text-xs text-slate-500">({libro.codigos})</span>}
+                                  </li>
+                                ))}
+                              </ul>
+                            ) : <span>{prestamo.items ?? "—"}</span>}
+                          </td>
+                          <td className="td" data-label="Unidades">
+                            <span className="inline-flex min-w-8 items-center justify-center rounded-full bg-brand-50 px-2.5 py-0.5 text-sm font-bold text-brand-700 ring-1 ring-inset ring-brand-200">
+                              {prestamo.unidades ?? 0}
+                            </span>
+                          </td>
                           <td className="td whitespace-nowrap" data-label="Préstamo">{fecha(prestamo.fechaPrestamo)}</td>
                           <td className={`td whitespace-nowrap ${prestamo.vencido ? "font-medium text-red-700" : ""}`} data-label="Devolver antes de">
                             {fecha(prestamo.fechaPrevistaDevolucion)}{prestamo.vencido ? " (vencido)" : ""}
@@ -223,7 +255,7 @@ export function HistorialPrestatarioDialog({
                           <td className="td" data-label="Estado"><Badge v={prestamo.estado} /></td>
                         </tr>
                       ))}
-                      {historial.items.length === 0 && <tr><td className="td text-slate-500" colSpan={6}>No hay préstamos registrados para esta persona.</td></tr>}
+                      {historial.items.length === 0 && <tr><td className="td text-slate-500" colSpan={7}>No hay préstamos registrados para esta persona.</td></tr>}
                     </tbody>
                   </table>
                 </div>
