@@ -1,81 +1,39 @@
 "use client";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { api, Paged } from "@/lib/client";
-import { Badge, Field, Msg, PageTitle, useDebounced } from "@/components/ui";
+import { Badge, Msg, PageTitle, useDebounced } from "@/components/ui";
 import { HistorialPrestatarioDialog, type PrestatarioSeleccionado } from "@/components/HistorialPrestatarioDialog";
+import { ProfesorFormDialog, type ProfesorGuardado } from "@/components/ProfesorFormDialog";
 import AlumnosProfesoresTabs from "@/components/AlumnosProfesoresTabs";
-
-const VACIO = { dni: "", nombres: "", apellidos: "", correo: "", telefono: "", area: "", estado: "ACTIVO" };
-
-type Profesor = {
-  id: number;
-  dni: string | null;
-  nombres: string;
-  apellidos: string;
-  correo: string | null;
-  telefono: string | null;
-  area: string | null;
-  estado: string;
-  createdAt: string;
-};
 
 export default function Profesores() {
   const [qtxt, setQ] = useState("");
   const [pagina, setPagina] = useState(1);
-  const [data, setData] = useState<Paged<Profesor> | null>(null);
-  const [f, setF] = useState(VACIO);
+  const [data, setData] = useState<Paged<ProfesorGuardado> | null>(null);
   const [abrir, setAbrir] = useState(false);
-  const [editarId, setEditarId] = useState<number | null>(null);
+  const [editando, setEditando] = useState<ProfesorGuardado | null>(null);
   const [historialDe, setHistorialDe] = useState<PrestatarioSeleccionado | null>(null);
   const [msg, setMsg] = useState<{ t: "ok" | "error"; m: string } | null>(null);
-  const dialogRef = useRef<HTMLDialogElement>(null);
   const dq = useDebounced(qtxt);
 
   useEffect(() => { setPagina(1); }, [dq]);
   const cargar = useCallback(() => {
     const params = new URLSearchParams({ page: String(pagina), pageSize: "10" });
     if (dq) params.set("q", dq);
-    api<Paged<Profesor>>(`/profesores?${params}`).then(setData).catch((e: Error) => setMsg({ t: "error", m: e.message }));
+    api<Paged<ProfesorGuardado>>(`/profesores?${params}`).then(setData).catch((e: Error) => setMsg({ t: "error", m: e.message }));
   }, [dq, pagina]);
   useEffect(() => { cargar(); }, [cargar]);
-  useEffect(() => {
-    const dialog = dialogRef.current;
-    if (!dialog) return;
-    if (abrir && !dialog.open) dialog.showModal();
-    else if (!abrir && dialog.open) dialog.close();
-  }, [abrir]);
-
-  const set = (k: keyof typeof VACIO) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => setF((actual) => ({ ...actual, [k]: e.target.value }));
 
   function nuevoProfesor() {
-    setF(VACIO);
-    setEditarId(null);
+    setEditando(null);
     setMsg(null);
     setAbrir(true);
   }
 
-  function editarProfesor(profesor: Profesor) {
-    setF({
-      dni: profesor.dni ?? "",
-      nombres: profesor.nombres,
-      apellidos: profesor.apellidos,
-      correo: profesor.correo ?? "",
-      telefono: profesor.telefono ?? "",
-      area: profesor.area ?? "",
-      estado: profesor.estado,
-    });
-    setEditarId(profesor.id);
+  function editarProfesor(profesor: ProfesorGuardado) {
+    setEditando(profesor);
     setMsg(null);
     setAbrir(true);
-  }
-
-  async function crear(e: React.FormEvent) {
-    e.preventDefault();
-    try {
-      await api(editarId ? `/profesores/${editarId}` : "/profesores", { method: editarId ? "PUT" : "POST", json: f });
-      setMsg({ t: "ok", m: editarId ? "Profesor actualizado correctamente" : "Profesor registrado correctamente" });
-      setF(VACIO); setEditarId(null); setAbrir(false); cargar();
-    } catch (x) { setMsg({ t: "error", m: (x as Error).message }); }
   }
 
   const paginas = data ? Math.max(1, Math.ceil(data.total / data.pageSize)) : 1;
@@ -89,33 +47,15 @@ export default function Profesores() {
         prestatario={historialDe}
         onClose={() => setHistorialDe(null)}
       />
-      <dialog
-        ref={dialogRef}
-        aria-labelledby="profesor-dialog-title"
-        onCancel={() => setAbrir(false)}
-        className="m-auto max-h-[90dvh] w-[min(48rem,calc(100%-2rem))] overflow-y-auto rounded-2xl border border-[#e6ecf4] bg-white p-0 text-[#334155] shadow-panel backdrop:bg-[#0b1b33]/55"
-      >
-        <div className="flex items-start justify-between gap-4 border-b border-[#e6ecf4] px-5 py-4 sm:px-6">
-          <div>
-            <h2 id="profesor-dialog-title" className="text-lg font-semibold tracking-[-0.02em] text-[#172b4d]">{editarId ? "Editar profesor" : "Registrar profesor"}</h2>
-          </div>
-          <button type="button" className="rounded-lg px-2 py-1 text-xl leading-none text-[#718096] hover:bg-[#f1f5fb] hover:text-[#172b4d]" aria-label="Cerrar ventana" onClick={() => setAbrir(false)}>×</button>
-        </div>
-        <form onSubmit={crear} className="grid gap-4 p-5 sm:grid-cols-2 sm:p-6">
-          <Field label="DNI"><input className="input" value={f.dni} onChange={set("dni")} inputMode="numeric" /></Field>
-          <Field label="Nombres *"><input className="input" required value={f.nombres} onChange={set("nombres")} /></Field>
-          <Field label="Apellidos *"><input className="input" required value={f.apellidos} onChange={set("apellidos")} /></Field>
-          <Field label="Correo"><input className="input" type="email" value={f.correo} onChange={set("correo")} /></Field>
-          <Field label="Teléfono"><input className="input" value={f.telefono} onChange={set("telefono")} /></Field>
-          <Field label="Área"><input className="input" value={f.area} onChange={set("area")} /></Field>
-          {editarId && <Field label="Estado"><select className="input" value={f.estado} onChange={set("estado")}><option value="ACTIVO">Activo</option><option value="INACTIVO">Inactivo</option></select></Field>}
-          {msg?.t === "error" && <div className="sm:col-span-2"><Msg type="error">{msg.m}</Msg></div>}
-          <div className="flex flex-col-reverse gap-2 border-t border-slate-100 pt-4 sm:col-span-2 sm:flex-row sm:justify-end">
-            <button type="button" className="btn-ghost" onClick={() => setAbrir(false)}>Cancelar</button>
-            <button className="btn">{editarId ? "Guardar cambios" : "Guardar profesor"}</button>
-          </div>
-        </form>
-      </dialog>
+      <ProfesorFormDialog
+        open={abrir}
+        profesor={editando}
+        onClose={() => setAbrir(false)}
+        onSaved={() => {
+          setMsg({ t: "ok", m: editando ? "Profesor actualizado correctamente" : "Profesor registrado correctamente" });
+          cargar();
+        }}
+      />
       <input className="input mb-3 max-w-md" placeholder="Nombre o DNI" value={qtxt} onChange={(e) => setQ(e.target.value)} />
       <div className="card responsive-table-shell mt-3 overflow-x-auto p-0">
         <table className="responsive-table w-full min-w-[640px]">

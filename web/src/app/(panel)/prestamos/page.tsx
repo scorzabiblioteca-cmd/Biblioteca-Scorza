@@ -5,6 +5,8 @@ import { api, fecha, Paged } from "@/lib/client";
 import { Badge, Msg, PageTitle } from "@/components/ui";
 import { AlumnoAutocomplete, type Alumno } from "@/components/AlumnoAutocomplete";
 import { ProfesorAutocomplete, type Profesor } from "@/components/ProfesorAutocomplete";
+import { AlumnoFormDialog } from "@/components/AlumnoFormDialog";
+import { ProfesorFormDialog } from "@/components/ProfesorFormDialog";
 import { EjemplarAutocomplete, type LibroCantidad } from "@/components/EjemplarAutocomplete";
 import PrestamosDevolucionesTabs from "@/components/PrestamosDevolucionesTabs";
 import { HistorialPrestatarioDialog, seleccionarPrestatario, type PrestatarioSeleccionado, type RegistroPrestatario } from "@/components/HistorialPrestatarioDialog";
@@ -54,6 +56,8 @@ export default function Prestamos() {
   const [tipoPrestatario, setTipoPrestatario] = useState<"ALUMNO" | "PROFESOR">("ALUMNO");
   const [alumno, setAlumno] = useState<Alumno | null>(null);
   const [profesor, setProfesor] = useState<Profesor | null>(null);
+  const [crearAlumno, setCrearAlumno] = useState(false);
+  const [crearProfesor, setCrearProfesor] = useState(false);
   const [cantidades, setCantidades] = useState<LibroCantidad[]>([]);
   const [codigos, setCodigos] = useState("");
   const [fechaDevolucion, setFechaDevolucion] = useState(() => fechaDespuesDe(7));
@@ -168,8 +172,8 @@ export default function Prestamos() {
             </div>
           </fieldset>
           {tipoPrestatario === "ALUMNO"
-            ? <AlumnoAutocomplete value={alumno} onChange={setAlumno} />
-            : <ProfesorAutocomplete value={profesor} onChange={setProfesor} />}
+            ? <AlumnoAutocomplete value={alumno} onChange={setAlumno} onCrear={() => setCrearAlumno(true)} />
+            : <ProfesorAutocomplete value={profesor} onChange={setProfesor} onCrear={() => setCrearProfesor(true)} />}
           <EjemplarAutocomplete key={formVersion} codigos={codigos} onChange={setCodigos} cantidades={cantidades} onCantidadesChange={setCantidades} />
           <label className="grid gap-1.5 text-sm font-medium text-slate-700">
             Fecha de devolución
@@ -272,6 +276,16 @@ export default function Prestamos() {
           </>
         )}
       </dialog>
+      <AlumnoFormDialog
+        open={crearAlumno}
+        onClose={() => setCrearAlumno(false)}
+        onSaved={(a) => setAlumno({ id: a.id, nombres: a.nombres, apellidos: a.apellidos, dni: a.dni ?? "", codigoAlumno: a.codigoAlumno })}
+      />
+      <ProfesorFormDialog
+        open={crearProfesor}
+        onClose={() => setCrearProfesor(false)}
+        onSaved={(p) => setProfesor({ id: p.id, nombres: p.nombres, apellidos: p.apellidos, dni: p.dni, area: p.area })}
+      />
       <section className="card mb-4 p-0">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#e6ecf4] px-4 py-3">
           <div>

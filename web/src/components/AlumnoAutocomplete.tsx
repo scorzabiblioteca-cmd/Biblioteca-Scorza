@@ -11,9 +11,10 @@ export type Alumno = {
   codigoAlumno: string;
 };
 
-export function AlumnoAutocomplete({ value, onChange }: {
+export function AlumnoAutocomplete({ value, onChange, onCrear }: {
   value: Alumno | null;
   onChange: (alumno: Alumno | null) => void;
+  onCrear?: () => void;
 }) {
   const [texto, setTexto] = useState("");
   const [abierto, setAbierto] = useState(false);
@@ -72,9 +73,16 @@ export function AlumnoAutocomplete({ value, onChange }: {
             if (activo >= 0 && items[activo]) seleccionar(items[activo]);
           }
         }} />
-      <p id="alumno-ayuda" className="mt-1 text-xs text-slate-500">
-        {value ? `DNI: ${value.dni} · Código: ${value.codigoAlumno}` : "Elige una opción."}
-      </p>
+      <div className="mt-1 flex flex-wrap items-center justify-between gap-2">
+        <p id="alumno-ayuda" className="text-xs text-slate-500">
+          {value ? `DNI: ${value.dni} · Código: ${value.codigoAlumno}` : "Elige una opción."}
+        </p>
+        {onCrear && (
+          <button type="button" className="text-xs font-semibold text-brand-700 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600" onClick={() => { setAbierto(false); onCrear(); }}>
+            + Registrar alumno
+          </button>
+        )}
+      </div>
       {mostrar && <div className="absolute z-20 mt-1 w-full overflow-hidden rounded-xl border border-[#e6ecf4] bg-white shadow-[0_18px_45px_rgba(11,27,51,0.18)]">
         <p role="status" className="px-3 text-sm text-slate-500">
           {cargando ? "Buscando alumnos…" : error || (items.length === 0 ? "No se encontraron alumnos activos." : "")}
