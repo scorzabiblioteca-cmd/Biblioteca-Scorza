@@ -51,6 +51,7 @@ export default function Devoluciones() {
   const [seleccion, setSeleccion] = useState<PrestamoBusqueda[] | null>(null);
   const [grupoAbiertoId, setGrupoAbiertoId] = useState<number | null>(null);
   const grupoRef = useRef<HTMLDialogElement>(null);
+  const seleccionRef = useRef<HTMLDialogElement>(null);
   const [buscando, setBuscando] = useState(false);
   const [res, setRes] = useState("BUENO");
   const [obs, setObs] = useState("");
@@ -104,6 +105,19 @@ export default function Devoluciones() {
     if (grupoAbierto && !dialog.open) dialog.showModal();
     else if (!grupoAbierto && dialog.open) dialog.close();
   }, [grupoAbierto]);
+
+  useEffect(() => {
+    const dialog = seleccionRef.current;
+    if (!dialog) return;
+    const abierto = Boolean(seleccion && seleccion.length > 0);
+    if (abierto && !dialog.open) {
+      setRes("BUENO");
+      setObs("");
+      dialog.showModal();
+    } else if (!abierto && dialog.open) {
+      dialog.close();
+    }
+  }, [seleccion]);
 
   const cargarHistorial = useCallback(() => {
     const params = new URLSearchParams({ page: String(paginaHistorial), pageSize: "20" });
@@ -301,32 +315,57 @@ export default function Devoluciones() {
           </>
         )}
       </dialog>
-      {seleccion && seleccion.length > 0 && (
-        <div className="card mt-4 max-w-xl space-y-3">
-          <div>
-            <p className="font-medium">
-              {seleccion.length === 1 ? seleccion[0].titulo : `${seleccion.length} unidades seleccionadas`}
-            </p>
-            <p className="text-sm text-slate-500">
-              {seleccion[0].prestatario}{" · "}Prestado: {fecha(seleccion[0].fechaPrestamo)} · Vence: {fecha(seleccion[0].fechaPrevistaDevolucion)}{seleccion[0].vencido ? " (vencido)" : ""}
-            </p>
-            {seleccion.length > 1 && (
-              <ul className="mt-2 list-disc space-y-0.5 pl-5 text-sm text-slate-600">
-                {seleccion.map((unidad) => (
-                  <li key={unidad.detalleId}>{unidad.titulo} — {unidad.codigoInterno ?? "Por cantidad"}</li>
-                ))}
-              </ul>
-            )}
-          </div>
-          <label className="block"><span className="label">Estado en que regresa</span>
-            <select className="input" value={res} onChange={(e) => setRes(e.target.value)}>
-              <option value="BUENO">Buena condición</option><option value="DETERIORADO">Deteriorado</option><option value="DANADO">Dañado</option><option value="PERDIDO">Perdido</option>
-            </select></label>
-          <label className="block"><span className="label">Observaciones</span><textarea className="input" rows={2} value={obs} onChange={(e) => setObs(e.target.value)} /></label>
-          <div className="flex gap-2"><button className="btn" onClick={confirmar}>Confirmar devolución{seleccion.length > 1 ? ` (${seleccion.length})` : ""}</button>
-            <button type="button" className="btn-ghost" onClick={() => setSeleccion(null)}>Cancelar</button></div>
-        </div>
-      )}
+      <dialog
+        ref={seleccionRef}
+        aria-labelledby="confirmar-devolucion-title"
+        onClose={() => setSeleccion(null)}
+        className="m-auto max-h-[90dvh] w-[min(40rem,calc(100%-2rem))] overflow-y-auto rounded-2xl border border-[#e6ecf4] bg-white p-0 text-[#334155] shadow-panel backdrop:bg-[#0b1b33]/55"
+      >
+        {seleccion && seleccion.length > 0 && (
+          <>
+            <div className="flex items-start justify-between gap-4 border-b border-[#e6ecf4] px-5 py-4 sm:px-6">
+              <div>
+                <p className="text-[0.7rem] font-bold uppercase tracking-[0.14em] text-brand-600">Confirmar devolución</p>
+                <h2 id="confirmar-devolucion-title" className="mt-1 text-lg font-semibold tracking-[-0.02em] text-[#172b4d]">
+                  {seleccion.length === 1 ? seleccion[0].titulo : `${seleccion.length} unidades seleccionadas`}
+                </h2>
+                <p className="mt-1 text-sm text-[#718096]">
+                  {seleccion[0].prestatario}{" · "}Prestado: {fecha(seleccion[0].fechaPrestamo)} · Vence: {fecha(seleccion[0].fechaPrevistaDevolucion)}{seleccion[0].vencido ? " (vencido)" : ""}
+                </p>
+              </div>
+              <button
+                type="button"
+                className="rounded-lg px-2 py-1 text-xl leading-none text-[#718096] hover:bg-[#f1f5fb] hover:text-[#172b4d] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
+                aria-label="Cerrar ventana"
+                onClick={() => setSeleccion(null)}
+              >
+                ×
+              </button>
+            </div>
+            <div className="grid gap-4 p-5 sm:p-6">
+              {seleccion.length > 1 && (
+                <ul className="grid gap-1.5 rounded-xl border border-[#e6ecf4] bg-[#f7f9fc] p-3 text-sm text-slate-600">
+                  {seleccion.map((unidad) => (
+                    <li key={unidad.detalleId} className="flex items-center justify-between gap-2">
+                      <span>{unidad.titulo}</span>
+                      <span className="font-mono text-xs text-slate-500">{unidad.codigoInterno ?? "Por cantidad"}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              <label className="block"><span className="label">Estado en que regresa</span>
+                <select className="input" value={res} onChange={(e) => setRes(e.target.value)}>
+                  <option value="BUENO">Buena condición</option><option value="DETERIORADO">Deteriorado</option><option value="DANADO">Dañado</option><option value="PERDIDO">Perdido</option>
+                </select></label>
+              <label className="block"><span className="label">Observaciones</span><textarea className="input" rows={3} value={obs} onChange={(e) => setObs(e.target.value)} /></label>
+            </div>
+            <div className="flex flex-col-reverse gap-2 border-t border-[#e6ecf4] px-5 py-4 sm:flex-row sm:justify-end sm:px-6">
+              <button type="button" className="btn-ghost" onClick={() => setSeleccion(null)}>Cancelar</button>
+              <button type="button" className="btn" onClick={confirmar}>Confirmar devolución{seleccion.length > 1 ? ` (${seleccion.length})` : ""}</button>
+            </div>
+          </>
+        )}
+      </dialog>
       <section className="mt-6">
         <div className="mb-3 flex flex-wrap items-end justify-between gap-3">
           <div>
