@@ -9,7 +9,13 @@
     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
         android:orientation="vertical" android:padding="20dp">
         <TextView style="@style/BsTitle" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Devolución" />
-        <Button android:id="@+id/btnScan" style="@style/BsButton" android:text="Escanear ejemplar" />
+        <Button android:id="@+id/btnScan" style="@style/BsButton" android:text="Escanear ISBN o QR del ejemplar" />
+        <TextView android:id="@+id/tvListaTitulo" style="@style/BsText"
+            android:text="Préstamos activos de este libro"
+            android:textStyle="bold" android:visibility="gone" />
+        <ListView android:id="@+id/lvPrestamos" android:layout_width="match_parent"
+            android:layout_height="220dp" android:choiceMode="singleChoice"
+            android:dividerHeight="1dp" android:visibility="gone" />
         <TextView android:id="@+id/tvDatos" style="@style/BsText" />
         <Spinner android:id="@+id/spResultado" style="@style/BsInput" android:visibility="gone" />
         <EditText android:id="@+id/etObs" style="@style/BsInput" android:hint="Observaciones" android:inputType="textMultiLine|textCapSentences" android:visibility="gone" />

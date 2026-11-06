@@ -47,6 +47,7 @@ public interface ApiService {
 
     @POST("prestamos") Call<ApiResponse<Object>> prestar(@Body PrestamoReq body);
     @GET("prestamos/activo/ejemplar/{codigo}") Call<ApiResponse<PrestamoActivo>> prestamoActivo(@Path("codigo") String codigo);
+    @GET("prestamos/activo/libro/{libroId}") Call<ApiResponse<PrestamosActivos>> prestamosActivosPorLibro(@Path("libroId") long libroId);
     @POST("devoluciones") Call<ApiResponse<Object>> devolver(@Body DevolucionReq body);
 
     @POST("imagenes/firma") Call<ApiResponse<Firma>> firmaImagen(@Body Map<String, String> vacio);

@@ -146,10 +146,12 @@ public final class Models {
 
     public static class PrestamoActivo {
         public long detalleId, prestamoId;
-        public String codigoInterno, titulo, prestatario, fechaPrestamo, fechaPrevistaDevolucion;
+        public String codigoInterno, titulo, isbn, prestatario, fechaPrestamo, fechaPrevistaDevolucion;
         public boolean vencido;
     }
+    public static class PrestamosActivos { public List<PrestamoActivo> items; }
     public static class DevolucionReq {
+        public Long prestamoDetalleId;
         public String codigoEjemplar, resultado, observaciones;
     }
 
