@@ -6,6 +6,7 @@ import { Badge, Msg, PageTitle } from "@/components/ui";
 import { AlumnoAutocomplete, type Alumno } from "@/components/AlumnoAutocomplete";
 import { ProfesorAutocomplete, type Profesor } from "@/components/ProfesorAutocomplete";
 import { EjemplarAutocomplete, type LibroCantidad } from "@/components/EjemplarAutocomplete";
+import PrestamosDevolucionesTabs from "@/components/PrestamosDevolucionesTabs";
 
 type LibroTop = { titulo: string; vecesPrestado: number; categoria: string };
 
@@ -102,6 +103,7 @@ export default function Prestamos() {
   }
   return (
     <>
+      <PrestamosDevolucionesTabs actual="prestamos" />
       <PageTitle action={
         <button type="button" className="btn" onClick={() => { setMsg(null); dialogRef.current?.showModal(); }}>
           Registrar préstamo

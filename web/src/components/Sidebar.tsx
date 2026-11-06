@@ -5,12 +5,11 @@ import { useState } from "react";
 import DeveloperCredits from "@/components/DeveloperCredits";
 
 const LINKS = [
-  ["/dashboard", "Panel"], ["/libros", "Libros"], ["/prestamos", "Préstamos"],
-  ["/devoluciones", "Devoluciones"], ["/alumnos", "Alumnos y Profesores"], ["/reportes", "Reportes"],
+  ["/dashboard", "Panel"], ["/libros", "Libros"], ["/prestamos", "Préstamos y Devoluciones"],
+  ["/alumnos", "Alumnos y Profesores"], ["/reportes", "Reportes"],
 ];
 const MOBILE_LINKS = [
   ["/dashboard", "Panel", "home"], ["/libros", "Libros", "books"], ["/prestamos", "Préstamos", "loan"],
-  ["/devoluciones", "Devoluciones", "return"],
 ] as const;
 const MOBILE_MORE_LINKS = [
   ["/alumnos", "Alumnos y Profesores", "students"], ["/reportes", "Reportes", "reports"],
@@ -18,12 +17,17 @@ const MOBILE_MORE_LINKS = [
 
 type MobileIconName = (typeof MOBILE_LINKS)[number][2] | (typeof MOBILE_MORE_LINKS)[number][2] | "more" | "logout";
 
+function isSectionActive(href: string, path: string, isPeoplePath: boolean) {
+  if (href === "/alumnos") return isPeoplePath;
+  if (href === "/prestamos") return path.startsWith("/prestamos") || path.startsWith("/devoluciones");
+  return path.startsWith(href);
+}
+
 function MobileIcon({ name }: { name: MobileIconName }) {
   const paths: Record<MobileIconName, React.ReactNode> = {
     home: <><path d="m3 10 9-7 9 7" /><path d="M5 9v11h14V9M9 20v-6h6v6" /></>,
     books: <><path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v18H6.5A2.5 2.5 0 0 1 4 17.5z" /><path d="M4 17.5A2.5 2.5 0 0 1 6.5 15H20M8 6h8M8 9h8" /></>,
     loan: <><rect x="4" y="3" width="16" height="18" rx="2" /><path d="M8 7h8M8 11h8M8 15h3M15 15l2 2 3-3" /></>,
-    return: <><path d="M3 11a8 8 0 0 1 14-5l2 2" /><path d="M19 3v5h-5M21 13a8 8 0 0 1-14 5l-2-2" /><path d="M5 21v-5h5" /></>,
     students: <><circle cx="9" cy="8" r="3" /><path d="M3 20v-1a6 6 0 0 1 12 0v1zM16 5.5a3 3 0 0 1 0 5.8M18 14a5 5 0 0 1 3 4.6v1" /></>,
     reports: <><path d="M5 3h10l4 4v14H5z" /><path d="M14 3v5h5M8 16v-3M12 16v-5M16 16v-2" /></>,
     more: <><rect x="3.5" y="3.5" width="6" height="6" rx="1" /><rect x="14.5" y="3.5" width="6" height="6" rx="1" /><rect x="3.5" y="14.5" width="6" height="6" rx="1" /><rect x="14.5" y="14.5" width="6" height="6" rx="1" /></>,
@@ -44,7 +48,7 @@ export default function Sidebar() {
   const [open, setOpen] = useState(false);
   const isPeoplePath = path.startsWith("/alumnos") || path.startsWith("/profesores");
   const moreActive = LINKS.some(([href]) =>
-    ((href === "/alumnos" ? isPeoplePath : path.startsWith(href)) && !MOBILE_LINKS.some(([mobileHref]) => mobileHref === href))
+    (isSectionActive(href, path, isPeoplePath) && !MOBILE_LINKS.some(([mobileHref]) => mobileHref === href))
       || (href === "/libros" && path.startsWith("/libros/ejemplares")),
   );
   async function salir() {
@@ -66,7 +70,7 @@ export default function Sidebar() {
         <nav aria-label="Navegación del panel" className="flex-1 px-3">
           {LINKS.map(([href, label]) => (
             <Link key={href} href={href} onClick={() => setOpen(false)}
-              aria-current={(href === "/alumnos" ? isPeoplePath : path.startsWith(href)) ? "page" : undefined}
+              aria-current={isSectionActive(href, path, isPeoplePath) ? "page" : undefined}
               className="rail-link">
               {label}
             </Link>
@@ -85,11 +89,11 @@ export default function Sidebar() {
             <p className="px-3 pb-1 pt-1 text-[0.68rem] font-bold uppercase tracking-[0.12em] text-[#94a3b8]">Más opciones</p>
             {MOBILE_MORE_LINKS.map(([href, label, icon]) => (
               <Link key={href} href={href} onClick={() => setOpen(false)}
-                aria-current={(href === "/alumnos" ? isPeoplePath : path.startsWith(href)) ? "page" : undefined}
-                className={`flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-600 ${(href === "/alumnos" ? isPeoplePath : path.startsWith(href)) ? "bg-brand-50 font-semibold text-brand-700" : "text-[#35445b] hover:bg-[#f7faff]"}`}>
+                aria-current={isSectionActive(href, path, isPeoplePath) ? "page" : undefined}
+                className={`flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-600 ${isSectionActive(href, path, isPeoplePath) ? "bg-brand-50 font-semibold text-brand-700" : "text-[#35445b] hover:bg-[#f7faff]"}`}>
                 <MobileIcon name={icon} />
                 <span className="flex-1">{label}</span>
-                {(href === "/alumnos" ? isPeoplePath : path.startsWith(href)) && <span aria-hidden="true" className="h-2 w-2 rounded-full bg-brand-600" />}
+                {isSectionActive(href, path, isPeoplePath) && <span aria-hidden="true" className="h-2 w-2 rounded-full bg-brand-600" />}
               </Link>
             ))}
             <div className="my-1 border-t border-[#e6ecf4]" />
@@ -103,15 +107,18 @@ export default function Sidebar() {
           </nav>
         </div>
       )}
-      <nav aria-label="Navegación principal" className="mobile-nav fixed inset-x-0 bottom-0 z-50 grid grid-cols-5 rounded-t-2xl px-2 pt-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] md:hidden">
-        {MOBILE_LINKS.map(([href, label, icon]) => (
-          <Link key={href} href={href} onClick={() => setOpen(false)} aria-current={path.startsWith(href) ? "page" : undefined}
-            className={`relative flex min-w-0 flex-col items-center gap-1 rounded-lg px-1 pt-1 pb-2 text-[10px] transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-brand-600 ${path.startsWith(href) ? "font-semibold text-brand-600" : "text-[#718096] hover:text-[#172b4d]"}`}>
-            <MobileIcon name={icon} />
-            <span className="max-w-full truncate">{label}</span>
-            {path.startsWith(href) && <span aria-hidden="true" className="absolute bottom-0 h-0.5 w-8 rounded-full bg-brand-600" />}
-          </Link>
-        ))}
+      <nav aria-label="Navegación principal" className="mobile-nav fixed inset-x-0 bottom-0 z-50 grid grid-cols-4 rounded-t-2xl px-2 pt-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] md:hidden">
+        {MOBILE_LINKS.map(([href, label, icon]) => {
+          const seleccionado = isSectionActive(href, path, isPeoplePath);
+          return (
+            <Link key={href} href={href} onClick={() => setOpen(false)} aria-current={seleccionado ? "page" : undefined}
+              className={`relative flex min-w-0 flex-col items-center gap-1 rounded-lg px-1 pt-1 pb-2 text-[10px] transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-brand-600 ${seleccionado ? "font-semibold text-brand-600" : "text-[#718096] hover:text-[#172b4d]"}`}>
+              <MobileIcon name={icon} />
+              <span className="max-w-full truncate">{label}</span>
+              {seleccionado && <span aria-hidden="true" className="absolute bottom-0 h-0.5 w-8 rounded-full bg-brand-600" />}
+            </Link>
+          );
+        })}
         <button type="button" aria-expanded={open} aria-controls="mobile-more-menu" onClick={() => setOpen(!open)}
           className={`relative flex min-w-0 flex-col items-center gap-1 rounded-lg px-1 pt-1 pb-2 text-[10px] transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-brand-600 ${open || moreActive ? "font-semibold text-brand-600" : "text-[#718096] hover:text-[#172b4d]"}`}>
           <MobileIcon name="more" />

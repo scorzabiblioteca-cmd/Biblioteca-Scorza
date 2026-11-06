@@ -2,6 +2,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { api, fecha, fechaHora, Paged } from "@/lib/client";
 import { Msg, PageTitle } from "@/components/ui";
+import PrestamosDevolucionesTabs from "@/components/PrestamosDevolucionesTabs";
 
 type DevolucionHistorial = {
   id: number;
@@ -77,6 +78,7 @@ export default function Devoluciones() {
   }
   return (
     <>
+      <PrestamosDevolucionesTabs actual="devoluciones" />
       <PageTitle>Devoluciones</PageTitle>
       <form onSubmit={buscar} className="card mb-4 flex max-w-2xl flex-wrap items-end gap-3">
         <label className="flex-1"><span className="label">Buscar préstamos activos e inactivos</span>
