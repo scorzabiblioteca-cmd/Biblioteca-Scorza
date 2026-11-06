@@ -8,6 +8,8 @@
         android:name=".App"
         android:allowBackup="false"
         android:label="BiblioScorza"
+        android:icon="@drawable/escudo_colegio_transparente"
+        android:roundIcon="@drawable/escudo_colegio_transparente"
         android:supportsRtl="true"
         android:theme="@style/Theme.BiblioScorza">
 
