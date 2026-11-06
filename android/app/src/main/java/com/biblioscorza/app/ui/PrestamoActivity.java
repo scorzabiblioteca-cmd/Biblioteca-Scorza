@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.text.Editable;
+import android.text.InputType;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -13,8 +14,10 @@ import android.view.ViewGroup;
 import android.widget.AutoCompleteTextView;
 import android.widget.BaseAdapter;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.Filter;
 import android.widget.Filterable;
+import android.widget.LinearLayout;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 
@@ -28,6 +31,7 @@ import com.biblioscorza.app.data.ApiClient;
 import com.biblioscorza.app.data.Models.Alumno;
 import com.biblioscorza.app.data.Models.ConsultaIsbn;
 import com.biblioscorza.app.data.Models.Ejemplar;
+import com.biblioscorza.app.data.Models.LibroRegistrado;
 import com.biblioscorza.app.data.Models.Paged;
 import com.biblioscorza.app.data.Models.PrestamoReq;
 import com.biblioscorza.app.data.Models.Profesor;
@@ -492,7 +496,7 @@ public class PrestamoActivity extends AppCompatActivity {
                     tvMsg.setText("Este ISBN no está registrado en la biblioteca.");
                     return;
                 }
-                com.biblioscorza.app.data.Models.LibroRegistrado libro = consulta.existente;
+                LibroRegistrado libro = consulta.existente;
                 if (!"CANTIDAD".equals(libro.tipoControl)) {
                     tvMsg.setText("\"" + libro.titulo + "\" es de control individual: escanea el QR del ejemplar");
                     return;
@@ -505,30 +509,99 @@ public class PrestamoActivity extends AppCompatActivity {
                     tvMsg.setText("No hay copias disponibles de \"" + libro.titulo + "\"");
                     return;
                 }
-                for (int i = 0; i < items.size(); i++) {
-                    PrestamoReq.Item it = items.get(i);
-                    if (it.libroId != null && it.libroId == libro.id) {
-                        if (it.cantidad >= libro.disponibles) {
-                            tvMsg.setText("No hay más copias disponibles");
-                            return;
-                        }
-                        it.cantidad++;
-                        lineas.set(i, libro.titulo);
-                        actualizar();
-                        return;
-                    }
-                }
-                PrestamoReq.Item it = new PrestamoReq.Item();
-                it.libroId = libro.id;
-                it.cantidad = 1;
-                items.add(it);
-                lineas.add(libro.titulo);
-                actualizar();
+                solicitarCantidad(libro);
             }
             @Override public void error(String msg, int http, String code) {
                 tvMsg.setText(http == 0 ? "No hay conexión para consultar el inventario." : msg);
             }
         });
+    }
+
+    private void solicitarCantidad(LibroRegistrado libro) {
+        int posicionExistente = buscarItemPorLibro(libro.id);
+        int yaAgregados = posicionExistente < 0 ? 0 : items.get(posicionExistente).cantidad;
+        int disponiblesRestantes = libro.disponibles - yaAgregados;
+        int maximo = Math.min(disponiblesRestantes, 100 - yaAgregados);
+        if (maximo <= 0) {
+            tvMsg.setText(disponiblesRestantes <= 0
+                    ? "Ya agregaste todas las copias disponibles de \"" + libro.titulo + "\"."
+                    : "El máximo permitido por libro en un préstamo es 100 unidades.");
+            return;
+        }
+
+        LinearLayout contenido = new LinearLayout(this);
+        contenido.setOrientation(LinearLayout.VERTICAL);
+        int margen = (int) (24 * getResources().getDisplayMetrics().density);
+        contenido.setPadding(margen, 0, margen, 0);
+
+        TextView disponibilidad = new TextView(this);
+        disponibilidad.setText("Disponibles para agregar: " + maximo);
+        contenido.addView(disponibilidad);
+
+        EditText cantidad = new EditText(this);
+        cantidad.setInputType(InputType.TYPE_CLASS_NUMBER);
+        cantidad.setSingleLine(true);
+        cantidad.setText("1");
+        cantidad.setSelectAllOnFocus(true);
+        cantidad.setHint("Cantidad");
+        cantidad.setLayoutParams(new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        contenido.addView(cantidad);
+
+        AlertDialog dialog = new AlertDialog.Builder(this)
+                .setTitle("Cantidad de ejemplares")
+                .setMessage(libro.titulo)
+                .setView(contenido)
+                .setNegativeButton("Cancelar", null)
+                .setPositiveButton("Agregar", null)
+                .create();
+        dialog.setOnShowListener(ignored -> dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
+            String valor = cantidad.getText().toString().trim();
+            int seleccionada;
+            try {
+                seleccionada = Integer.parseInt(valor);
+            } catch (NumberFormatException e) {
+                cantidad.setError("Ingresa una cantidad válida");
+                return;
+            }
+            if (seleccionada < 1 || seleccionada > maximo) {
+                cantidad.setError("Ingresa una cantidad entre 1 y " + maximo);
+                return;
+            }
+            agregarCantidad(libro, posicionExistente, seleccionada);
+            dialog.dismiss();
+        }));
+        dialog.show();
+    }
+
+    private int buscarItemPorLibro(long libroId) {
+        for (int i = 0; i < items.size(); i++) {
+            Long id = items.get(i).libroId;
+            if (id != null && id == libroId) return i;
+        }
+        return -1;
+    }
+
+    private void agregarCantidad(LibroRegistrado libro, int posicion, int cantidad) {
+        if (posicion >= 0) {
+            PrestamoReq.Item item = items.get(posicion);
+            item.cantidad += cantidad;
+            lineas.set(posicion, lineaCantidad(libro.titulo, item.cantidad));
+        } else {
+            PrestamoReq.Item item = new PrestamoReq.Item();
+            item.libroId = libro.id;
+            item.cantidad = cantidad;
+            items.add(item);
+            lineas.add(lineaCantidad(libro.titulo, cantidad));
+        }
+        tvMsg.setText(cantidad + (cantidad == 1
+                ? " ejemplar agregado al préstamo."
+                : " ejemplares agregados al préstamo."));
+        actualizar();
+    }
+
+    private String lineaCantidad(String titulo, int cantidad) {
+        return titulo + " — cantidad: " + cantidad;
     }
 
     private void actualizar() {
