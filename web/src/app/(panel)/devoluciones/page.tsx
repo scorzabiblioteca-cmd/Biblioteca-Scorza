@@ -60,8 +60,7 @@ export default function Devoluciones() {
   const [paginaHistorial, setPaginaHistorial] = useState(1);
   const [busquedaHistorial, setBusquedaHistorial] = useState("");
   const [resultadoHistorial, setResultadoHistorial] = useState("");
-  const [desdeHistorial, setDesdeHistorial] = useState("");
-  const [hastaHistorial, setHastaHistorial] = useState("");
+  const [fechaHistorial, setFechaHistorial] = useState("");
   const [historialDe, setHistorialDe] = useState<PrestatarioSeleccionado | null>(null);
 
   const grupos = useMemo(() => {
@@ -123,11 +122,13 @@ export default function Devoluciones() {
     const params = new URLSearchParams({ page: String(paginaHistorial), pageSize: "20" });
     if (busquedaHistorial.trim()) params.set("q", busquedaHistorial.trim());
     if (resultadoHistorial) params.set("resultado", resultadoHistorial);
-    if (desdeHistorial) params.set("desde", desdeHistorial);
-    if (hastaHistorial) params.set("hasta", hastaHistorial);
+    if (fechaHistorial) {
+      params.set("desde", fechaHistorial);
+      params.set("hasta", fechaHistorial);
+    }
     return api<Paged<DevolucionHistorial>>(`/devoluciones?${params}`).then(setHistorial)
       .catch((e: Error) => setMsg({ t: "error", m: e.message }));
-  }, [paginaHistorial, busquedaHistorial, resultadoHistorial, desdeHistorial, hastaHistorial]);
+  }, [paginaHistorial, busquedaHistorial, resultadoHistorial, fechaHistorial]);
 
   useEffect(() => { cargarHistorial(); }, [cargarHistorial]);
 
@@ -381,10 +382,8 @@ export default function Devoluciones() {
               <option value="">Todos</option><option value="BUENO">Buena condición</option><option value="DETERIORADO">Deteriorado</option>
               <option value="DANADO">Dañado</option><option value="PERDIDO">Perdido</option>
             </select></label>
-            <label><span className="label">Desde</span><input type="date" className="input" value={desdeHistorial}
-              onChange={(e) => { setDesdeHistorial(e.target.value); setPaginaHistorial(1); }} /></label>
-            <label><span className="label">Hasta</span><input type="date" className="input" value={hastaHistorial}
-              onChange={(e) => { setHastaHistorial(e.target.value); setPaginaHistorial(1); }} /></label>
+            <label><span className="label">Fecha de devolución</span><input type="date" className="input" value={fechaHistorial}
+              onChange={(e) => { setFechaHistorial(e.target.value); setPaginaHistorial(1); }} /></label>
           </div>
         </div>
         <div className="card responsive-table-shell overflow-x-auto p-0">

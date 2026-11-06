@@ -50,10 +50,7 @@ export default function Prestamos() {
   const [busquedaListado, setBusquedaListado] = useState("");
   const busquedaAplicada = useRef("");
   const [tipoListado, setTipoListado] = useState("");
-  const [desdePrestamo, setDesdePrestamo] = useState("");
-  const [hastaPrestamo, setHastaPrestamo] = useState("");
-  const [venceDesde, setVenceDesde] = useState("");
-  const [venceHasta, setVenceHasta] = useState("");
+  const [fechaPrestamoFiltro, setFechaPrestamoFiltro] = useState("");
   const [tipoPrestatario, setTipoPrestatario] = useState<"ALUMNO" | "PROFESOR">("ALUMNO");
   const [alumno, setAlumno] = useState<Alumno | null>(null);
   const [profesor, setProfesor] = useState<Profesor | null>(null);
@@ -82,12 +79,12 @@ export default function Prestamos() {
     if (filtro === "vencidos") p.set("vencidos", "true"); else if (filtro) p.set("estado", filtro);
     if (busquedaAplicada.current) p.set("q", busquedaAplicada.current);
     if (tipoListado) p.set("tipoPrestatario", tipoListado);
-    if (desdePrestamo) p.set("desde", desdePrestamo);
-    if (hastaPrestamo) p.set("hasta", hastaPrestamo);
-    if (venceDesde) p.set("venceDesde", venceDesde);
-    if (venceHasta) p.set("venceHasta", venceHasta);
+    if (fechaPrestamoFiltro) {
+      p.set("desde", fechaPrestamoFiltro);
+      p.set("hasta", fechaPrestamoFiltro);
+    }
     api<Paged<PrestamoFila>>(`/prestamos?${p}`).then(setData).catch((e) => setMsg({ t: "error", m: e.message }));
-  }, [filtro, tipoListado, desdePrestamo, hastaPrestamo, venceDesde, venceHasta]);
+  }, [filtro, tipoListado, fechaPrestamoFiltro]);
   useEffect(() => { cargar(); }, [cargar]);
 
   function buscarListado(e: React.FormEvent<HTMLFormElement>) {
@@ -348,10 +345,7 @@ export default function Prestamos() {
         <label><span className="label">Tipo de prestatario</span><select className="input" value={tipoListado} onChange={(e) => setTipoListado(e.target.value)}>
           <option value="">Todos</option><option value="ALUMNO">Alumno</option><option value="PROFESOR">Profesor</option>
         </select></label>
-        <label><span className="label">Préstamo desde</span><input type="date" className="input" value={desdePrestamo} onChange={(e) => setDesdePrestamo(e.target.value)} /></label>
-        <label><span className="label">Préstamo hasta</span><input type="date" className="input" value={hastaPrestamo} onChange={(e) => setHastaPrestamo(e.target.value)} /></label>
-        <label><span className="label">Vence desde</span><input type="date" className="input" value={venceDesde} onChange={(e) => setVenceDesde(e.target.value)} /></label>
-        <label><span className="label">Vence hasta</span><input type="date" className="input" value={venceHasta} onChange={(e) => setVenceHasta(e.target.value)} /></label>
+        <label><span className="label">Fecha de préstamo</span><input type="date" className="input" value={fechaPrestamoFiltro} onChange={(e) => setFechaPrestamoFiltro(e.target.value)} /></label>
       </section>
       <div className="card responsive-table-shell overflow-x-auto p-0">
         <table className="responsive-table w-full min-w-[860px]">
