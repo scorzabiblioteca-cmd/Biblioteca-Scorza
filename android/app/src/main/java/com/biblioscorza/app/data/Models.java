@@ -152,6 +152,7 @@ public final class Models {
     public static class PrestamosActivos { public List<PrestamoActivo> items; }
     public static class DevolucionReq {
         public Long prestamoDetalleId;
+        public List<Long> prestamoDetalleIds;
         public String codigoEjemplar, resultado, observaciones;
     }
 

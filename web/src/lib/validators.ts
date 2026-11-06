@@ -101,6 +101,7 @@ export const prestamoSchema = z.object({
 export const devolucionSchema = z.object({
   codigoEjemplar: z.string().trim().max(20).optional(),
   prestamoDetalleId: optInt(1, 2_000_000_000_000),
+  prestamoDetalleIds: z.array(z.number().int().min(1).max(2_000_000_000_000)).min(1).max(100).optional(),
   resultado: z.enum(["BUENO", "DETERIORADO", "DANADO", "PERDIDO"]),
   observaciones: str(1000),
 });
