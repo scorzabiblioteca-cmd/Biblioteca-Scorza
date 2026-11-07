@@ -59,7 +59,7 @@ export default function Libros() {
         </select>
       </div>
       <label className="mb-3 flex items-center gap-2 text-sm text-slate-600">
-        <input type="checkbox" checked={estado === "todos"} onChange={(e) => setEstado(e.target.checked ? "todos" : "ACTIVO")} /> Incluir archivados
+        <input type="checkbox" checked={estado === "ARCHIVADO"} onChange={(e) => setEstado(e.target.checked ? "ARCHIVADO" : "ACTIVO")} /> Mostrar archivados
       </label>
       <Msg type="error">{err}</Msg>
       {errorCategorias && <Msg type="error">No se pudieron cargar las categorías: {errorCategorias}</Msg>}
