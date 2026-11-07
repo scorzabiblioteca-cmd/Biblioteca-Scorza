@@ -6,7 +6,7 @@ import { Badge, Msg, PageTitle, Portada, useDebounced } from "@/components/ui";
 
 type Libro = {
   id: number; titulo: string; autores: string | null; isbn: string | null; categoria: string | null; tipoControl: string;
-  total: number; disponibles: number; prestados: number; ubicaciones: string | null; estado: string; imagenUrl: string | null;
+  total: number; disponibles: number; prestados: number; estado: string; imagenUrl: string | null;
 };
 type Categoria = { id: number; nombre: string };
 
@@ -77,7 +77,7 @@ export default function Libros() {
         <div className="card responsive-table-shell overflow-x-auto p-0">
           <table className="responsive-table w-full min-w-[820px]">
             <thead className="border-b border-[#e6ecf4] bg-[#f7f9fc]"><tr>
-              {["", "Título", "Autor", "ISBN", "Categoría", "Control", "Total", "Disp.", "Prest.", "Ubicación", "Estado"].map((h) => <th key={h} className="th">{h}</th>)}
+              {["", "Título", "Autor", "ISBN", "Categoría", "Control", "Total", "Disp.", "Prest.", "Estado"].map((h) => <th key={h} className="th">{h}</th>)}
             </tr></thead>
             <tbody className="divide-y divide-[#eef2f7]">
               {data?.items.map((l) => (
@@ -91,11 +91,10 @@ export default function Libros() {
                   <td className="td tabular-nums" data-label="Total">{l.total}</td>
                   <td className="td tabular-nums" data-label="Disponibles">{l.disponibles}</td>
                   <td className="td tabular-nums" data-label="Prestados">{l.prestados}</td>
-                  <td className="td" data-label="Ubicación">{l.ubicaciones ?? "—"}</td>
                   <td className="td" data-label="Estado"><Badge v={l.estado} /></td>
                 </tr>
               ))}
-              {data && data.items.length === 0 && <tr><td className="td text-slate-500" colSpan={11}>No hay libros con esos criterios. Registra el primero con «Registrar libro».</td></tr>}
+              {data && data.items.length === 0 && <tr><td className="td text-slate-500" colSpan={10}>No hay libros con esos criterios. Registra el primero con «Registrar libro».</td></tr>}
             </tbody>
           </table>
         </div>

@@ -50,7 +50,6 @@ export default function EjemplarDetalle({ params }: { params: Promise<{ id: stri
         </div>
         <div className="card space-y-3 md:col-span-2 print:hidden">
           <div className="flex flex-wrap items-center gap-3"><Badge v={e.estado} /><span className="text-sm text-slate-600">Condición: {e.condicion}</span></div>
-          <p className="text-sm">Ubicación: {e.ubicacion ?? "Sin ubicación"}</p>
           {e.observaciones && <p className="text-sm text-slate-600">{e.observaciones}</p>}
           <div className="grid gap-3 sm:grid-cols-2">
             <label><span className="label">Cambiar estado</span>

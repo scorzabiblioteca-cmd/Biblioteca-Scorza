@@ -9,12 +9,12 @@ const TIPOS: [string, string][] = [
   ["inventario", "Inventario completo"], ["disponibles", "Libros disponibles"], ["prestados", "Libros prestados"], ["vencidos", "Préstamos vencidos"],
   ["danados", "Libros dañados"], ["perdidos", "Libros perdidos"], ["mas-prestados", "Libros más prestados"], ["nunca-prestados", "Libros nunca prestados"],
   ["por-categoria", "Inventario por categoría"], ["por-grado", "Inventario por grado"], ["por-editorial", "Inventario por editorial"],
-  ["por-ubicacion", "Inventario por ubicación"], ["movimientos", "Movimientos por fechas"], ["prestamos-alumno", "Préstamos por alumno"],
+  ["movimientos", "Movimientos por fechas"], ["prestamos-alumno", "Préstamos por alumno"],
 ];
 
 const FILTROS: Record<string, string[]> = {
-  inventario: ["categoria", "editorial", "grado", "tipoControl", "nivel", "disponibilidad", "ubicacion", "anioDesde", "anioHasta"],
-  disponibles: ["categoria", "editorial", "grado", "tipoControl", "nivel", "disponibilidad", "ubicacion", "anioDesde", "anioHasta"],
+  inventario: ["categoria", "editorial", "grado", "tipoControl", "nivel", "disponibilidad", "anioDesde", "anioHasta"],
+  disponibles: ["categoria", "editorial", "grado", "tipoControl", "nivel", "disponibilidad", "anioDesde", "anioHasta"],
   prestados: ["grado", "seccion"],
   vencidos: ["grado", "seccion"],
   danados: ["tipoControl", "disponibilidad"],
@@ -23,7 +23,6 @@ const FILTROS: Record<string, string[]> = {
   "por-categoria": ["categoria"],
   "por-grado": ["grado"],
   "por-editorial": ["editorial"],
-  "por-ubicacion": ["ubicacion"],
   "prestamos-alumno": ["grado", "seccion"],
 };
 const ETIQUETAS_FILTRO: Record<string, string> = {
@@ -33,7 +32,6 @@ const ETIQUETAS_FILTRO: Record<string, string> = {
   tipoControl: "Tipo de control",
   nivel: "Nivel educativo",
   disponibilidad: "Disponibilidad",
-  ubicacion: "Ubicación",
   seccion: "Sección",
   anioDesde: "Año desde",
   anioHasta: "Año hasta",

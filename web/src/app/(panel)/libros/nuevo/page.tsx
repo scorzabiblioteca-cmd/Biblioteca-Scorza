@@ -6,7 +6,6 @@ import { api } from "@/lib/client";
 import { Field, Msg, PageTitle } from "@/components/ui";
 import { normalizarIsbn } from "@/lib/isbn";
 
-type Ubic = { id: number; codigo: string; descripcion: string | null };
 type Categoria = { id: number; nombre: string };
 type EstadoConsultaIsbn = "inactivo" | "buscando" | "encontrado" | "sin-resultados" | "no-disponible" | "invalido";
 type LibroIsbn = {
@@ -44,7 +43,7 @@ type RespuestaIsbn = {
 const VACIO = {
   isbn: "", titulo: "", subtitulo: "", autor: "", editorial: "", categoria: "", anioPublicacion: "", edicion: "", descripcion: "",
   idioma: "es", nivelEducativo: "", gradoRecomendado: "", tipoControl: "CANTIDAD", prefijoCodigo: "LIB", cantidad: "1",
-  ubicacionId: "", observaciones: "", imagenUrl: "",
+  observaciones: "", imagenUrl: "",
 };
 type DatosFormularioLibro = typeof VACIO;
 
@@ -54,7 +53,6 @@ export default function NuevoLibro() {
   const [f, setF] = useState<DatosFormularioLibro>(VACIO);
   const isbnActual = useRef("");
   const consultasEnCurso = useRef(new Set<string>());
-  const [ubis, setUbis] = useState<Ubic[]>([]);
   const [categorias, setCategorias] = useState<Categoria[]>([]);
   const [cargandoCategorias, setCargandoCategorias] = useState(true);
   const [errorCategorias, setErrorCategorias] = useState("");
@@ -67,7 +65,6 @@ export default function NuevoLibro() {
   const set = (k: keyof typeof VACIO) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) =>
     setF({ ...f, [k]: e.target.value });
 
-  useEffect(() => { api<Ubic[]>("/ubicaciones").then(setUbis).catch(() => {}); }, []);
   useEffect(() => {
     let vigente = true;
     api<Categoria[]>("/categorias")
@@ -202,12 +199,6 @@ export default function NuevoLibro() {
         )}
         <Field label={f.tipoControl === "INDIVIDUAL" ? "Ejemplares a crear ahora" : "Cantidad total"}>
           <input className="input" type="number" min={0} value={f.cantidad} onChange={set("cantidad")} />
-        </Field>
-        <Field label="Ubicación">
-          <select className="input" value={f.ubicacionId} onChange={set("ubicacionId")}>
-            <option value="">Sin ubicación</option>
-            {ubis.map((u) => <option key={u.id} value={u.id}>{u.codigo}{u.descripcion ? ` — ${u.descripcion}` : ""}</option>)}
-          </select>
         </Field>
         <Field label="Descripción" className="sm:col-span-2"><textarea className="input" rows={2} value={f.descripcion} onChange={set("descripcion")} /></Field>
         <Field label="Observaciones" className="sm:col-span-2"><textarea className="input" rows={2} value={f.observaciones} onChange={set("observaciones")} /></Field>

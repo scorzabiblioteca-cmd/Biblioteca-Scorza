@@ -26,13 +26,11 @@ export default function LibroDetalle({ params }: { params: Promise<{ id: string 
   const [historial, setHistorial] = useState<Paged<MovimientoPrestamo> | null>(null);
   const [errorHistorial, setErrorHistorial] = useState<string | null>(null);
   const [paginaHistorial, setPaginaHistorial] = useState(1);
-  const [ubis, setUbis] = useState<{ id: number; codigo: string }[]>([]);
   const [cant, setCant] = useState("1");
-  const [ubi, setUbi] = useState("");
   const [msg, setMsg] = useState<{ t: "ok" | "error"; m: string } | null>(null);
 
   const cargar = useCallback(() => api(`/libros/${id}`).then(setL).catch((e) => setMsg({ t: "error", m: e.message })), [id]);
-  useEffect(() => { cargar(); api<any[]>("/ubicaciones").then(setUbis).catch(() => {}); }, [cargar]);
+  useEffect(() => { cargar(); }, [cargar]);
   useEffect(() => {
     api<Paged<MovimientoPrestamo>>(`/libros/${id}/historial?page=${paginaHistorial}&pageSize=20`)
       .then((data) => { setHistorial(data); setErrorHistorial(null); })
@@ -42,7 +40,7 @@ export default function LibroDetalle({ params }: { params: Promise<{ id: string 
   async function agregar(e: React.FormEvent) {
     e.preventDefault();
     try {
-      const r = await api<{ codigos: string[] }>(`/libros/${id}/ejemplares`, { json: { cantidad: Number(cant), ubicacionId: ubi ? Number(ubi) : null } });
+      const r = await api<{ codigos: string[] }>(`/libros/${id}/ejemplares`, { json: { cantidad: Number(cant) } });
       setMsg({ t: "ok", m: r.codigos.length ? `Creados: ${r.codigos.join(", ")}` : "Stock actualizado" });
       cargar();
     } catch (x) { setMsg({ t: "error", m: (x as Error).message }); }
@@ -53,6 +51,17 @@ export default function LibroDetalle({ params }: { params: Promise<{ id: string 
   }
   if (!l) return <Msg type="error">{msg?.m ?? "Cargando…"}</Msg>;
   const indiv = l.tipoControl === "INDIVIDUAL";
+  const resumenExistencias = (l.existencias as {
+    cantidadTotal: number;
+    cantidadDanada: number;
+    cantidadPerdida: number;
+    cantidadBaja: number;
+  }[]).reduce((total, existencia) => ({
+    cantidadTotal: total.cantidadTotal + existencia.cantidadTotal,
+    cantidadDanada: total.cantidadDanada + existencia.cantidadDanada,
+    cantidadPerdida: total.cantidadPerdida + existencia.cantidadPerdida,
+    cantidadBaja: total.cantidadBaja + existencia.cantidadBaja,
+  }), { cantidadTotal: 0, cantidadDanada: 0, cantidadPerdida: 0, cantidadBaja: 0 });
   return (
     <>
       <PageTitle action={<div className="flex gap-2"><Link href={`/libros/${id}/editar`} className="btn">Editar información</Link><button className="btn-ghost" onClick={archivar}>{l.estado === "ACTIVO" ? "Archivar" : "Restaurar"}</button><Link href="/libros" className="btn-ghost">Volver</Link></div>}>{l.titulo}</PageTitle>
@@ -77,23 +86,21 @@ export default function LibroDetalle({ params }: { params: Promise<{ id: string 
       </div>
       <form onSubmit={agregar} className="card mt-4 flex flex-wrap items-end gap-3">
         <label><span className="label">{indiv ? "Ejemplares nuevos" : "Unidades a sumar"}</span><input className="input w-28" type="number" min={1} value={cant} onChange={(e) => setCant(e.target.value)} /></label>
-        <label><span className="label">Ubicación</span>
-          <select className="input" value={ubi} onChange={(e) => setUbi(e.target.value)}><option value="">Sin ubicación</option>{ubis.map((u) => <option key={u.id} value={u.id}>{u.codigo}</option>)}</select></label>
         <button className="btn">Agregar {indiv ? "ejemplar" : "stock"}</button>
       </form>
       <div className="card responsive-table-shell mt-4 overflow-x-auto p-0">
         {indiv ? (
-          <table className="responsive-table w-full"><thead className="border-b border-[#e6ecf4] bg-[#f7f9fc]"><tr>{["Código", "Estado", "Condición", "Ubicación"].map((h) => <th key={h} className="th">{h}</th>)}</tr></thead>
+          <table className="responsive-table w-full"><thead className="border-b border-[#e6ecf4] bg-[#f7f9fc]"><tr>{["Código", "Estado", "Condición"].map((h) => <th key={h} className="th">{h}</th>)}</tr></thead>
             <tbody className="divide-y divide-[#eef2f7]">
               {l.ejemplares.map((e: any) => (
                 <tr key={e.id}><td className="td font-medium" data-label="Código"><Link className="text-brand-700 hover:underline" href={`/libros/ejemplares/${e.id}`}>{e.codigoInterno}</Link></td>
-                  <td className="td" data-label="Estado"><Badge v={e.estado} /></td><td className="td" data-label="Condición">{e.condicion}</td><td className="td" data-label="Ubicación">{e.ubicacion ?? "—"}</td></tr>))}
-              {l.ejemplares.length === 0 && <tr><td className="td text-slate-500" colSpan={4}>Aún no hay ejemplares.</td></tr>}
+                  <td className="td" data-label="Estado"><Badge v={e.estado} /></td><td className="td" data-label="Condición">{e.condicion}</td></tr>))}
+              {l.ejemplares.length === 0 && <tr><td className="td text-slate-500" colSpan={3}>Aún no hay ejemplares.</td></tr>}
             </tbody></table>
         ) : (
-          <table className="responsive-table w-full"><thead className="border-b border-[#e6ecf4] bg-[#f7f9fc]"><tr>{["Ubicación", "Total", "Dañados", "Perdidos", "De baja"].map((h) => <th key={h} className="th">{h}</th>)}</tr></thead>
+          <table className="responsive-table w-full"><thead className="border-b border-[#e6ecf4] bg-[#f7f9fc]"><tr>{["Total", "Dañados", "Perdidos", "De baja"].map((h) => <th key={h} className="th">{h}</th>)}</tr></thead>
             <tbody className="divide-y divide-[#eef2f7]">
-              {l.existencias.map((x: any) => <tr key={x.id}><td className="td" data-label="Ubicación">{x.ubicacion ?? "Sin ubicación"}</td><td className="td" data-label="Total">{x.cantidadTotal}</td><td className="td" data-label="Dañados">{x.cantidadDanada}</td><td className="td" data-label="Perdidos">{x.cantidadPerdida}</td><td className="td" data-label="De baja">{x.cantidadBaja}</td></tr>)}
+              <tr><td className="td" data-label="Total">{resumenExistencias.cantidadTotal}</td><td className="td" data-label="Dañados">{resumenExistencias.cantidadDanada}</td><td className="td" data-label="Perdidos">{resumenExistencias.cantidadPerdida}</td><td className="td" data-label="De baja">{resumenExistencias.cantidadBaja}</td></tr>
             </tbody></table>
         )}
       </div>
