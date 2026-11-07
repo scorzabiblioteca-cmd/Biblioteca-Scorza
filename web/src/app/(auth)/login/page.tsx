@@ -175,6 +175,14 @@ export default function Login() {
             <Link className="login-library-button" href="/biblioteca">
               Ver biblioteca
             </Link>
+            <nav aria-label="Información legal" className="mt-4 flex flex-wrap justify-center gap-x-4 gap-y-2 text-sm">
+              <Link className="text-brand-700 underline decoration-brand-300 underline-offset-4 hover:text-brand-900" href="/privacidad">
+                Política de Privacidad
+              </Link>
+              <Link className="text-brand-700 underline decoration-brand-300 underline-offset-4 hover:text-brand-900" href="/condiciones">
+                Condiciones del Servicio
+              </Link>
+            </nav>
           </form>
           <DeveloperCredits className="login-copyright" />
         </section>
