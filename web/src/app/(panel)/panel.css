@@ -247,8 +247,72 @@ html[data-theme="dark"] .mobile-nav button[aria-expanded="true"] {
   color: #7eacff;
 }
 
+.theme-toggle {
+  color: #35445b;
+  background-color: #edf4ff;
+}
+
+.theme-toggle:hover {
+  background-color: #dceaff;
+}
+
+.theme-switch-track {
+  position: relative;
+  display: inline-flex;
+  width: 54px;
+  height: 30px;
+  flex: none;
+  align-items: center;
+  border: 1px solid #78a8ec;
+  border-radius: 9999px;
+  padding: 2px;
+  background: #9ec5ff;
+  box-shadow: inset 0 1px 3px rgba(23, 43, 77, 0.2);
+  transition: background-color 200ms ease, border-color 200ms ease;
+}
+
+.theme-switch-track.is-dark {
+  border-color: #60738e;
+  background: #24354d;
+}
+
+.theme-switch-knob {
+  display: grid;
+  width: 24px;
+  height: 24px;
+  place-items: center;
+  border-radius: 50%;
+  color: #d28a00;
+  background: #fff;
+  box-shadow: 0 1px 4px rgba(11, 27, 51, 0.3);
+  transform: translateX(0);
+  transition: transform 200ms ease, color 200ms ease;
+}
+
+.theme-switch-knob.is-dark {
+  color: #315d9d;
+  transform: translateX(24px);
+}
+
+.theme-switch-knob svg {
+  width: 16px;
+  height: 16px;
+}
+
+.theme-switch-label {
+  min-width: 2.5rem;
+  text-align: left;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+html[data-theme="dark"] .theme-toggle {
+  color: #e2e8f0;
+  background-color: #1b2b40;
+}
+
 html[data-theme="dark"] .theme-toggle:hover {
-  background-color: rgba(255, 255, 255, 0.1);
+  background-color: #263a54;
 }
 
 html[data-theme="dark"] .mobile-developer-credits {
