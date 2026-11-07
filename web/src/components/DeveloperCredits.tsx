@@ -108,6 +108,30 @@ export default function DeveloperCredits({
             <p className="mt-1 text-sm text-[#718096]">Desarrollador</p>
             <div className="mt-4 flex flex-wrap gap-2">
               <a
+                href="https://www.linkedin.com/in/ricardo-aquino-bb285b228"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Ver LinkedIn de Ricardo Samuel Aquino Arizapana"
+                className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-[#0a66c2] px-3 text-sm font-semibold text-white transition hover:bg-[#004182] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0a66c2]"
+              >
+                <svg aria-hidden="true" viewBox="0 0 24 24" fill="currentColor" className="h-5 w-5">
+                  <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.35V9h3.414v1.561h.049c.476-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 1 1 0-4.124 2.062 2.062 0 0 1 0 4.124zM3.555 20.452h3.564V9H3.555v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
+                </svg>
+                LinkedIn
+              </a>
+              <a
+                href="https://www.tiktok.com/@qmasa04?_r=1&_t=ZS-9BDNYE6sX6W"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Ver TikTok de Ricardo Samuel Aquino Arizapana"
+                className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-[#111111] px-3 text-sm font-semibold text-white transition hover:bg-[#333333] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#111111]"
+              >
+                <svg aria-hidden="true" viewBox="0 0 24 24" fill="currentColor" className="h-5 w-5">
+                  <path d="M19.589 6.686a4.793 4.793 0 0 1-3.996-4.292V1h-3.445v13.672a2.896 2.896 0 0 1-2.9 2.9 2.9 2.9 0 1 1 2.9-2.9c0-.24-.03-.473-.084-.697V10.46a6.33 6.33 0 1 0 3.529 5.67V9.162a8.176 8.176 0 0 0 4.78 1.536V7.254a4.82 4.82 0 0 1-.784-.568z" />
+                </svg>
+                TikTok
+              </a>
+              <a
                 href="https://wa.me/51928177377?text=Hola%20Ricardo%2C%20te%20escribo%20por%20BiblioScorza."
                 target="_blank"
                 rel="noopener noreferrer"
