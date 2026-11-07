@@ -89,12 +89,12 @@ export function ProfesorFormDialog({ open, profesor, onClose, onSaved }: {
         <button type="button" className="rounded-lg px-2 py-1 text-xl leading-none text-[#718096] hover:bg-[#f1f5fb] hover:text-[#172b4d]" aria-label="Cerrar ventana" onClick={onClose}>×</button>
       </div>
       <form onSubmit={guardar} className="grid gap-4 p-5 sm:grid-cols-2 sm:p-6">
-        <Field label="DNI"><input className="input" value={f.dni} onChange={set("dni")} inputMode="numeric" /></Field>
+        <Field label={`DNI${!editando ? " *" : ""}`}><input className="input" required={!editando} maxLength={15} value={f.dni} onChange={set("dni")} inputMode="numeric" /></Field>
         <Field label="Nombres *"><input className="input" required value={f.nombres} onChange={set("nombres")} /></Field>
         <Field label="Apellidos *"><input className="input" required value={f.apellidos} onChange={set("apellidos")} /></Field>
         <Field label="Correo"><input className="input" type="email" value={f.correo} onChange={set("correo")} /></Field>
         <Field label="Teléfono"><input className="input" value={f.telefono} onChange={set("telefono")} /></Field>
-        <Field label="Área"><input className="input" value={f.area} onChange={set("area")} /></Field>
+        <Field label={`Área${!editando ? " *" : ""}`}><input className="input" required={!editando} maxLength={100} value={f.area} onChange={set("area")} /></Field>
         {editando && <Field label="Estado"><select className="input" value={f.estado} onChange={set("estado")}><option value="ACTIVO">Activo</option><option value="INACTIVO">Inactivo</option></select></Field>}
         {msg?.t === "error" && <div className="sm:col-span-2"><Msg type="error">{msg.m}</Msg></div>}
         <div className="flex flex-col-reverse gap-2 border-t border-slate-100 pt-4 sm:col-span-2 sm:flex-row sm:justify-end">

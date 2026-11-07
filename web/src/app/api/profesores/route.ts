@@ -1,6 +1,6 @@
 import { withAuth, ok, created, body, page } from "@/lib/http";
 import { q, q1, pool } from "@/lib/db";
-import { profesorSchema } from "@/lib/validators";
+import { profesorCreateSchema } from "@/lib/validators";
 import { audit } from "@/lib/audit";
 
 export const GET = withAuth(["BIBLIOTECARIO"], async (req) => {
@@ -25,7 +25,7 @@ export const GET = withAuth(["BIBLIOTECARIO"], async (req) => {
 });
 
 export const POST = withAuth(["BIBLIOTECARIO"], async (req, { session }) => {
-  const d = await body(req, profesorSchema);
+  const d = await body(req, profesorCreateSchema);
   const r = await q1<{ id: number }>(pool,
     "INSERT INTO profesores (dni, nombres, apellidos, correo, telefono, area) VALUES ($1,$2,$3,$4,$5,$6) RETURNING *",
     [d.dni, d.nombres, d.apellidos, d.correo ?? null, d.telefono, d.area]);

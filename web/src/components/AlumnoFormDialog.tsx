@@ -62,6 +62,11 @@ export function AlumnoFormDialog({ open, alumno, onClose, onSaved }: {
   const set = (k: keyof typeof VACIO) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
     setF((actual) => ({ ...actual, [k]: e.target.value }));
 
+  function generarCodigo() {
+    const digitos = Array.from(window.crypto.getRandomValues(new Uint8Array(8)), (byte) => String(byte % 10)).join("");
+    setF((actual) => ({ ...actual, codigoAlumno: digitos }));
+  }
+
   async function guardar(e: React.FormEvent) {
     e.preventDefault();
     setGuardando(true);
@@ -95,8 +100,14 @@ export function AlumnoFormDialog({ open, alumno, onClose, onSaved }: {
         <button type="button" className="rounded-lg px-2 py-1 text-xl leading-none text-[#718096] hover:bg-[#f1f5fb] hover:text-[#172b4d]" aria-label="Cerrar ventana" onClick={onClose}>×</button>
       </div>
       <form onSubmit={guardar} className="grid gap-4 p-5 sm:grid-cols-2 sm:p-6">
-        <Field label="Código de alumno *"><input className="input" required value={f.codigoAlumno} onChange={set("codigoAlumno")} /></Field>
-        <Field label="DNI"><input className="input" value={f.dni} onChange={set("dni")} inputMode="numeric" /></Field>
+        <div>
+          <span className="label">Código de alumno *</span>
+          <div className="flex gap-2">
+            <input aria-label="Código de alumno" className="input min-w-0 flex-1" required value={f.codigoAlumno} onChange={set("codigoAlumno")} />
+            {!editando && <button type="button" className="btn-ghost shrink-0 px-3" onClick={generarCodigo}>Generar</button>}
+          </div>
+        </div>
+        <Field label={`DNI${!editando ? " *" : ""}`}><input className="input" required={!editando} maxLength={15} value={f.dni} onChange={set("dni")} inputMode="numeric" /></Field>
         <Field label={`Nivel${!editando ? " *" : ""}`}><select className="input" required={!editando} value={f.nivelEducativo} onChange={set("nivelEducativo")}><option value="">—</option><option value="INICIAL">Inicial</option><option value="PRIMARIA">Primaria</option><option value="SECUNDARIA">Secundaria</option></select></Field>
         <Field label="Nombres *"><input className="input" required value={f.nombres} onChange={set("nombres")} /></Field>
         <Field label="Apellidos *"><input className="input" required value={f.apellidos} onChange={set("apellidos")} /></Field>

@@ -46,6 +46,7 @@ export const alumnoSchema = z.object({
 });
 
 export const alumnoCreateSchema = alumnoSchema.extend({
+  dni: z.string().trim().min(1, "El DNI es obligatorio").max(15),
   nivelEducativo: z.enum(["INICIAL", "PRIMARIA", "SECUNDARIA"], {
     required_error: "El nivel educativo es obligatorio",
   }),
@@ -63,6 +64,11 @@ export const profesorSchema = z.object({
   correo: z.string().email().max(150).optional().nullable().or(z.literal("").transform(() => null)),
   telefono: str(30),
   area: str(100),
+});
+
+export const profesorCreateSchema = profesorSchema.extend({
+  dni: z.string().trim().min(1, "El DNI es obligatorio").max(15),
+  area: z.string().trim().min(1, "El área es obligatoria").max(100),
 });
 
 export const ubicacionSchema = z.object({
