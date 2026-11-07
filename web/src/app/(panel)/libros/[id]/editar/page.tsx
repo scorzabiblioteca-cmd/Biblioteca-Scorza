@@ -1,10 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { use, useEffect, useState } from "react";
+import { use, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/client";
-import { Field, Msg, PageTitle } from "@/components/ui";
+import { Field, Msg, PageTitle, Portada } from "@/components/ui";
 
 type Libro = {
   id: number;
@@ -50,10 +50,12 @@ const VACIO: Formulario = {
 export default function EditarLibro({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
+  const portadaInput = useRef<HTMLInputElement>(null);
   const [f, setF] = useState(VACIO);
   const [cargando, setCargando] = useState(true);
   const [errorCarga, setErrorCarga] = useState(false);
   const [guardando, setGuardando] = useState(false);
+  const [subiendo, setSubiendo] = useState(false);
   const [err, setErr] = useState("");
 
   useEffect(() => {
@@ -86,6 +88,36 @@ export default function EditarLibro({ params }: { params: Promise<{ id: string }
   const set = (key: keyof Formulario) =>
     (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) =>
       setF((actual) => ({ ...actual, [key]: e.target.value }));
+
+  async function subirPortada(file: File) {
+    setSubiendo(true);
+    setErr("");
+    try {
+      const firma = await api<{ cloudName: string; apiKey: string; timestamp: number; folder: string; signature: string }>(
+        "/imagenes/firma",
+        { method: "POST", json: {} }
+      );
+      const datos = new FormData();
+      datos.append("file", file);
+      datos.append("api_key", firma.apiKey);
+      datos.append("timestamp", String(firma.timestamp));
+      datos.append("folder", firma.folder);
+      datos.append("signature", firma.signature);
+      const respuesta = await fetch(`https://api.cloudinary.com/v1_1/${firma.cloudName}/image/upload`, {
+        method: "POST",
+        body: datos,
+      });
+      const resultado: { secure_url?: string; error?: { message?: string } } = await respuesta.json();
+      if (!respuesta.ok) throw new Error(resultado.error?.message ?? "No se pudo subir la imagen");
+      const secureUrl = resultado.secure_url;
+      if (!secureUrl) throw new Error("La carga no devolvió una URL de imagen válida");
+      setF((actual) => ({ ...actual, imagenUrl: secureUrl }));
+    } catch (x) {
+      setErr((x as Error).message);
+    } finally {
+      setSubiendo(false);
+    }
+  }
 
   async function guardar(e: React.FormEvent) {
     e.preventDefault();
@@ -133,12 +165,68 @@ export default function EditarLibro({ params }: { params: Promise<{ id: string }
           </select>
         </Field>
         <Field label="Grado recomendado (1–6)"><input className="input" type="number" min={1} max={6} value={f.gradoRecomendado} onChange={set("gradoRecomendado")} /></Field>
-        <Field label="URL de portada"><input className="input" type="url" maxLength={500} value={f.imagenUrl} onChange={set("imagenUrl")} /></Field>
+        <div className="sm:col-span-2">
+          <span className="label">Fotografía de portada</span>
+          <div className="cover-upload flex flex-col gap-4 rounded-2xl border border-dashed border-[#cbd5e1] bg-[#f8fafc] p-4 sm:flex-row sm:items-center sm:p-5">
+            <div className="cover-preview grid h-36 w-28 shrink-0 place-items-center overflow-hidden rounded-xl border border-[#e2e8f0] bg-white">
+              <Portada src={f.imagenUrl} titulo={f.titulo} className="h-full w-full" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="font-semibold text-[#172b4d]">
+                {f.imagenUrl ? "La portada está lista" : "Este libro no tiene portada"}
+              </p>
+              <p className="mt-1 text-sm text-slate-500">
+                Selecciona una imagen de tu dispositivo o toma una fotografía para reemplazar la portada.
+              </p>
+              <input
+                ref={portadaInput}
+                type="file"
+                accept="image/*"
+                capture="environment"
+                disabled={subiendo}
+                onChange={async (e) => {
+                  const archivo = e.target.files?.[0];
+                  if (archivo) await subirPortada(archivo);
+                  e.target.value = "";
+                }}
+                className="sr-only"
+                aria-label="Seleccionar imagen de portada"
+              />
+              <div className="mt-4 flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  className="btn-ghost"
+                  disabled={subiendo}
+                  onClick={() => portadaInput.current?.click()}
+                >
+                  {f.imagenUrl ? "Cambiar portada" : "Seleccionar imagen"}
+                </button>
+                {f.imagenUrl && (
+                  <button
+                    type="button"
+                    className="cover-remove rounded-lg px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-50"
+                    disabled={subiendo}
+                    onClick={() => setF((actual) => ({ ...actual, imagenUrl: "" }))}
+                  >
+                    Quitar portada
+                  </button>
+                )}
+                {subiendo && (
+                  <span role="status" className="inline-flex items-center gap-2 text-sm text-slate-500">
+                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-brand-200 border-t-brand-600" />
+                    Subiendo portada…
+                  </span>
+                )}
+              </div>
+              <p className="mt-2 text-xs text-slate-500">Formatos de imagen compatibles. La carga puede tardar unos segundos.</p>
+            </div>
+          </div>
+        </div>
         <Field label="Descripción" className="sm:col-span-2"><textarea className="input" rows={3} maxLength={4000} value={f.descripcion} onChange={set("descripcion")} /></Field>
         <Field label="Observaciones" className="sm:col-span-2"><textarea className="input" rows={3} maxLength={2000} value={f.observaciones} onChange={set("observaciones")} /></Field>
         <div className="space-y-3 sm:col-span-2">
           <Msg type="error">{err}</Msg>
-          <button className="btn" disabled={guardando}>{guardando ? "Guardando…" : "Guardar cambios"}</button>
+          <button className="btn" disabled={guardando || subiendo}>{guardando ? "Guardando…" : "Guardar cambios"}</button>
         </div>
       </form>
     </>

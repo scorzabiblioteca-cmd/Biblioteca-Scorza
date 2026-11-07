@@ -214,9 +214,9 @@ export const PUT = withAuth(R, async (req, { params, session }) => {
     await c.query(
       `UPDATE libros SET isbn=$2, titulo=$3, subtitulo=$4, editorial_id=$5, anio_publicacion=$6, edicion=$7,
          categoria_id=$8, descripcion=$9, idioma=$10, nivel_educativo=$11, grado_recomendado=$12,
-         imagen_url=COALESCE($13, imagen_url), observaciones=$14, updated_by=$15 WHERE id=$1`,
+         imagen_url=CASE WHEN $13::boolean THEN $14 ELSE imagen_url END, observaciones=$15, updated_by=$16 WHERE id=$1`,
       [id, isbn, d.titulo, d.subtitulo, editorialId, d.anioPublicacion ?? null, d.edicion, categoriaId, d.descripcion,
-       d.idioma, d.nivelEducativo ?? null, d.gradoRecomendado ?? null, d.imagenUrl ?? null, d.observaciones, session.id]
+       d.idioma, d.nivelEducativo ?? null, d.gradoRecomendado ?? null, d.imagenUrl !== undefined, d.imagenUrl, d.observaciones, session.id]
     );
     await setAutores(c, id, d.autor);
     if (d.ubicacionId !== undefined) {
