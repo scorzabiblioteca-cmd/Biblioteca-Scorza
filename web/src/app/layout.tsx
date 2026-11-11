@@ -4,6 +4,7 @@ import type { Metadata, Viewport } from "next";
 export const metadata: Metadata = {
   title: "BiblioScorza",
   description: "Gestión de biblioteca escolar",
+  manifest: "/manifest.webmanifest",
   icons: { icon: "/escudo-colegio.png" },
 };
 export const viewport: Viewport = { width: "device-width", initialScale: 1, viewportFit: "cover" };

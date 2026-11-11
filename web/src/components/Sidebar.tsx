@@ -1,8 +1,13 @@
 "use client";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import DeveloperCredits from "@/components/DeveloperCredits";
+
+type InstallPromptEvent = Event & {
+  prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: "accepted" | "dismissed"; platform: string }>;
+};
 
 const LINKS = [
   ["/dashboard", "Panel"], ["/libros", "Libros"], ["/prestamos", "Préstamos y Devoluciones"],
@@ -47,7 +52,25 @@ export default function Sidebar() {
   const path = usePathname();
   const router = useRouter();
   const [open, setOpen] = useState(false);
+  const [installPrompt, setInstallPrompt] = useState<InstallPromptEvent | null>(null);
+  const [installMessage, setInstallMessage] = useState("");
   const isPeoplePath = path.startsWith("/alumnos") || path.startsWith("/profesores");
+  useEffect(() => {
+    const onBeforeInstallPrompt = (event: Event) => {
+      event.preventDefault();
+      setInstallPrompt(event as InstallPromptEvent);
+    };
+    const onAppInstalled = () => {
+      setInstallPrompt(null);
+      setInstallMessage("La app web se instaló correctamente.");
+    };
+    window.addEventListener("beforeinstallprompt", onBeforeInstallPrompt);
+    window.addEventListener("appinstalled", onAppInstalled);
+    return () => {
+      window.removeEventListener("beforeinstallprompt", onBeforeInstallPrompt);
+      window.removeEventListener("appinstalled", onAppInstalled);
+    };
+  }, []);
   const moreActive = LINKS.some(([href]) =>
     (isSectionActive(href, path, isPeoplePath) && !MOBILE_LINKS.some(([mobileHref]) => mobileHref === href))
       || (href === "/libros" && path.startsWith("/libros/ejemplares")),
@@ -56,6 +79,32 @@ export default function Sidebar() {
     await fetch("/api/auth/logout", { method: "POST" });
     router.push("/login");
   }
+  async function instalarWeb() {
+    if (!installPrompt) {
+      setInstallMessage("Para instalarla, abre el menú del navegador y elige «Instalar aplicación» o «Añadir a pantalla de inicio».");
+      return;
+    }
+    try {
+      await installPrompt.prompt();
+      const choice = await installPrompt.userChoice;
+      setInstallMessage(choice.outcome === "accepted" ? "La app web se está instalando." : "Se canceló la instalación.");
+      setInstallPrompt(null);
+    } catch (error) {
+      setInstallMessage(error instanceof Error ? error.message : "No se pudo iniciar la instalación.");
+    }
+  }
+  const appDownloads = (
+    <>
+      <a href="/descargas/BiblioScorza.apk" download
+        className="rail-link block">
+        Descargar app Scanner
+      </a>
+      <button type="button" onClick={instalarWeb} className="rail-link w-full text-left">
+        Descargar app Web
+      </button>
+      {installMessage && <p role="status" className="px-3 py-2 text-xs text-slate-500">{installMessage}</p>}
+    </>
+  );
   return (
     <>
       <aside className="rail print:hidden md:w-60 md:shrink-0 md:flex-col">
@@ -77,6 +126,7 @@ export default function Sidebar() {
             </Link>
           ))}
         </nav>
+        <div className="px-3 pb-2">{appDownloads}</div>
         <div className="px-3 pb-5">
           <div className="rail-divider" />
           <button onClick={salir} className="rail-link w-full text-left">Cerrar sesión</button>
@@ -100,9 +150,15 @@ export default function Sidebar() {
             <a href="/descargas/BiblioScorza.apk" download onClick={() => setOpen(false)}
               className="flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm text-[#35445b] transition-colors hover:bg-[#f7faff] focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-600">
               <MobileIcon name="download" />
-              <span className="flex-1">Descargar app Android</span>
+              <span className="flex-1">Descargar app Scanner</span>
               <span className="rounded-full bg-brand-50 px-2 py-0.5 text-[0.62rem] font-bold uppercase tracking-wide text-brand-700 ring-1 ring-inset ring-brand-200">APK</span>
             </a>
+            <button type="button" onClick={instalarWeb}
+              className="flex min-h-11 items-center gap-3 rounded-xl px-3 text-left text-sm text-[#35445b] transition-colors hover:bg-[#f7faff] focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-600">
+              <MobileIcon name="download" />
+              <span className="flex-1">Descargar app Web</span>
+            </button>
+            {installMessage && <p role="status" className="px-3 py-2 text-xs text-slate-500">{installMessage}</p>}
             <div className="my-1 border-t border-[#e6ecf4]" />
             <button onClick={salir} className="flex min-h-11 items-center gap-3 rounded-xl px-3 text-left text-sm text-[#718096] transition-colors hover:bg-[#f7faff] hover:text-[#172b4d] focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-600">
               <MobileIcon name="logout" />

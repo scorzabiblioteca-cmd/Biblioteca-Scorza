@@ -1,0 +1,26 @@
+{
+  "id": "/",
+  "name": "BiblioScorza",
+  "short_name": "BiblioScorza",
+  "description": "Gestión de biblioteca escolar",
+  "lang": "es",
+  "start_url": "/dashboard",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f7f9fc",
+  "theme_color": "#2a5cb8",
+  "icons": [
+    {
+      "src": "/icons/app-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/app-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
