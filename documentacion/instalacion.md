@@ -23,8 +23,20 @@ Nunca subas `.env.local` a GitHub (ya está en `.gitignore`).
 1. Abre la carpeta `android/` en Android Studio (Hedgehog o superior, JDK 17). Sincroniza Gradle.
 2. Emulador: la API local se alcanza en `http://10.0.2.2:3000/api/` (ya configurado para *debug*).
    Teléfono real: usa la IP de tu PC (p. ej. `http://192.168.1.20:3000/api/`) en `app/build.gradle` (`API_BASE_URL`, buildType debug por defecto) o despliega la web.
-3. Para *release* cambia `TU-DOMINIO.vercel.app` por tu dominio HTTPS.
-4. Inicia sesión con el usuario creado en el paso 3. Concede permiso de cámara al escanear.
+3. Para generar un APK *release* firmado, desde `android/` crea un keystore Java válido:
+   ```powershell
+   keytool -genkeypair -v -keystore app\release.keystore -alias biblioscorza -keyalg RSA -keysize 2048 -validity 10000
+   ```
+   Guarda las contraseñas y crea `android/keystore.properties` (no lo subas a Git):
+   ```properties
+   storeFile=app/release.keystore
+   storePassword=TU_CONTRASENA_DEL_KEYSTORE
+   keyAlias=biblioscorza
+   keyPassword=TU_CONTRASENA_DE_LA_CLAVE
+   ```
+   Gradle usa este archivo al generar el *release*. También puedes seleccionar `android/app/release.keystore` en Android Studio. No selecciones un `.pem`, certificado o archivo de configuración: no son keystores Java. Si ya existe un keystore para una versión publicada, conserva ese mismo archivo y sus contraseñas para poder actualizar la app.
+4. Cambia `TU-DOMINIO.vercel.app` por tu dominio HTTPS en `android/app/build.gradle` antes de publicar.
+5. Inicia sesión con el usuario creado en el paso 3. Concede permiso de cámara al escanear.
 
 ## 5. Despliegue (opcional)
 Web en Vercel: carpeta raíz `web`, variables de entorno = las de `.env.example`. Usa la cadena *pooled* de Neon.
