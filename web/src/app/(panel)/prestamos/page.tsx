@@ -48,6 +48,7 @@ function fechaDespuesDe(dias: number) {
 
 export default function Prestamos() {
   const [data, setData] = useState<Paged<PrestamoFila> | null>(null);
+  const [pagina, setPagina] = useState(1);
   const [filtro, setFiltro] = useState("");
   const [busquedaListado, setBusquedaListado] = useState("");
   const busquedaAplicada = useRef("");
@@ -79,7 +80,7 @@ export default function Prestamos() {
   }, [detalle]);
 
   const cargar = useCallback(() => {
-    const p = new URLSearchParams({ pageSize: "30" });
+    const p = new URLSearchParams({ page: String(pagina), pageSize: "10" });
     if (filtro === "vencidos") p.set("vencidos", "true"); else if (filtro) p.set("estado", filtro);
     if (busquedaAplicada.current) p.set("q", busquedaAplicada.current);
     if (tipoListado) p.set("tipoPrestatario", tipoListado);
@@ -88,12 +89,14 @@ export default function Prestamos() {
       p.set("hasta", fechaPrestamoFiltro);
     }
     api<Paged<PrestamoFila>>(`/prestamos?${p}`).then(setData).catch((e) => setMsg({ t: "error", m: e.message }));
-  }, [filtro, tipoListado, fechaPrestamoFiltro]);
+  }, [filtro, tipoListado, fechaPrestamoFiltro, pagina]);
   useEffect(() => { cargar(); }, [cargar]);
+  const paginasPrestamos = data ? Math.max(1, Math.ceil(data.total / data.pageSize)) : 1;
 
   function buscarListado(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     busquedaAplicada.current = busquedaListado.trim();
+    setPagina(1);
     cargar();
   }
 
@@ -353,13 +356,13 @@ export default function Prestamos() {
             <input className="input" type="search" placeholder="Prestatario, libro o código" value={busquedaListado} onChange={(e) => setBusquedaListado(e.target.value)} /></label>
           <button type="submit" className="btn">Buscar</button>
         </form>
-        <label><span className="label">Estado</span><select className="input" value={filtro} onChange={(e) => setFiltro(e.target.value)}>
+        <label><span className="label">Estado</span><select className="input" value={filtro} onChange={(e) => { setFiltro(e.target.value); setPagina(1); }}>
           <option value="">Todos los estados</option><option value="ACTIVO">Activos</option><option value="vencidos">Vencidos</option><option value="CERRADO">Cerrados</option><option value="ANULADO">Anulados</option>
         </select></label>
-        <label><span className="label">Tipo de prestatario</span><select className="input" value={tipoListado} onChange={(e) => setTipoListado(e.target.value)}>
+        <label><span className="label">Tipo de prestatario</span><select className="input" value={tipoListado} onChange={(e) => { setTipoListado(e.target.value); setPagina(1); }}>
           <option value="">Todos</option><option value="ALUMNO">Alumno</option><option value="PROFESOR">Profesor</option>
         </select></label>
-        <label><span className="label">Fecha de préstamo</span><input type="date" className="input" value={fechaPrestamoFiltro} onChange={(e) => setFechaPrestamoFiltro(e.target.value)} /></label>
+        <label><span className="label">Fecha de préstamo</span><input type="date" className="input" value={fechaPrestamoFiltro} onChange={(e) => { setFechaPrestamoFiltro(e.target.value); setPagina(1); }} /></label>
       </section>
       <div className="card responsive-table-shell overflow-x-auto p-0">
         <table className="responsive-table w-full min-w-[860px]">
@@ -401,6 +404,22 @@ export default function Prestamos() {
           </tbody>
         </table>
       </div>
+      {data && (
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-3 text-sm text-slate-600">
+          <span>
+            {data.total === 0
+              ? "0 préstamos"
+              : `${(pagina - 1) * data.pageSize + 1}–${Math.min(pagina * data.pageSize, data.total)} de ${data.total} préstamos`}
+          </span>
+          {data.total > data.pageSize && (
+            <div className="flex items-center gap-2">
+              <button className="btn-ghost" disabled={pagina <= 1} onClick={() => setPagina((n) => n - 1)}>Anterior</button>
+              <span>{pagina} / {paginasPrestamos}</span>
+              <button className="btn-ghost" disabled={pagina >= paginasPrestamos} onClick={() => setPagina((n) => n + 1)}>Siguiente</button>
+            </div>
+          )}
+        </div>
+      )}
     </>
   );
 }
