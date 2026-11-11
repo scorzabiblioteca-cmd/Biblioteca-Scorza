@@ -176,27 +176,22 @@ export default function Topbar() {
           <button
             type="button"
             onClick={alternarTema}
-            role="switch"
-            aria-label="Modo oscuro"
-            aria-checked={modoOscuro}
+            aria-label={modoOscuro ? "Cambiar a modo claro" : "Cambiar a modo oscuro"}
+            aria-pressed={modoOscuro}
             title={modoOscuro ? "Cambiar a modo claro" : "Cambiar a modo oscuro"}
-            className="theme-toggle inline-flex min-h-11 items-center gap-2 rounded-full px-2.5 transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-600"
+            className="theme-toggle grid h-10 w-10 shrink-0 place-items-center rounded-xl border shadow-sm transition hover:-translate-y-px active:translate-y-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-600"
           >
-            <span aria-hidden="true" className={`theme-switch-track${modoOscuro ? " is-dark" : ""}`}>
-              <span className={`theme-switch-knob${modoOscuro ? " is-dark" : ""}`}>
-                {modoOscuro ? (
-                  <svg viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M20.5 15.2A8.5 8.5 0 0 1 8.8 3.5 8.5 8.5 0 1 0 20.5 15.2Z" />
-                  </svg>
-                ) : (
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                    <circle cx="12" cy="12" r="4" />
-                    <path d="M12 2v2m0 16v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42" />
-                  </svg>
-                )}
-              </span>
-            </span>
-            <span className="theme-switch-label">{modoOscuro ? "Oscuro" : "Claro"}</span>
+            <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"
+              strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
+              {modoOscuro ? (
+                <path d="M20.5 15.2A8.5 8.5 0 0 1 8.8 3.5 8.5 8.5 0 1 0 20.5 15.2Z" />
+              ) : (
+                <>
+                  <circle cx="12" cy="12" r="4" />
+                  <path d="M12 2v2m0 16v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42" />
+                </>
+              )}
+            </svg>
           </button>
           <div className="relative">
             <button type="button" onClick={() => alternar("notificaciones")} aria-label="Notificaciones"
