@@ -101,18 +101,18 @@ export function AlumnoFormDialog({ open, alumno, onClose, onSaved }: {
       </div>
       <form onSubmit={guardar} className="grid gap-4 p-5 sm:grid-cols-2 sm:p-6">
         <div>
-          <span className="label">Código de alumno *</span>
+          <span className="label">Código de alumno</span>
           <div className="flex gap-2">
             <input aria-label="Código de alumno" className="input min-w-0 flex-1" required value={f.codigoAlumno} onChange={set("codigoAlumno")} />
             {!editando && <button type="button" className="btn-ghost shrink-0 px-3" onClick={generarCodigo}>Generar</button>}
           </div>
         </div>
-        <Field label={`DNI${!editando ? " *" : ""}`}><input className="input" required={!editando} maxLength={15} value={f.dni} onChange={set("dni")} inputMode="numeric" /></Field>
-        <Field label={`Nivel${!editando ? " *" : ""}`}><select className="input" required={!editando} value={f.nivelEducativo} onChange={set("nivelEducativo")}><option value="">—</option><option value="INICIAL">Inicial</option><option value="PRIMARIA">Primaria</option><option value="SECUNDARIA">Secundaria</option></select></Field>
-        <Field label="Nombres *"><input className="input" required value={f.nombres} onChange={set("nombres")} /></Field>
-        <Field label="Apellidos *"><input className="input" required value={f.apellidos} onChange={set("apellidos")} /></Field>
-        <div className="grid grid-cols-2 gap-3"><Field label={`Grado${!editando ? " *" : ""}`}><input className="input" type="number" min={1} max={6} required={!editando} value={f.grado} onChange={set("grado")} /></Field>
-          <Field label={`Sección${!editando ? " *" : ""}`}><input className="input" maxLength={5} required={!editando} value={f.seccion} onChange={set("seccion")} /></Field></div>
+        <Field label="DNI"><input className="input" required={!editando} maxLength={15} value={f.dni} onChange={set("dni")} inputMode="numeric" /></Field>
+        <Field label="Nivel"><select className="input" required={!editando} value={f.nivelEducativo} onChange={set("nivelEducativo")}><option value="">—</option><option value="INICIAL">Inicial</option><option value="PRIMARIA">Primaria</option><option value="SECUNDARIA">Secundaria</option></select></Field>
+        <Field label="Nombres"><input className="input" required value={f.nombres} onChange={set("nombres")} /></Field>
+        <Field label="Apellidos"><input className="input" required value={f.apellidos} onChange={set("apellidos")} /></Field>
+        <div className="grid grid-cols-2 gap-3"><Field label="Grado"><input className="input" type="number" min={1} max={6} required={!editando} value={f.grado} onChange={set("grado")} /></Field>
+          <Field label="Sección"><input className="input" maxLength={5} required={!editando} value={f.seccion} onChange={set("seccion")} /></Field></div>
         <Field label="Teléfono"><input className="input" value={f.telefono} onChange={set("telefono")} /></Field>
         <Field label="Correo"><input className="input" type="email" value={f.correo} onChange={set("correo")} /></Field>
         {editando && <Field label="Estado"><select className="input" value={f.estado} onChange={set("estado")}><option value="ACTIVO">Activo</option><option value="INACTIVO">Inactivo</option><option value="RETIRADO">Retirado</option></select></Field>}

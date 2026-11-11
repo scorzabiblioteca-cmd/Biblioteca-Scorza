@@ -115,6 +115,7 @@ export function EjemplarAutocomplete({ codigos, onChange, cantidades, onCantidad
       </label>
       {cantidades.map((libro) => <div key={libro.libroId} className="flex items-center gap-2 rounded-xl border border-[#e6ecf4] bg-[#fbfcfe] p-2 text-sm">
         <span className="flex-1">{libro.titulo}</span>
+        <span className="text-xs font-medium text-slate-600">Cantidad <span aria-hidden="true" className="text-red-600">*</span></span>
         <input className="input max-w-20" type="number" min={1} max={libro.disponibles} required
           aria-label={`Cantidad de ${libro.titulo}`} value={libro.cantidad}
           onChange={(e) => onCantidadesChange(cantidades.map((l) => l.libroId === libro.libroId ? { ...l, cantidad: Number(e.target.value) } : l))} />

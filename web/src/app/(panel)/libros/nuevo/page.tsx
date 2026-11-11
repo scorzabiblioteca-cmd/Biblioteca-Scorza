@@ -163,7 +163,7 @@ export default function NuevoLibro() {
           {estadoIsbn === "invalido" && <p role="status" className="mt-1 text-xs text-amber-700">Ingresa un ISBN-10 o ISBN-13 válido.</p>}
           {existente && <span className="mt-1 block text-xs text-amber-700">Ya existe: <Link className="underline" href={`/libros/${existente.id}`}>{existente.titulo?.trim() || `ISBN ${f.isbn}`}</Link>. Agrega ejemplares desde ahí.</span>}
         </div>
-        <Field label="Título *"><input className="input" required value={f.titulo} onChange={set("titulo")} /></Field>
+        <Field label="Título"><input className="input" required value={f.titulo} onChange={set("titulo")} /></Field>
         <Field label="Subtítulo"><input className="input" value={f.subtitulo} onChange={set("subtitulo")} /></Field>
         <Field label="Autor(es) — separa con coma"><input className="input" value={f.autor} onChange={set("autor")} /></Field>
         <Field label="Editorial"><input className="input" value={f.editorial} onChange={set("editorial")} /></Field>

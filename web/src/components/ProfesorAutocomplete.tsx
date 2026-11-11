@@ -51,7 +51,7 @@ export function ProfesorAutocomplete({ value, onChange, onCrear }: {
     <div className="relative" onBlur={(e) => {
       if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setAbierto(false);
     }}>
-      <label htmlFor="profesor-busqueda" className="label">Profesor</label>
+      <label htmlFor="profesor-busqueda" className="label">Profesor <span aria-hidden="true" className="text-red-600">*</span></label>
       <input id="profesor-busqueda" className="input" required autoComplete="off"
         role="combobox" aria-autocomplete="list" aria-expanded={mostrar}
         aria-controls="profesor-opciones" aria-describedby="profesor-ayuda"

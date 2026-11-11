@@ -156,7 +156,7 @@ export default function EditarLibro({ params }: { params: Promise<{ id: string }
           <input className="input" type="number" min={0} max={100000} required value={f.cantidad} onChange={set("cantidad")} />
           <span className="mt-1 block text-xs text-slate-500">Las reducciones solo se aplican a unidades disponibles.</span>
         </Field>
-        <Field label="Título *"><input className="input" required maxLength={300} value={f.titulo} onChange={set("titulo")} /></Field>
+        <Field label="Título"><input className="input" required maxLength={300} value={f.titulo} onChange={set("titulo")} /></Field>
         <Field label="ISBN"><input className="input" maxLength={20} value={f.isbn} onChange={set("isbn")} /></Field>
         <Field label="Subtítulo"><input className="input" maxLength={300} value={f.subtitulo} onChange={set("subtitulo")} /></Field>
         <Field label="Autor(es) — separados por coma"><input className="input" maxLength={400} value={f.autor} onChange={set("autor")} /></Field>

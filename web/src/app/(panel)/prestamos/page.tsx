@@ -176,7 +176,7 @@ export default function Prestamos() {
             : <ProfesorAutocomplete value={profesor} onChange={setProfesor} onCrear={() => setCrearProfesor(true)} />}
           <EjemplarAutocomplete key={formVersion} codigos={codigos} onChange={setCodigos} cantidades={cantidades} onCantidadesChange={setCantidades} />
           <label className="grid gap-1.5 text-sm font-medium text-slate-700">
-            Fecha de devolución
+            <span className="label">Fecha de devolución</span>
             <input
               className="input"
               type="date"

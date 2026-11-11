@@ -426,6 +426,14 @@ html[data-theme="dark"] ::selection {
     @apply mb-1.5 block text-[0.82rem] font-semibold text-[#35445b];
   }
 
+  label:has(> .input:required) > .label::after,
+  div:has(> div > .input:required) > .label::after,
+  .login-field:has(.login-input:required) > .login-label::after {
+    content: " *";
+    color: #dc2626;
+    font-weight: 700;
+  }
+
   .th {
     @apply px-3 py-2.5 text-left text-[0.68rem] font-bold uppercase tracking-[0.06em] text-[#94a3b8];
   }

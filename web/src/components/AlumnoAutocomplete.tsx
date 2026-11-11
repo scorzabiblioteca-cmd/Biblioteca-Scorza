@@ -51,7 +51,7 @@ export function AlumnoAutocomplete({ value, onChange, onCrear }: {
     <div className="relative" onBlur={(e) => {
       if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setAbierto(false);
     }}>
-      <label htmlFor="alumno-busqueda" className="label">Alumno</label>
+      <label htmlFor="alumno-busqueda" className="label">Alumno <span aria-hidden="true" className="text-red-600">*</span></label>
       <input id="alumno-busqueda" className="input" required autoComplete="off"
         role="combobox" aria-autocomplete="list" aria-expanded={mostrar}
         aria-controls="alumno-opciones" aria-describedby="alumno-ayuda"
