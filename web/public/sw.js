@@ -1,4 +1,4 @@
-const CACHE_NAME = "biblioscorza-pwa-v1";
+const CACHE_NAME = "biblioscorza-pwa-v2";
 const OFFLINE_URL = "/offline.html";
 const PRECACHE_URLS = [
   OFFLINE_URL,
@@ -33,6 +33,7 @@ self.addEventListener("fetch", (event) => {
 
   if (request.method !== "GET" || url.origin !== self.location.origin) return;
   if (url.pathname.startsWith("/api/")) return;
+  if (["localhost", "127.0.0.1", "::1"].includes(url.hostname) && url.pathname.startsWith("/_next/")) return;
 
   if (request.mode === "navigate") {
     event.respondWith(

@@ -53,6 +53,7 @@ export default function Devoluciones() {
   const grupoRef = useRef<HTMLDialogElement>(null);
   const seleccionRef = useRef<HTMLDialogElement>(null);
   const [buscando, setBuscando] = useState(false);
+  const [paginaResultados, setPaginaResultados] = useState(1);
   const [res, setRes] = useState("BUENO");
   const [obs, setObs] = useState("");
   const [msg, setMsg] = useState<{ t: "ok" | "error"; m: string } | null>(null);
@@ -92,6 +93,9 @@ export default function Devoluciones() {
     }
     return [...porPrestamo.values()];
   }, [resultados]);
+  const gruposPorPagina = 10;
+  const paginasResultados = Math.max(1, Math.ceil(grupos.length / gruposPorPagina));
+  const gruposVisibles = grupos.slice((paginaResultados - 1) * gruposPorPagina, paginaResultados * gruposPorPagina);
 
   const grupoAbierto = useMemo(
     () => grupos.find((grupo) => grupo.prestamoId === grupoAbiertoId) ?? null,
@@ -119,7 +123,7 @@ export default function Devoluciones() {
   }, [seleccion]);
 
   const cargarHistorial = useCallback(() => {
-    const params = new URLSearchParams({ page: String(paginaHistorial), pageSize: "20" });
+    const params = new URLSearchParams({ page: String(paginaHistorial), pageSize: "10" });
     if (busquedaHistorial.trim()) params.set("q", busquedaHistorial.trim());
     if (resultadoHistorial) params.set("resultado", resultadoHistorial);
     if (fechaHistorial) {
@@ -133,7 +137,7 @@ export default function Devoluciones() {
   useEffect(() => { cargarHistorial(); }, [cargarHistorial]);
 
   async function buscar(e: React.FormEvent) {
-    e.preventDefault(); setMsg(null); setSeleccion(null); setBuscando(true);
+    e.preventDefault(); setMsg(null); setSeleccion(null); setPaginaResultados(1); setBuscando(true);
     try {
       const params = new URLSearchParams({ q: busqueda.trim(), incluirInactivos: "true" });
       const data = await api<{ items: PrestamoBusqueda[] }>(`/prestamos/activo?${params}`);
@@ -158,6 +162,7 @@ export default function Devoluciones() {
       });
       setSeleccion(null);
       setResultados((items) => items.filter((item) => !ids.has(item.detalleId)));
+      setPaginaResultados(1);
       setBusqueda(""); setObs(""); setRes("BUENO");
       await cargarHistorial();
     } catch (x) { setMsg({ t: "error", m: (x as Error).message }); }
@@ -184,7 +189,7 @@ export default function Devoluciones() {
               {["#", "Prestatario", "Libros", "Unidades", "Prestado", "Vence", "Estado", ""].map((h) => <th key={h} className="th">{h}</th>)}
             </tr></thead>
             <tbody className="divide-y divide-[#eef2f7]">
-              {grupos.map((grupo) => {
+              {gruposVisibles.map((grupo) => {
                 const activas = grupo.unidades.filter((unidad) => unidad.activo);
                 return (
                   <tr key={grupo.prestamoId}>
@@ -223,6 +228,18 @@ export default function Devoluciones() {
               })}
             </tbody>
           </table>
+        </div>
+      )}
+      {grupos.length > gruposPorPagina && (
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-3 text-sm text-slate-600">
+            <span>
+              {`${(paginaResultados - 1) * gruposPorPagina + 1}–${Math.min(paginaResultados * gruposPorPagina, grupos.length)} de ${grupos.length} préstamos`}
+            </span>
+            <div className="flex items-center gap-2">
+              <button className="btn-ghost" disabled={paginaResultados <= 1} onClick={() => setPaginaResultados((n) => n - 1)}>Anterior</button>
+              <span>{paginaResultados} / {paginasResultados}</span>
+              <button className="btn-ghost" disabled={paginaResultados >= paginasResultados} onClick={() => setPaginaResultados((n) => n + 1)}>Siguiente</button>
+            </div>
         </div>
       )}
       <dialog
