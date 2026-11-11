@@ -55,7 +55,7 @@ const editSchema = libroSchema.omit({ cantidad: true, ubicacionId: true, condici
     ubicacionId: ubicacionEdicionSchema,
     cantidad: z.preprocess(
       (value) => value === "" || value === null || value === undefined ? undefined : Number(value),
-      z.number().int().min(1).max(100000).optional()
+      z.number().int().min(0).max(100000).optional()
     ),
   });
 

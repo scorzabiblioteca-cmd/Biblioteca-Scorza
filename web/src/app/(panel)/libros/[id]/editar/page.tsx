@@ -8,6 +8,7 @@ import { Field, Msg, PageTitle, Portada } from "@/components/ui";
 
 type Libro = {
   id: number;
+  total: number;
   isbn: string | null;
   titulo: string;
   subtitulo: string | null;
@@ -25,6 +26,7 @@ type Libro = {
 };
 
 type Formulario = {
+  cantidad: string;
   isbn: string;
   titulo: string;
   subtitulo: string;
@@ -42,7 +44,7 @@ type Formulario = {
 };
 
 const VACIO: Formulario = {
-  isbn: "", titulo: "", subtitulo: "", autor: "", editorial: "", categoria: "",
+  cantidad: "0", isbn: "", titulo: "", subtitulo: "", autor: "", editorial: "", categoria: "",
   anioPublicacion: "", edicion: "", idioma: "es", nivelEducativo: "", gradoRecomendado: "",
   descripcion: "", imagenUrl: "", observaciones: "",
 };
@@ -64,6 +66,7 @@ export default function EditarLibro({ params }: { params: Promise<{ id: string }
       .then((libro) => {
         if (!vigente) return;
         setF({
+          cantidad: String(libro.total),
           isbn: libro.isbn ?? "",
           titulo: libro.titulo,
           subtitulo: libro.subtitulo ?? "",
@@ -126,7 +129,7 @@ export default function EditarLibro({ params }: { params: Promise<{ id: string }
     try {
       await api(`/libros/${id}`, {
         method: "PUT",
-        json: { ...f, nivelEducativo: f.nivelEducativo || null },
+        json: { ...f, cantidad: Number(f.cantidad), nivelEducativo: f.nivelEducativo || null },
       });
       router.push(`/libros/${id}`);
     } catch (x) {
@@ -149,6 +152,10 @@ export default function EditarLibro({ params }: { params: Promise<{ id: string }
     <>
       <PageTitle action={<Link href={`/libros/${id}`} className="btn-ghost">Cancelar</Link>}>Editar libro</PageTitle>
       <form onSubmit={guardar} className="card grid max-w-4xl gap-4 sm:grid-cols-2">
+        <Field label="Stock total">
+          <input className="input" type="number" min={0} max={100000} required value={f.cantidad} onChange={set("cantidad")} />
+          <span className="mt-1 block text-xs text-slate-500">Las reducciones solo se aplican a unidades disponibles.</span>
+        </Field>
         <Field label="Título *"><input className="input" required maxLength={300} value={f.titulo} onChange={set("titulo")} /></Field>
         <Field label="ISBN"><input className="input" maxLength={20} value={f.isbn} onChange={set("isbn")} /></Field>
         <Field label="Subtítulo"><input className="input" maxLength={300} value={f.subtitulo} onChange={set("subtitulo")} /></Field>
