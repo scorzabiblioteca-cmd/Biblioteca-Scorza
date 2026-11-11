@@ -38,6 +38,16 @@ Nunca subas `.env.local` a GitHub (ya está en `.gitignore`).
 4. Cambia `TU-DOMINIO.vercel.app` por tu dominio HTTPS en `android/app/build.gradle` antes de publicar.
 5. Inicia sesión con el usuario creado en el paso 3. Concede permiso de cámara al escanear.
 
+### App Web para Android
+El APK de **BiblioScorza Web** es una app Android independiente que abre el panel web y conserva el inicio de sesión del sitio.
+Para compilarla desde `android/` con JDK 17 y Android SDK 34:
+```powershell
+.\gradlew.bat :webapp:assembleDebug
+```
+El APK queda en `android/webapp/build/outputs/apk/debug/webapp-debug.apk`. Para publicarlo junto a la web, cópialo como
+`web/public/descargas/BiblioScorzaWeb.apk` y despliega la carpeta `web`. Android siempre solicita confirmar la instalación
+de un APK descargado; una página web no puede omitir esa protección.
+
 ## 5. Despliegue (opcional)
 Web en Vercel: carpeta raíz `web`, variables de entorno = las de `.env.example`. Usa la cadena *pooled* de Neon.
 

@@ -1,0 +1,1 @@
+com.biblioscorza.webapp:drawable/app_icon = 0x7f010000

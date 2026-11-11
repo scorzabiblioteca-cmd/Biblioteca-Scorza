@@ -8,10 +8,17 @@ const nextConfig = {
   async headers() {
     return [
       {
-        source: "/descargas/:path*",
+        source: "/descargas/BiblioScorza.apk",
         headers: [
           { key: "Content-Type", value: "application/vnd.android.package-archive" },
           { key: "Content-Disposition", value: 'attachment; filename="BiblioScorza.apk"' },
+        ],
+      },
+      {
+        source: "/descargas/BiblioScorzaWeb.apk",
+        headers: [
+          { key: "Content-Type", value: "application/vnd.android.package-archive" },
+          { key: "Content-Disposition", value: 'attachment; filename="BiblioScorzaWeb.apk"' },
         ],
       },
     ];

@@ -47,7 +47,6 @@ export default function Sidebar() {
   const path = usePathname();
   const router = useRouter();
   const [open, setOpen] = useState(false);
-  const [guiaInstalacion, setGuiaInstalacion] = useState(false);
   const isPeoplePath = path.startsWith("/alumnos") || path.startsWith("/profesores");
   const moreActive = LINKS.some(([href]) =>
     (isSectionActive(href, path, isPeoplePath) && !MOBILE_LINKS.some(([mobileHref]) => mobileHref === href))
@@ -63,37 +62,13 @@ export default function Sidebar() {
         className="rail-link block">
         Descargar app Scanner
       </a>
-      <button type="button" onClick={() => setGuiaInstalacion(true)} className="rail-link w-full text-left">
+      <a href="/descargas/BiblioScorzaWeb.apk" download className="rail-link block">
         Descargar app Web
-      </button>
+      </a>
     </>
   );
   return (
     <>
-      {guiaInstalacion && (
-        <div className="fixed inset-0 z-[60] grid place-items-center bg-slate-950/50 p-4">
-          <section role="dialog" aria-modal="true" aria-labelledby="pwa-install-title" className="w-full max-w-lg rounded-2xl bg-white p-5 text-slate-800 shadow-2xl sm:p-6">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <h2 id="pwa-install-title" className="text-lg font-semibold">Añadir BiblioScorza al inicio</h2>
-                <p className="mt-1 text-sm text-slate-600">No se abrirá un instalador automático. Sigue los pasos de tu teléfono:</p>
-              </div>
-              <button type="button" onClick={() => setGuiaInstalacion(false)} aria-label="Cerrar instrucciones" className="rounded-lg px-2 py-1 text-xl leading-none text-slate-500 hover:bg-slate-100">×</button>
-            </div>
-            <ol className="mt-4 list-decimal space-y-3 pl-5 text-sm leading-relaxed">
-              <li><strong>Android:</strong> abre esta página en Chrome o Edge, toca el menú ⋮ y elige «Añadir a pantalla de inicio» o «Instalar aplicación».</li>
-              <li><strong>iPhone o iPad:</strong> abre esta página en Safari, toca «Compartir» y selecciona «Añadir a pantalla de inicio».</li>
-              <li>Confirma «Añadir». El icono de BiblioScorza aparecerá junto a tus aplicaciones.</li>
-            </ol>
-            <p className="mt-4 rounded-xl bg-blue-50 p-3 text-xs leading-relaxed text-blue-900">
-              Si no aparece esa opción, usa el navegador indicado y asegúrate de abrir la dirección segura (HTTPS). La app instalada necesita conexión para consultar y guardar datos.
-            </p>
-            <div className="mt-5 flex justify-end">
-              <button type="button" onClick={() => setGuiaInstalacion(false)} className="btn">Entendido</button>
-            </div>
-          </section>
-        </div>
-      )}
       <aside className="rail print:hidden md:w-60 md:shrink-0 md:flex-col">
         <div className="flex items-center gap-3 px-5 py-6">
           <span className="rail-mark">
@@ -140,11 +115,12 @@ export default function Sidebar() {
               <span className="flex-1">Descargar app Scanner</span>
               <span className="rounded-full bg-brand-50 px-2 py-0.5 text-[0.62rem] font-bold uppercase tracking-wide text-brand-700 ring-1 ring-inset ring-brand-200">APK</span>
             </a>
-            <button type="button" onClick={() => { setOpen(false); setGuiaInstalacion(true); }}
+            <a href="/descargas/BiblioScorzaWeb.apk" download onClick={() => setOpen(false)}
               className="flex min-h-11 items-center gap-3 rounded-xl px-3 text-left text-sm text-[#35445b] transition-colors hover:bg-[#f7faff] focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-600">
               <MobileIcon name="download" />
               <span className="flex-1">Descargar app Web</span>
-            </button>
+              <span className="rounded-full bg-brand-50 px-2 py-0.5 text-[0.62rem] font-bold uppercase tracking-wide text-brand-700 ring-1 ring-inset ring-brand-200">APK</span>
+            </a>
             <div className="my-1 border-t border-[#e6ecf4]" />
             <button onClick={salir} className="flex min-h-11 items-center gap-3 rounded-xl px-3 text-left text-sm text-[#718096] transition-colors hover:bg-[#f7faff] hover:text-[#172b4d] focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-600">
               <MobileIcon name="logout" />

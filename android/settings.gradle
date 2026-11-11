@@ -4,4 +4,4 @@ dependencyResolutionManagement {
     repositories { google(); mavenCentral() }
 }
 rootProject.name = "BiblioScorza"
-include ':app'
+include ':app', ':webapp'

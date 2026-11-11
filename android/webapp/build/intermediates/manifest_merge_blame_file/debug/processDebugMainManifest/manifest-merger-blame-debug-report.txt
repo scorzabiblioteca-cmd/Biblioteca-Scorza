@@ -1,0 +1,58 @@
+1<?xml version="1.0" encoding="utf-8"?>
+2<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+3    package="com.biblioscorza.webapp"
+4    android:versionCode="1"
+5    android:versionName="1.0.0" >
+6
+7    <uses-sdk
+8        android:minSdkVersion="24"
+9        android:targetSdkVersion="34" />
+10
+11    <uses-permission android:name="android.permission.INTERNET" />
+11-->C:\Users\Usuario\Documents\Proyectos\Biblioteca\android\webapp\src\main\AndroidManifest.xml:3:5-67
+11-->C:\Users\Usuario\Documents\Proyectos\Biblioteca\android\webapp\src\main\AndroidManifest.xml:3:22-64
+12    <uses-permission
+12-->C:\Users\Usuario\Documents\Proyectos\Biblioteca\android\webapp\src\main\AndroidManifest.xml:4:5-108
+13        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+13-->C:\Users\Usuario\Documents\Proyectos\Biblioteca\android\webapp\src\main\AndroidManifest.xml:4:22-78
+14        android:maxSdkVersion="28" />
+14-->C:\Users\Usuario\Documents\Proyectos\Biblioteca\android\webapp\src\main\AndroidManifest.xml:4:79-105
+15
+16    <application
+16-->C:\Users\Usuario\Documents\Proyectos\Biblioteca\android\webapp\src\main\AndroidManifest.xml:6:5-22:19
+17        android:allowBackup="false"
+17-->C:\Users\Usuario\Documents\Proyectos\Biblioteca\android\webapp\src\main\AndroidManifest.xml:7:9-36
+18        android:debuggable="true"
+19        android:extractNativeLibs="false"
+20        android:icon="@drawable/app_icon"
+20-->C:\Users\Usuario\Documents\Proyectos\Biblioteca\android\webapp\src\main\AndroidManifest.xml:8:9-42
+21        android:label="BiblioScorza Web"
+21-->C:\Users\Usuario\Documents\Proyectos\Biblioteca\android\webapp\src\main\AndroidManifest.xml:9:9-41
+22        android:supportsRtl="true"
+22-->C:\Users\Usuario\Documents\Proyectos\Biblioteca\android\webapp\src\main\AndroidManifest.xml:10:9-35
+23        android:theme="@android:style/Theme.Material.Light.NoActionBar"
+23-->C:\Users\Usuario\Documents\Proyectos\Biblioteca\android\webapp\src\main\AndroidManifest.xml:11:9-72
+24        android:usesCleartextTraffic="false" >
+24-->C:\Users\Usuario\Documents\Proyectos\Biblioteca\android\webapp\src\main\AndroidManifest.xml:12:9-45
+25        <activity
+25-->C:\Users\Usuario\Documents\Proyectos\Biblioteca\android\webapp\src\main\AndroidManifest.xml:13:9-21:20
+26            android:name="com.biblioscorza.webapp.MainActivity"
+26-->C:\Users\Usuario\Documents\Proyectos\Biblioteca\android\webapp\src\main\AndroidManifest.xml:14:13-41
+27            android:configChanges="keyboard|keyboardHidden|orientation|screenSize"
+27-->C:\Users\Usuario\Documents\Proyectos\Biblioteca\android\webapp\src\main\AndroidManifest.xml:15:13-83
+28            android:exported="true" >
+28-->C:\Users\Usuario\Documents\Proyectos\Biblioteca\android\webapp\src\main\AndroidManifest.xml:16:13-36
+29            <intent-filter>
+29-->C:\Users\Usuario\Documents\Proyectos\Biblioteca\android\webapp\src\main\AndroidManifest.xml:17:13-20:29
+30                <action android:name="android.intent.action.MAIN" />
+30-->C:\Users\Usuario\Documents\Proyectos\Biblioteca\android\webapp\src\main\AndroidManifest.xml:18:17-69
+30-->C:\Users\Usuario\Documents\Proyectos\Biblioteca\android\webapp\src\main\AndroidManifest.xml:18:25-66
+31
+32                <category android:name="android.intent.category.LAUNCHER" />
+32-->C:\Users\Usuario\Documents\Proyectos\Biblioteca\android\webapp\src\main\AndroidManifest.xml:19:17-77
+32-->C:\Users\Usuario\Documents\Proyectos\Biblioteca\android\webapp\src\main\AndroidManifest.xml:19:27-74
+33            </intent-filter>
+34        </activity>
+35    </application>
+36
+37</manifest>
