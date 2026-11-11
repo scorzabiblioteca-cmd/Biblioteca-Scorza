@@ -183,7 +183,7 @@ export default function Devoluciones() {
       </form>
       <Msg type={msg?.t ?? "ok"}>{msg?.m}</Msg>
       {grupos.length > 0 && (
-        <div className="card responsive-table-shell mt-4 overflow-x-auto p-0">
+        <div className="card responsive-table-shell mt-4 hidden overflow-x-auto p-0 sm:block">
           <table className="responsive-table w-full min-w-[820px]">
             <thead className="border-b border-[#e6ecf4] bg-[#f7f9fc]"><tr>
               {["#", "Prestatario", "Libros", "Unidades", "Prestado", "Vence", "Estado", ""].map((h) => <th key={h} className="th">{h}</th>)}
@@ -228,6 +228,42 @@ export default function Devoluciones() {
               })}
             </tbody>
           </table>
+        </div>
+      )}
+      {grupos.length > 0 && (
+        <div className="mt-4 grid gap-2 sm:hidden" aria-label="Préstamos disponibles para devolución">
+          {gruposVisibles.map((grupo) => {
+            const activas = grupo.unidades.filter((unidad) => unidad.activo);
+            return (
+              <article key={grupo.prestamoId} className="rounded-xl border border-[#e6ecf4] bg-white p-3 shadow-sm">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <button type="button" className="block max-w-full truncate text-left text-sm font-semibold text-[#172b4d] hover:text-brand-700 hover:underline"
+                      onClick={() => { const prestatario = seleccionarPrestatario(grupo.unidades[0]); if (prestatario) setHistorialDe(prestatario); }}>
+                      {grupo.prestatario}
+                    </button>
+                    <p className="mt-0.5 text-xs text-slate-500">Préstamo #{grupo.prestamoId}{grupo.dni ? ` · DNI ${grupo.dni}` : ""}</p>
+                  </div>
+                  <span className={`shrink-0 rounded-full px-2 py-1 text-[0.68rem] font-semibold ${activas.length ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-600"}`}>
+                    {activas.length ? `${activas.length} activa(s)` : "Sin activas"}
+                  </span>
+                </div>
+                <p className="mt-2 line-clamp-2 text-sm text-slate-600">
+                  {grupo.libros.map((libro) => libro.unidades.length > 1 ? `${libro.titulo} ×${libro.unidades.length}` : libro.titulo).join("; ")}
+                </p>
+                <div className="mt-2 flex items-center justify-between gap-2 border-t border-slate-100 pt-2 text-xs">
+                  <span className="text-slate-500">{grupo.unidades.length} unidad(es)</span>
+                  <span className={grupo.vencido ? "font-semibold text-red-700" : "text-slate-600"}>
+                    Vence {fecha(grupo.fechaPrevistaDevolucion)}{grupo.vencido ? " · Vencido" : ""}
+                  </span>
+                </div>
+                <button type="button" className="mt-2 min-h-9 w-full rounded-lg bg-brand-50 px-3 text-xs font-semibold text-brand-700 transition hover:bg-brand-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-600"
+                  onClick={() => setGrupoAbiertoId(grupo.prestamoId)}>
+                  Ver unidades para devolver
+                </button>
+              </article>
+            );
+          })}
         </div>
       )}
       {grupos.length > gruposPorPagina && (
@@ -403,7 +439,7 @@ export default function Devoluciones() {
               onChange={(e) => { setFechaHistorial(e.target.value); setPaginaHistorial(1); }} /></label>
           </div>
         </div>
-        <div className="card responsive-table-shell overflow-x-auto p-0">
+        <div className="card responsive-table-shell hidden overflow-x-auto p-0 sm:block">
           <table className="responsive-table w-full min-w-[720px]">
             <thead className="border-b border-[#e6ecf4] bg-[#f7f9fc]"><tr>
               {["Fecha", "Libro", "Código", "Prestatario", "Resultado", "Observaciones"].map((h) => <th key={h} className="th">{h}</th>)}
@@ -427,6 +463,36 @@ export default function Devoluciones() {
               {historial && historial.items.length === 0 && <tr><td className="td text-slate-500" colSpan={6}>No hay devoluciones registradas.</td></tr>}
             </tbody>
           </table>
+        </div>
+        <div className="grid gap-2 sm:hidden" aria-label="Historial de devoluciones">
+          {historial?.items.map((item) => (
+            <article key={item.id} className="rounded-xl border border-[#e6ecf4] bg-white p-3 shadow-sm">
+              <div className="flex items-start justify-between gap-2">
+                <p className="line-clamp-2 min-w-0 text-sm font-semibold text-[#172b4d]">{item.titulo}</p>
+                <span className="shrink-0 rounded-full bg-slate-100 px-2 py-1 text-[0.68rem] font-medium text-slate-600">
+                  {item.resultado === "BUENO" ? "Buena condición" : item.resultado === "DANADO" ? "Dañado" : item.resultado === "PERDIDO" ? "Perdido" : "Deteriorado"}
+                </span>
+              </div>
+              <div className="mt-1 flex flex-wrap items-center gap-x-2 text-xs text-slate-500">
+                <span>{fechaHora(item.fechaDevolucion)}</span>
+                <span aria-hidden="true">·</span>
+                <span className="font-mono">{item.codigoInterno ?? "Por cantidad"}</span>
+              </div>
+              <button type="button" className="mt-1 block max-w-full truncate text-left text-xs font-medium text-brand-700 hover:underline"
+                onClick={() => { const prestatario = seleccionarPrestatario(item); if (prestatario) setHistorialDe(prestatario); }}>
+                {item.prestatario}
+              </button>
+              {item.observaciones && (
+                <details className="mt-2 border-t border-slate-100 pt-2 text-xs text-slate-500">
+                  <summary className="cursor-pointer font-medium text-slate-600">Ver observaciones</summary>
+                  <p className="mt-1 whitespace-pre-wrap">{item.observaciones}</p>
+                </details>
+              )}
+            </article>
+          ))}
+          {historial && historial.items.length === 0 && (
+            <p className="rounded-xl border border-dashed border-[#dbe3ee] px-4 py-6 text-center text-sm text-slate-500">No hay devoluciones registradas.</p>
+          )}
         </div>
         {historial && historial.total > historial.pageSize && (
           <div className="mt-3 flex items-center justify-end gap-3 text-sm text-slate-600">

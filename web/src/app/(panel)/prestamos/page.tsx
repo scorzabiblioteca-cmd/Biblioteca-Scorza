@@ -364,7 +364,7 @@ export default function Prestamos() {
         </select></label>
         <label><span className="label">Fecha de préstamo</span><input type="date" className="input" value={fechaPrestamoFiltro} onChange={(e) => { setFechaPrestamoFiltro(e.target.value); setPagina(1); }} /></label>
       </section>
-      <div className="card responsive-table-shell overflow-x-auto p-0">
+      <div className="card responsive-table-shell hidden overflow-x-auto p-0 sm:block">
         <table className="responsive-table w-full min-w-[860px]">
           <thead className="border-b border-[#e6ecf4] bg-[#f7f9fc]"><tr>{COLUMNAS_PRESTAMOS.map((h, i) => <th key={`${h}-${i}`} className="th">{h}</th>)}</tr></thead>
           <tbody className="divide-y divide-[#eef2f7]">
@@ -403,6 +403,40 @@ export default function Prestamos() {
             {data && data.items.length === 0 && <tr><td className="td text-slate-500" colSpan={COLUMNAS_PRESTAMOS.length}>No hay préstamos todavía.</td></tr>}
           </tbody>
         </table>
+      </div>
+      <div className="grid gap-2 sm:hidden" aria-label="Lista de préstamos">
+        {data?.items.map((p) => (
+          <article key={p.id} className="rounded-xl border border-[#e6ecf4] bg-white p-3 shadow-sm">
+            <div className="flex items-start justify-between gap-2">
+              <div className="min-w-0">
+                <button type="button" className="block max-w-full truncate text-left text-sm font-semibold text-[#172b4d] hover:text-brand-700 hover:underline"
+                  onClick={() => { const prestatario = seleccionarPrestatario(p); if (prestatario) setHistorialDe(prestatario); }}>
+                  {p.prestatario}
+                </button>
+                <p className="mt-0.5 text-xs text-slate-500">Préstamo #{p.id} · {p.unidades} unidad(es)</p>
+              </div>
+              <Badge v={p.estado} />
+            </div>
+            <p className="mt-2 line-clamp-2 text-sm text-slate-600">
+              {p.libros?.length
+                ? p.libros.map((libro) => libro.cantidad > 1 ? `${libro.titulo} ×${libro.cantidad}` : libro.titulo).join("; ")
+                : "Sin libros registrados"}
+            </p>
+            <div className="mt-2 flex items-center justify-between gap-2 border-t border-slate-100 pt-2 text-xs">
+              <span className="text-slate-500">Prestado {fecha(p.fechaPrestamo)}</span>
+              <span className={p.vencido ? "font-semibold text-red-700" : "text-slate-600"}>
+                Vence {fecha(p.fechaPrevistaDevolucion)}{p.vencido ? " · Vencido" : ""}
+              </span>
+            </div>
+            <button type="button" className="mt-2 min-h-9 w-full rounded-lg bg-slate-50 px-3 text-xs font-semibold text-brand-700 transition hover:bg-brand-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-600"
+              onClick={() => setDetalle(p)}>
+              Ver detalle
+            </button>
+          </article>
+        ))}
+        {data && data.items.length === 0 && (
+          <p className="rounded-xl border border-dashed border-[#dbe3ee] px-4 py-6 text-center text-sm text-slate-500">No hay préstamos todavía.</p>
+        )}
       </div>
       {data && (
         <div className="mt-3 flex flex-wrap items-center justify-between gap-3 text-sm text-slate-600">
