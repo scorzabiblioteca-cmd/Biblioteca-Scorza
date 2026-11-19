@@ -30,8 +30,6 @@
         <Spinner android:id="@+id/spTipo" style="@style/BsInput" />
         <Spinner android:id="@+id/spPrefijo" style="@style/BsInput" />
         <EditText android:id="@+id/etCantidad" style="@style/BsInput" android:hint="Cantidad" android:inputType="number" android:text="1" />
-        <TextView android:id="@+id/tvUbicacionInfo" style="@style/BsText" />
-        <Spinner android:id="@+id/spUbicacion" style="@style/BsInput" />
         <EditText android:id="@+id/etDescripcion" style="@style/BsInput" android:hint="Descripción" android:inputType="textMultiLine|textCapSentences" android:minLines="2" />
         <EditText android:id="@+id/etObs" style="@style/BsInput" android:hint="Observaciones" android:inputType="textMultiLine|textCapSentences" android:minLines="2" />
         <Button android:id="@+id/btnFoto" style="@style/BsButtonOutline" android:text="Elegir o tomar fotografía" />

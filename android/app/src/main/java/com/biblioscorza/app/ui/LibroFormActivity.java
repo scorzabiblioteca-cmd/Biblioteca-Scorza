@@ -30,7 +30,6 @@ import com.biblioscorza.app.data.Models.Categoria;
 import com.biblioscorza.app.data.Models.Libro;
 import com.biblioscorza.app.data.Models.LibroEdicion;
 import com.biblioscorza.app.data.Models.LibroReq;
-import com.biblioscorza.app.data.Models.Ubicacion;
 import com.biblioscorza.app.util.Api;
 import com.biblioscorza.app.util.ImageUploader;
 import com.biblioscorza.app.util.ScannedCode;
@@ -50,22 +49,19 @@ public class LibroFormActivity extends AppCompatActivity {
     private static final String[] PREFIJOS = {"LIB", "ESP"};
 
     private EditText etIsbn, etTitulo, etSubtitulo, etAutor, etEditorial, etAnio, etEdicion, etGrado, etCantidad, etDescripcion, etObs, etIdioma;
-    private Spinner spCategoria, spNivel, spTipo, spPrefijo, spUbicacion;
+    private Spinner spCategoria, spNivel, spTipo, spPrefijo;
     private ImageView ivFoto;
-    private TextView tvError, tvFotoEstado, tvUbicacionInfo;
+    private TextView tvError, tvFotoEstado;
     private Button btnGuardar;
-    private final List<Ubicacion> ubicaciones = new ArrayList<>();
     private final List<Categoria> categorias = new ArrayList<>();
     private ArrayAdapter<Categoria> categoriasAdapter;
     private String categoriaPendiente;
     private String imagenUrl;
     private String urlFotoSubida;
     private String mimeFotoPendiente;
-    private boolean subiendo, editando, ubicacionesCargadas, datosEdicionCargados, ubicacionesMultiples;
+    private boolean subiendo, editando;
     private long libroId;
-    private Long ubicacionActual;
     private File imagenPendiente;
-    private boolean tieneInventario;
     private boolean trackingChanges, hasUnsavedChanges;
     private int cantidadActual;
     private final java.util.concurrent.atomic.AtomicBoolean agregandoUnidades =
@@ -115,9 +111,9 @@ public class LibroFormActivity extends AppCompatActivity {
         etCantidad = findViewById(R.id.etCantidad); etDescripcion = findViewById(R.id.etDescripcion); etObs = findViewById(R.id.etObs);
         etIdioma = findViewById(R.id.etIdioma);
         spNivel = findViewById(R.id.spNivel); spTipo = findViewById(R.id.spTipo); spPrefijo = findViewById(R.id.spPrefijo);
-        spUbicacion = findViewById(R.id.spUbicacion); ivFoto = findViewById(R.id.ivFoto);
+        ivFoto = findViewById(R.id.ivFoto);
         tvError = findViewById(R.id.tvError); tvFotoEstado = findViewById(R.id.tvFotoEstado);
-        tvUbicacionInfo = findViewById(R.id.tvUbicacionInfo); btnGuardar = findViewById(R.id.btnGuardar);
+        btnGuardar = findViewById(R.id.btnGuardar);
         findViewById(R.id.btnVolver).setOnClickListener(v -> getOnBackPressedDispatcher().onBackPressed());
 
         categorias.add(opcionCategoria("Seleccionar categoría"));
@@ -170,14 +166,13 @@ public class LibroFormActivity extends AppCompatActivity {
         }
 
         cargarCategorias();
-        cargarUbicaciones();
         findViewById(R.id.btnScanIsbn).setOnClickListener(v -> escanear.launch(ScannerActivity.crearIntent(this,
                 ScannerActivity.CONTEXTO_REGISTRO_LIBRO, "Escanea el código de barras ISBN del libro")));
         findViewById(R.id.btnFoto).setOnClickListener(v -> elegirOrigenFoto());
         btnGuardar.setOnClickListener(v -> guardar());
         observarCambiosSinGuardar(etIsbn, etTitulo, etSubtitulo, etAutor, etEditorial,
                 etAnio, etEdicion, etGrado, etCantidad, etDescripcion, etObs, etIdioma);
-        observarCambiosSinGuardar(spCategoria, spNivel, spPrefijo, spUbicacion);
+        observarCambiosSinGuardar(spCategoria, spNivel, spPrefijo);
         trackingChanges = true;
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
             @Override public void handleOnBackPressed() {
@@ -256,19 +251,9 @@ public class LibroFormActivity extends AppCompatActivity {
                 seleccionarNivel(libro.nivelEducativo);
                 imagenUrl = libro.imagenUrl;
                 if (imagenUrl != null) mostrarImagen(imagenUrl);
-                ubicacionActual = libro.ubicacionInventario;
-                ubicacionesMultiples = libro.ubicacionesMultiples;
-                tieneInventario = libro.tieneInventario;
                 cantidadActual = libro.total == null ? 0 : libro.total;
                 etCantidad.setText(String.valueOf(cantidadActual));
                 etCantidad.setHint("Cantidad total");
-                if (ubicacionesMultiples) {
-                    tvUbicacionInfo.setText("Este libro está repartido en varias ubicaciones; la edición de ubicación se bloquea para proteger su inventario.");
-                } else if (!tieneInventario) {
-                    tvUbicacionInfo.setText("No hay ejemplares registrados; asigna una ubicación al agregar inventario.");
-                }
-                datosEdicionCargados = true;
-                configurarUbicaciones();
                 hasUnsavedChanges = false;
                 trackingChanges = true;
                 btnGuardar.setEnabled(true);
@@ -349,53 +334,6 @@ public class LibroFormActivity extends AppCompatActivity {
         return nombre == null || nombre.trim().isEmpty() ? null : nombre.trim();
     }
 
-    private void cargarUbicaciones() {
-        Api.call(ApiClient.api().ubicaciones(), new Api.Result<List<Ubicacion>>() {
-            @Override public void ok(List<Ubicacion> d, String m) {
-                ubicaciones.clear(); ubicaciones.addAll(d);
-                List<String> nombres = new ArrayList<>();
-                if (editando) {
-                    nombres.add("No cambiar ubicación");
-                    nombres.add("Sin ubicación");
-                } else {
-                    nombres.add("Sin ubicación");
-                }
-                for (Ubicacion u : d) nombres.add(u.toString());
-                spUbicacion.setAdapter(new ArrayAdapter<>(LibroFormActivity.this, android.R.layout.simple_spinner_dropdown_item, nombres));
-                ubicacionesCargadas = true;
-                if (!editando && !d.isEmpty()) spUbicacion.setSelection(1);
-                configurarUbicaciones();
-            }
-            @Override public void error(String m, int h, String c) { tvError.setText(m); }
-        });
-    }
-
-    private void configurarUbicaciones() {
-        if (!editando || !ubicacionesCargadas || !datosEdicionCargados) return;
-        if (ubicacionesMultiples) {
-            spUbicacion.setSelection(0);
-            spUbicacion.setEnabled(false);
-            return;
-        }
-        spUbicacion.setEnabled(true);
-        if (!tieneInventario) {
-            spUbicacion.setSelection(Math.min(1, spUbicacion.getCount() - 1));
-            return;
-        }
-        if (ubicacionActual == null) {
-            spUbicacion.setSelection(0);
-            return;
-        }
-        for (int i = 0; i < ubicaciones.size(); i++) {
-            if (ubicaciones.get(i).id == ubicacionActual) {
-                spUbicacion.setSelection(i + 2);
-                return;
-            }
-        }
-        spUbicacion.setSelection(0);
-    }
-
-    
 private void verificarIsbn() {
     String isbn = etIsbn.getText().toString().trim();
 
@@ -647,18 +585,11 @@ private void verificarIsbn() {
                 return;
             }
             if (cantidad > 0) r.cantidad = cantidad;
-            int posicion = spUbicacion.getSelectedItemPosition();
-            if (!ubicacionesMultiples && posicion == 1 && (tieneInventario || r.cantidad != null)) {
-                r.ubicacionId = 0L;
-            }
-            else if (!ubicacionesMultiples && posicion >= 2) r.ubicacionId = ubicaciones.get(posicion - 2).id;
         } else {
             r.cantidad = n(etCantidad) == null ? 1 : n(etCantidad);
             if (r.cantidad < 0) { tvError.setText("La cantidad no puede ser negativa"); return; }
             r.tipoControl = TIPOS[spTipo.getSelectedItemPosition()];
             r.prefijoCodigo = PREFIJOS[spPrefijo.getSelectedItemPosition()];
-            int posicion = spUbicacion.getSelectedItemPosition();
-            r.ubicacionId = posicion > 0 ? ubicaciones.get(posicion - 1).id : null;
         }
         guardarConImagen(r);
     }
