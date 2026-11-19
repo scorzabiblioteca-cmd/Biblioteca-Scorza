@@ -360,34 +360,7 @@ private void verificarIsbn() {
                         return;
                     }
 
-                    AgregarEjemplaresDialog.mostrar(LibroFormActivity.this, existente, (cantidad, dialog) -> {
-                        if (!agregandoUnidades.compareAndSet(false, true)) return;
-                        AgregarReq req = new AgregarReq();
-                        req.cantidad = cantidad;
-                        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(false);
-                        dialog.setCancelable(false);
-                        Api.call(ApiClient.api().agregarEjemplares(existente.id, req),
-                                new Api.Result<Agregado>() {
-                                    @Override public void ok(Agregado agregado, String mensaje) {
-                                        agregandoUnidades.set(false);
-                                        dialog.dismiss();
-                                        Toast.makeText(LibroFormActivity.this,
-                                                cantidad + (cantidad == 1 ? " ejemplar agregado" : " ejemplares agregados")
-                                                        + (agregado != null && agregado.libro != null
-                                                        ? ". Total actualizado: " + agregado.libro.total : ""),
-                                                Toast.LENGTH_LONG).show();
-                                        finish();
-                                    }
-
-                                    @Override public void error(String msg, int http, String code) {
-                                        agregandoUnidades.set(false);
-                                        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(true);
-                                        dialog.setCancelable(true);
-                                        tvError.setText(msg);
-                                    }
-                                });
-                    });
-
+                    mostrarOpcionesLibroExistente(existente);
                     return;
                 }
 
@@ -456,6 +429,51 @@ private void verificarIsbn() {
     );
 }
 
+    private void mostrarOpcionesLibroExistente(LibroRegistrado libro) {
+        String titulo = libro.titulo == null || libro.titulo.trim().isEmpty()
+                ? "Este ISBN ya está registrado."
+                : "\"" + libro.titulo + "\" ya está registrado.";
+        new AlertDialog.Builder(this)
+                .setTitle("Libro ya registrado")
+                .setMessage(titulo + "\n¿Qué deseas hacer?")
+                .setNegativeButton("Cancelar", null)
+                .setNeutralButton("Agregar ejemplares", (dialog, which) -> agregarEjemplares(libro))
+                .setPositiveButton("Editar libro", (dialog, which) -> {
+                    startActivity(new Intent(this, LibroFormActivity.class).putExtra("libroId", libro.id));
+                    finish();
+                })
+                .show();
+    }
+
+    private void agregarEjemplares(LibroRegistrado existente) {
+        AgregarEjemplaresDialog.mostrar(this, existente, (cantidad, dialog) -> {
+            if (!agregandoUnidades.compareAndSet(false, true)) return;
+            AgregarReq req = new AgregarReq();
+            req.cantidad = cantidad;
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(false);
+            dialog.setCancelable(false);
+            Api.call(ApiClient.api().agregarEjemplares(existente.id, req),
+                    new Api.Result<Agregado>() {
+                        @Override public void ok(Agregado agregado, String mensaje) {
+                            agregandoUnidades.set(false);
+                            dialog.dismiss();
+                            Toast.makeText(LibroFormActivity.this,
+                                    cantidad + (cantidad == 1 ? " ejemplar agregado" : " ejemplares agregados")
+                                            + (agregado != null && agregado.libro != null
+                                            ? ". Total actualizado: " + agregado.libro.total : ""),
+                                    Toast.LENGTH_LONG).show();
+                            finish();
+                        }
+
+                        @Override public void error(String msg, int http, String code) {
+                            agregandoUnidades.set(false);
+                            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(true);
+                            dialog.setCancelable(true);
+                            tvError.setText(msg);
+                        }
+                    });
+        });
+    }
 
     private void elegirOrigenFoto() {
         String[] opciones = editando || imagenUrl != null
