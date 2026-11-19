@@ -8,6 +8,7 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.View;
 import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -49,7 +50,8 @@ public class LibroFormActivity extends AppCompatActivity {
     private static final String[] PREFIJOS = {"LIB", "ESP"};
 
     private EditText etIsbn, etTitulo, etSubtitulo, etAutor, etEditorial, etAnio, etEdicion, etGrado, etCantidad, etDescripcion, etObs, etIdioma;
-    private Spinner spCategoria, spNivel, spTipo, spPrefijo;
+    private AutoCompleteTextView spCategoria;
+    private Spinner spNivel, spTipo, spPrefijo;
     private ImageView ivFoto;
     private TextView tvError, tvFotoEstado;
     private Button btnGuardar;
@@ -116,10 +118,14 @@ public class LibroFormActivity extends AppCompatActivity {
         btnGuardar = findViewById(R.id.btnGuardar);
         findViewById(R.id.btnVolver).setOnClickListener(v -> getOnBackPressedDispatcher().onBackPressed());
 
-        categorias.add(opcionCategoria("Seleccionar categoría"));
         categoriasAdapter = new ArrayAdapter<>(this, R.layout.spinner_filter_item, categorias);
         categoriasAdapter.setDropDownViewResource(R.layout.spinner_filter_dropdown_item);
         spCategoria.setAdapter(categoriasAdapter);
+        spCategoria.setThreshold(0);
+        spCategoria.setOnClickListener(v -> spCategoria.showDropDown());
+        spCategoria.setOnFocusChangeListener((view, tieneFoco) -> {
+            if (tieneFoco) spCategoria.showDropDown();
+        });
         spNivel.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, NIVELES));
         spTipo.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, new String[]{"Control por cantidad", "Control individual (QR por ejemplar)"}));
         spPrefijo.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, new String[]{"Prefijo LIB (libro común)", "Prefijo ESP (libro especial)"}));
@@ -171,8 +177,8 @@ public class LibroFormActivity extends AppCompatActivity {
         findViewById(R.id.btnFoto).setOnClickListener(v -> elegirOrigenFoto());
         btnGuardar.setOnClickListener(v -> guardar());
         observarCambiosSinGuardar(etIsbn, etTitulo, etSubtitulo, etAutor, etEditorial,
-                etAnio, etEdicion, etGrado, etCantidad, etDescripcion, etObs, etIdioma);
-        observarCambiosSinGuardar(spCategoria, spNivel, spPrefijo);
+                etAnio, etEdicion, etGrado, etCantidad, etDescripcion, etObs, etIdioma, spCategoria);
+        observarCambiosSinGuardar(spNivel, spPrefijo);
         trackingChanges = true;
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
             @Override public void handleOnBackPressed() {
@@ -281,7 +287,6 @@ public class LibroFormActivity extends AppCompatActivity {
                 boolean seguimientoAnterior = trackingChanges;
                 trackingChanges = false;
                 categorias.clear();
-                categorias.add(opcionCategoria("Seleccionar categoría"));
                 for (Categoria categoria : data) {
                     if (categoria == null || categoria.nombre == null || categoria.nombre.trim().isEmpty()) {
                         incompletas = true;
@@ -306,19 +311,24 @@ public class LibroFormActivity extends AppCompatActivity {
         categoriaPendiente = nombre;
         if (spCategoria == null || categoriasAdapter == null) return;
         if (nombre == null || nombre.trim().isEmpty()) {
-            spCategoria.setSelection(0);
+            if (!spCategoria.getText().toString().isEmpty()) spCategoria.setText("", false);
             return;
         }
-        for (int i = 1; i < categorias.size(); i++) {
-            if (nombre.trim().equalsIgnoreCase(categorias.get(i).nombre.trim())) {
-                spCategoria.setSelection(i);
-                return;
+        String categoria = nombre.trim();
+        boolean encontrada = false;
+        for (Categoria existente : categorias) {
+            if (categoria.equalsIgnoreCase(existente.nombre.trim())) {
+                categoria = existente.nombre;
+                encontrada = true;
+                break;
             }
         }
-        Categoria pendiente = opcionCategoria(nombre.trim());
-        categorias.add(pendiente);
-        categoriasAdapter.notifyDataSetChanged();
-        spCategoria.setSelection(categorias.size() - 1);
+        if (!encontrada) {
+            categorias.add(opcionCategoria(categoria));
+            categoriasAdapter.notifyDataSetChanged();
+        }
+        String valor = categoria.trim();
+        if (!valor.equals(spCategoria.getText().toString())) spCategoria.setText(valor, false);
     }
 
     private static Categoria opcionCategoria(String nombre) {
@@ -328,10 +338,12 @@ public class LibroFormActivity extends AppCompatActivity {
     }
 
     private String categoriaSeleccionada() {
-        Object seleccion = spCategoria.getSelectedItem();
-        if (spCategoria.getSelectedItemPosition() <= 0 || !(seleccion instanceof Categoria)) return null;
-        String nombre = ((Categoria) seleccion).nombre;
-        return nombre == null || nombre.trim().isEmpty() ? null : nombre.trim();
+        String texto = spCategoria.getText().toString().trim();
+        if (texto.isEmpty()) return null;
+        for (Categoria categoria : categorias) {
+            if (categoria.nombre.equalsIgnoreCase(texto)) return categoria.nombre.trim();
+        }
+        return null;
     }
 
 private void verificarIsbn() {
